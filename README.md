@@ -4,7 +4,7 @@ Coming soon
 
 # Installation
 
-Comint soon
+Coming soon
 
 # Quickstart
 
