@@ -161,7 +161,7 @@ namespace AirtableApiClient
         public async Task<AirtableCreateUpdateReplaceRecordResponse> CreateRecord(
             string tableName,
             Fields fields,
-            bool typecast = true)
+            bool typecast = false)
         {
             Task<AirtableCreateUpdateReplaceRecordResponse> task = CreateUpdateReplaceRecord(tableName, fields, OperationType.CREATE, typecast: typecast);
             var response = await task;
@@ -181,7 +181,7 @@ namespace AirtableApiClient
             string tableName,
             Fields fields,
             string id,
-            bool typeCast = true)
+            bool typeCast = false)
         {
             Task<AirtableCreateUpdateReplaceRecordResponse> task = CreateUpdateReplaceRecord(tableName, fields, OperationType.UPDATE, id, typeCast);
             var response = await task;
@@ -201,7 +201,7 @@ namespace AirtableApiClient
             string tableName,
             Fields fields,
             string id,
-            bool typeCast = true)
+            bool typeCast = false)
         {
             Task<AirtableCreateUpdateReplaceRecordResponse> task = CreateUpdateReplaceRecord(tableName, fields, OperationType.REPLACE, id, typeCast);
             var response = await task;
