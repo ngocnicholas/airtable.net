@@ -7,8 +7,9 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
+nuget package coming soon! In the meantime:
 
-## Requirement
+## Requirements
 
 Operating System: Windows 10 or newer
 .NET Framework 4.5.2 or newer
@@ -27,16 +28,15 @@ AirtableClientApi.dll will be ready to use by referencing it in your project.
 
 Download Airtable.net c# source files from github.com. To compile to an assembly, simply create a new project in visual studio 
 of type Class Library and add these source files to the project. You will have to reference the following assemblies in order to 
-successfully compile as a lot of library functions that are used in Airtable.net are defined there. Newtonsoft.Json.dll.9.0.1 or
-newer can be downloaded from http://www.newtonsoft.com/json or from https://www.nuget.org/packages/newtonsoft.json/
+successfully compile as a lot of library functions that are used in Airtable.net are defined there.
 
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\Microsoft.CSharp.dll
-C:\Projects\airtable.net\packages\Newtonsoft.Json.9.0.1\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.dll
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Core.dll
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Net.Http.dll
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Web.dll
-C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Web.Extensions.dll
+Newtonsoft.Json.dll.9.0.1 or newer can be downloaded from http://www.newtonsoft.com/json or from https://www.nuget.org/packages/newtonsoft.json/
+.NETFramework\v4.5.2\Microsoft.CSharp.dll
+.NETFramework\v4.5.2\System.dll
+.NETFramework\v4.5.2\System.Core.dll
+.NETFramework\v4.5.2\System.Net.Http.dll
+.NETFramework\v4.5.2\System.Web.dll
+.NETFramework\v4.5.2\System.Web.Extensions.dll
 
 # Quickstart
 
