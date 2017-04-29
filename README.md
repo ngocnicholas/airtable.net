@@ -7,7 +7,7 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the lastest nuget package Airtable.0.9.0.0.nupkg
+Install the latest nuget package Airtable.0.9.0.0.nupkg
 
 ## Requirements
 
