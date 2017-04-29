@@ -3,3 +3,7 @@ bin/
 obj/
 packages/
 AirtableApiClientWiki_SinglePage.md
+*.nuspec
+*.nupkg
+*.png
+*.txt
