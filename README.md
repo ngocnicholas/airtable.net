@@ -7,22 +7,13 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-nuget package coming soon! In the meantime:
+Install the lastest nuget package Airtable.0.9.0.0.nupkg
 
 ## Requirements
 
-Operating System: Windows 10 or newer
 .NET Framework 4.5.2 or newer
-Microsoft Visual Studio 2015 or newer (only if you build AirtableApiClient.dll from source files.)
-
-## Use AirtableApiClient.dll
-
-If you downloaded AirtableApiClient.dll directly from github.com, register the dll using regsvr32. You then can make use of it by 
-referencing to it in your project.
-The .dll was built for an x86 machine so it can used in either an x86 or x64 computer.
-
-If you build AirtableApiClient.dll from the instructions described in the "Build AirtableClientApi.dll" section, your 
-AirtableClientApi.dll will be ready to use by referencing it in your project.
+Operating System: Windows 10 or newer
+Microsoft Visual Studio 2015 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
 
 ## Build AirtableApiClient.dll
 
