@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BE6D5110-124C-446D-BE50-3FFFD197F8DC}</ProjectGuid>
+    <ProjectGuid>{9A0F05CF-701E-4558-956A-C095FAAC2C91}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AirtableApiClient</RootNamespace>
