@@ -275,7 +275,7 @@ namespace AirtableApiClient
             IEnumerable<Sort> sort,
             string view)
         {
-            var uriBuilder = new UriBuilder(AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName));
+            var uriBuilder = new UriBuilder(AIRTABLE_API_URL + BaseId + "/" + tableName);
 
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
 
