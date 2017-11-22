@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web;
-using Newtonsoft.Json;                  // for JsonConvert
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq; // for JsonConvert
 
 namespace AirtableApiClient
 {
@@ -99,7 +99,7 @@ namespace AirtableApiClient
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await Client.SendAsync(request);
-            AirtableApiException error = CheckForAirtableException(response);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
@@ -138,7 +138,7 @@ namespace AirtableApiClient
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
             var response = await Client.SendAsync(request);
-            AirtableApiException error = CheckForAirtableException(response);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse(error);
@@ -234,7 +234,7 @@ namespace AirtableApiClient
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await Client.SendAsync(request);
-            AirtableApiException error = CheckForAirtableException(response);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableDeleteRecordResponse(error);
@@ -399,7 +399,7 @@ namespace AirtableApiClient
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await Client.SendAsync(request);
 
-            AirtableApiException error = CheckForAirtableException(response);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
@@ -419,7 +419,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        private AirtableApiException CheckForAirtableException(HttpResponseMessage response)
+        private async Task<AirtableApiException> CheckForAirtableException(HttpResponseMessage response)
         {
             switch (response.StatusCode)
             {
@@ -445,11 +445,35 @@ namespace AirtableApiClient
                     return (new AirtableRequestEntityTooLargeException());
 
                 case (System.Net.HttpStatusCode)422:        // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
-                    return (new AirtableInvalidRequestException());
+                    var error = await ReadResponseErrorMessage(response);
+                    return (new AirtableInvalidRequestException(error));
 
                 default:
                     throw new AirtableUnrecognizedException(response.StatusCode);
             }
+        }
+
+        //----------------------------------------------------------------------------
+        // 
+        // string
+        // 
+        // attempts to read the error message in the response body.
+        // 
+        //----------------------------------------------------------------------------
+
+        private static async Task<string> ReadResponseErrorMessage(HttpResponseMessage response)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrEmpty(content))
+            {
+                return null;
+            }
+
+            var json = JObject.Parse(content);
+            var errorMessage = json["error"]?["message"]?.Value<string>();
+
+            return errorMessage;
         }
 
     }   // end class
