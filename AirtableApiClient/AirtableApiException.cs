@@ -87,11 +87,14 @@ namespace AirtableApiClient
 
     public class AirtableInvalidRequestException : AirtableApiException
     {
-        public AirtableInvalidRequestException() : base(
+        public string DetailedErrorMessage { get; } 
+
+        public AirtableInvalidRequestException(string errorMessage = null) : base(
             (HttpStatusCode)422, 
             "Invalid Request", 
             "The request data is invalid. This includes most of the base-specific validations. You will receive a detailed error message and code pointing to the exact issue.")
         {
+            DetailedErrorMessage = errorMessage;
         }
     }
 }
