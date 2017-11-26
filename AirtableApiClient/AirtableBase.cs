@@ -356,7 +356,7 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         // 
-        // AirtableBase.AirtableCreateUpdateReplaceRecordResponse
+        // AirtableBase.CreateUpdateReplaceRecord
         // 
         // worker function which does the real work for creating, updating, or replacing a record
         // 
@@ -455,7 +455,7 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         // 
-        // string
+        // AirtableBase.ReadResponseErrorMessage
         // 
         // attempts to read the error message in the response body.
         // 
