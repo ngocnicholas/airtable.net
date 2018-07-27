@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -42,7 +43,8 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        internal AirtableBase(
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public AirtableBase(
             string apiKey, 
             string baseId, 
             DelegatingHandler delegatingHandler)    // specific handler for unit test purpose
