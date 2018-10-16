@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
+using System.Web;       // for HttpUtility
 using Newtonsoft.Json;
 
 namespace AirtableApiClient
@@ -34,35 +34,53 @@ namespace AirtableApiClient
 
 
     internal class QueryParamHelper
-    { 
-        static internal void 
+    {
+        static internal string
         FlattenSortParam(
-            IEnumerable<Sort> sort, 
-            NameValueCollection query)
+            IEnumerable<Sort> sort)
         {
             int i = 0;
+            string flattenSortParam = string.Empty;
+            string toInsert = string.Empty;
             foreach (var sortItem in sort)
             {
-                query["sort[" + i + "][field]"] = sortItem.Field;                               // name of fields to be sorted
-                query["sort[" + i + "][direction]"] = sortItem.Direction.ToString().ToLower();  // direction for sorting
+                if (string.IsNullOrEmpty(toInsert) && i > 0)
+                {
+                    toInsert = "&";
+                }
+
+                // Name of fields to be sorted
+                string param = $"sort[{i}][field]";
+                flattenSortParam += $"{toInsert}{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(sortItem.Field)}";
+
+                // Direction for sorting
+                param = $"sort[{i}][direction]";
+                flattenSortParam += $"&{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(sortItem.Direction.ToString().ToLower())}";
                 i++;
             }
+            return flattenSortParam;
         }
 
 
-        static internal void
+        static internal string 
         FlattenFieldsParam(
-            IEnumerable<string> fields, 
-            NameValueCollection query)
+            IEnumerable<string> fields)
         {
             int i = 0;
+            string flattenFieldsParam = string.Empty;
+            string toInsert = string.Empty;
             foreach (var fieldName in fields)
             {
-                query["fields[" + i + "]"] = fieldName;
+                if (string.IsNullOrEmpty(toInsert) && i > 0)
+                {
+                    toInsert = "&";
+                }
+                string param = $"fields[{i}]";
+                flattenFieldsParam += $"{toInsert}{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(fieldName)}";
                 i++;
             }
+            return flattenFieldsParam;
         }
 
-    }
-
-}
+    }   // end class
+}   // end namespace 
