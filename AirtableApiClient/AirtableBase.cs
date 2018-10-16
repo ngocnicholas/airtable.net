@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Web;
+using System.Web;           // for HttpUtility
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq; // for JsonConvert
 
@@ -14,7 +14,7 @@ namespace AirtableApiClient
     {
         private enum OperationType { CREATE, UPDATE, REPLACE };
 
-        private const int MAX_PAGE_IZE = 100;
+        private const int MAX_PAGE_SIZE = 100;
 
         private const string AIRTABLE_API_URL = "https://api.airtable.com/v0/";
 
@@ -43,8 +43,8 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
 
         internal AirtableBase(
-            string apiKey, 
-            string baseId, 
+            string apiKey,
+            string baseId,
             DelegatingHandler delegatingHandler)    // specific handler for unit test purpose
         {
             if (String.IsNullOrEmpty(apiKey))
@@ -66,7 +66,7 @@ namespace AirtableApiClient
             else
             {
                 Client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
-            }           
+            }
 
             Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
@@ -277,43 +277,31 @@ namespace AirtableApiClient
         {
             var uriBuilder = new UriBuilder(AIRTABLE_API_URL + BaseId + "/" + tableName);
 
-            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-
             if (!string.IsNullOrEmpty(offset))
             {
-                query["offset"] = offset;
+                AddParametersToQuery(ref uriBuilder, $"offset={HttpUtility.UrlEncode(offset)}");
             }
 
             if (fields != null)
             {
-                QueryParamHelper.FlattenFieldsParam(fields, query);
+                string flattenFieldsParam = QueryParamHelper.FlattenFieldsParam(fields);
+                AddParametersToQuery(ref uriBuilder, flattenFieldsParam);
             }
 
             if (!string.IsNullOrEmpty(filterByFormula))
             {
-                query["filterByFormula"] = filterByFormula;
+                AddParametersToQuery(ref uriBuilder, $"filterByFormula={HttpUtility.UrlEncode(filterByFormula)}");
             }
 
             if (sort != null)
             {
-                QueryParamHelper.FlattenSortParam(sort, query);
+                string flattenSortParam = QueryParamHelper.FlattenSortParam(sort);
+                AddParametersToQuery(ref uriBuilder, flattenSortParam);
             }
 
             if (!string.IsNullOrEmpty(view))
             {
-                query["view"] = view;
-            }
-
-            if (query.Count > 0)
-            {
-                if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
-                {
-                    uriBuilder.Query = uriBuilder.Query.Substring(1) + "&" + query.ToString();
-                }
-                else
-                {
-                    uriBuilder.Query = query.ToString();
-                }
+                AddParametersToQuery(ref uriBuilder, $"view={HttpUtility.UrlEncode(view)}");
             }
 
             if (maxRecords != null)
@@ -322,35 +310,39 @@ namespace AirtableApiClient
                 {
                     throw new ArgumentException("Maximum Number of Records must be > 0", "maxRecords");
                 }
-
-                if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
-                {
-                    uriBuilder.Query = uriBuilder.Query.Substring(1) + "&maxRecords=" + maxRecords;
-                }
-                else
-                {
-                    uriBuilder.Query = $"maxRecords={maxRecords}";
-                }
+                AddParametersToQuery(ref uriBuilder, $"maxRecords={maxRecords}");
             }
 
             if (pageSize != null)
             {
-                if (pageSize <= 0 || pageSize > MAX_PAGE_IZE)
+                if (pageSize <= 0 || pageSize > MAX_PAGE_SIZE)
                 {
                     throw new ArgumentException("Page Size must be > 0 and <= 100", "pageSize");
                 }
-
-                if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
-                {
-                    uriBuilder.Query = uriBuilder.Query.Substring(1) + "&pageSize=" + pageSize;
-                }
-                else
-                {
-                    uriBuilder.Query = $"pageSize={pageSize}";
-                }
+                AddParametersToQuery(ref uriBuilder, $"pageSize={pageSize}");
             }
-
             return uriBuilder.Uri;
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
+        // AirtableBase.AddParametersToQuery
+        // 
+        // Helper function for URI parameters
+        // 
+        //----------------------------------------------------------------------------
+
+        private void AddParametersToQuery(ref UriBuilder uriBuilder, string queryToAppend)
+        {
+            if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
+            {
+                uriBuilder.Query = uriBuilder.Query.Substring(1) + "&" + queryToAppend;
+            }
+            else
+            {
+                uriBuilder.Query = queryToAppend;
+            }
         }
 
 
@@ -452,6 +444,7 @@ namespace AirtableApiClient
                     throw new AirtableUnrecognizedException(response.StatusCode);
             }
         }
+
 
         //----------------------------------------------------------------------------
         // 
