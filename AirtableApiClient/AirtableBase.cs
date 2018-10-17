@@ -4,9 +4,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Web;           // for HttpUtility
+using System.Web;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq; // for JsonConvert
+using Newtonsoft.Json.Linq;
 
 namespace AirtableApiClient
 {
