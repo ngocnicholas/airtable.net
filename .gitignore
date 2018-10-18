@@ -3,3 +3,4 @@ bin/
 obj/
 *.nuspec
 *.nupkg
+*.txt

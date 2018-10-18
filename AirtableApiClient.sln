@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirtableApiClient", "AirtableApiClient\AirtableApiClient.csproj", "{9A0F05CF-701E-4558-956A-C095FAAC2C91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AirtableApiClient", "AirtableApiClient\AirtableApiClient.csproj", "{9A0F05CF-701E-4558-956A-C095FAAC2C91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirtableApiClient.Tests", "AirtableApiClient.Tests\AirtableApiClient.Tests.csproj", "{19EC2479-BBC2-4AD0-818C-B3012893220F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9A0F05CF-701E-4558-956A-C095FAAC2C91} = {9A0F05CF-701E-4558-956A-C095FAAC2C91}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +27,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C71B7A95-5EFA-4326-B079-09DD9355A3DF}
 	EndGlobalSection
 EndGlobal
