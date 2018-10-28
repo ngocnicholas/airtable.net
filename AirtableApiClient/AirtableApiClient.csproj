@@ -13,6 +13,13 @@
 
   <PropertyGroup>
   <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  <Authors>Ngoc Nicholas</Authors>
+  <PackageProjectUrl>https://github.com/ngocnicholas/airtable.net</PackageProjectUrl>
+  <PackageIconUrl>https://github.com/ngocnicholas/AirtableUsefulStuff/blob/master/airtable_64x64.png</PackageIconUrl>
+  <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
+  <PackageReleaseNotes>Migragte to .NET Standard 2.0 specification</PackageReleaseNotes>
+  <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
+  <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
