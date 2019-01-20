@@ -28,6 +28,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="readme.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

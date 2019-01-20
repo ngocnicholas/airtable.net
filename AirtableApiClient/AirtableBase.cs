@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AirtableApiClient
 {
-    public class AirtableBase : IDisposable
+    public partial class AirtableBase : IDisposable
     {
         private enum OperationType { CREATE, UPDATE, REPLACE };
 
@@ -97,15 +96,14 @@ namespace AirtableApiClient
 
             AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
-            var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            var response = await Client.SendAsync(request);
-            AirtableApiException error = await CheckForAirtableException(response);
+            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Get);
+            AirtableApiException error = retryManager.RetrySend();
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
             }
 
-            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
             recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
             return new AirtableListRecordsResponse(recordList);
@@ -134,17 +132,15 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            AirtableRecord airtableRecord = null;
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
-            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
-            var response = await Client.SendAsync(request);
-            AirtableApiException error = await CheckForAirtableException(response);
+            var uri = new Uri(AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id);
+            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Get);
+            AirtableApiException error = retryManager.RetrySend();
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse(error);
             }
-            var responseBody = await response.Content.ReadAsStringAsync();
-            airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
+            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
+            var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableRetrieveRecordResponse(airtableRecord);
         }
@@ -231,15 +227,14 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
-            var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
-            var response = await Client.SendAsync(request);
-            AirtableApiException error = await CheckForAirtableException(response);
+            var uri = new Uri(AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id);
+            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Delete);
+            AirtableApiException error = retryManager.RetrySend();
             if (error != null)
             {
                 return new AirtableDeleteRecordResponse(error);
             }
-            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
             var deletedRecord = JsonConvert.DeserializeObject<AirtableDeletedRecord>(responseBody);
             return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
@@ -384,19 +379,16 @@ namespace AirtableApiClient
                 default:
                     throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, .REPLACE, OperationType.CREATE }", "operationType");
             }
-
+            var uri = new Uri(uriStr);
             var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };
             var json = JsonConvert.SerializeObject(fieldsAndTypecast, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            var request = new HttpRequestMessage(httpMethod, uriStr);
-            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await Client.SendAsync(request);
-
-            AirtableApiException error = await CheckForAirtableException(response);
+            var retryManager = new SenderWithRetries(this, uri, httpMethod, json);
+            AirtableApiException error = retryManager.RetrySend();
             if (error != null)
             {
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
             }
-            var responseBody = await response.Content.ReadAsStringAsync();
+            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
             var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
@@ -436,9 +428,12 @@ namespace AirtableApiClient
                 case System.Net.HttpStatusCode.RequestEntityTooLarge:
                     return (new AirtableRequestEntityTooLargeException());
 
-                case (System.Net.HttpStatusCode)422:        // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
+                case (System.Net.HttpStatusCode)422:    // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
                     var error = await ReadResponseErrorMessage(response);
                     return (new AirtableInvalidRequestException(error));
+
+                case (System.Net.HttpStatusCode)429:    // There is no HttpStatusCode.TooManyRequests defined in HttpStatusCode Enumeration.
+                    return (new AirtableTooManyRequestsException());
 
                 default:
                     throw new AirtableUnrecognizedException(response.StatusCode);
