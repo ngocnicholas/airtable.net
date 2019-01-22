@@ -24,7 +24,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public void InitRetrySendParameters(bool noRetryIfRateLimited, int retryDelayIfRateLimited)
+        public void InitRetrySendParameters(int retryDelayIfRateLimited, bool noRetryIfRateLimited=false)
         {
             this.noRetryIfRateLimited = noRetryIfRateLimited;
             this.retryDelayIfRateLimited = Math.Max(MIN_RETRY_DELAY_IF_RATE_LIMITED, retryDelayIfRateLimited);

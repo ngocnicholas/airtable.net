@@ -25,7 +25,7 @@ namespace AirtableApiClient.Tests
         {
             fakeResponseHandler = new FakeResponseHandler();
             airtableBase = new AirtableBase(API_KEY, APPLICATION_ID, fakeResponseHandler);
-            airtableBase.InitRetrySendParameters(false, 1000);
+            airtableBase.InitRetrySendParameters(1000);
             fakeResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
 
