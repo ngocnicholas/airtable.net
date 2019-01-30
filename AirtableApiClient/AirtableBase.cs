@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,16 +10,38 @@ using Newtonsoft.Json.Linq;
 
 namespace AirtableApiClient
 {
-    public partial class AirtableBase : IDisposable
+    public class AirtableBase : IDisposable
     {
         private enum OperationType { CREATE, UPDATE, REPLACE };
 
         private const int MAX_PAGE_SIZE = 100;
+        public const int MAX_RETRIES = 5;
+        public const int MIN_RETRY_DELAY_IF_RATE_LIMITED = 1000;   // 1 second
 
         private const string AIRTABLE_API_URL = "https://api.airtable.com/v0/";
 
         private readonly string BaseId;
         private readonly HttpClient Client;
+        private readonly RetryHandler retryHandler;
+
+        public bool NoRetryIfRateLimited { get; set; }
+
+        private int retryDelayIfRateLimited;
+        public int RetryDelayIfRateLimited
+        {
+            get { return retryDelayIfRateLimited; }
+            set
+            {
+                if (value < MIN_RETRY_DELAY_IF_RATE_LIMITED)
+                {
+                    throw new ArgumentException(
+                        String.Format("Retry Delay cannot be less than {0} ms.", MIN_RETRY_DELAY_IF_RATE_LIMITED), 
+                        "RetryDelayIfRateLimited");
+                }
+                retryDelayIfRateLimited = value;
+            }
+        }
+
 
         //----------------------------------------------------------------------------
         // 
@@ -31,6 +54,12 @@ namespace AirtableApiClient
         {
             // No delegating handler is given; a normal HttpClient will be constructed
             // to communicate with Airtable.
+
+            // Allow retries by default.
+            NoRetryIfRateLimited = false;
+
+            // Start with the minimum delay then increase exponentially with a base of 2.
+            RetryDelayIfRateLimited = MIN_RETRY_DELAY_IF_RATE_LIMITED;
         }
 
 
@@ -67,6 +96,8 @@ namespace AirtableApiClient
                 Client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
             }
 
+            retryHandler = new RetryHandler(this, Client);
+
             Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
@@ -93,17 +124,16 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-
             AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
-            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Get);
-            AirtableApiException error = retryManager.RetrySend();
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var response = await retryHandler.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
             }
-
-            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
+            var responseBody = await response.Content.ReadAsStringAsync();
             recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
             return new AirtableListRecordsResponse(recordList);
@@ -132,14 +162,15 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            var uri = new Uri(AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id);
-            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Get);
-            AirtableApiException error = retryManager.RetrySend();
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
+            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
+            var response = await retryHandler.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse(error);
             }
-            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
+            var responseBody = await response.Content.ReadAsStringAsync();
             var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableRetrieveRecordResponse(airtableRecord);
@@ -227,14 +258,15 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            var uri = new Uri(AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id);
-            var retryManager = new SenderWithRetries(this, uri, HttpMethod.Delete);
-            AirtableApiException error = retryManager.RetrySend();
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
+            var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
+            var response = await retryHandler.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableDeleteRecordResponse(error);
             }
-            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
+            var responseBody = await response.Content.ReadAsStringAsync();
             var deletedRecord = JsonConvert.DeserializeObject<AirtableDeletedRecord>(responseBody);
             return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
@@ -379,16 +411,19 @@ namespace AirtableApiClient
                 default:
                     throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, .REPLACE, OperationType.CREATE }", "operationType");
             }
-            var uri = new Uri(uriStr);
+
             var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };
             var json = JsonConvert.SerializeObject(fieldsAndTypecast, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-            var retryManager = new SenderWithRetries(this, uri, httpMethod, json);
-            AirtableApiException error = retryManager.RetrySend();
+            var request = new HttpRequestMessage(httpMethod, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await retryHandler.SendAsync(request);
+
+            AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
             }
-            var responseBody = await retryManager.Response.Content.ReadAsStringAsync();
+            var responseBody = await response.Content.ReadAsStringAsync();
             var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
