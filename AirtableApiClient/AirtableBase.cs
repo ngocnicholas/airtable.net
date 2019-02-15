@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -15,31 +14,23 @@ namespace AirtableApiClient
         private enum OperationType { CREATE, UPDATE, REPLACE };
 
         private const int MAX_PAGE_SIZE = 100;
-        public const int MAX_RETRIES = 5;
-        public const int MIN_RETRY_DELAY_IF_RATE_LIMITED = 1000;   // 1 second
 
         private const string AIRTABLE_API_URL = "https://api.airtable.com/v0/";
 
         private readonly string BaseId;
-        private readonly HttpClient Client;
-        private readonly RetryHandler retryHandler;
+        private readonly HttpClientWithRetries httpClientWithRetries;
 
-        public bool NoRetryIfRateLimited { get; set; }
-
-        private int retryDelayIfRateLimited;
-        public int RetryDelayIfRateLimited
+        public bool ShouldNotRetryIfRateLimited
         {
-            get { return retryDelayIfRateLimited; }
-            set
-            {
-                if (value < MIN_RETRY_DELAY_IF_RATE_LIMITED)
-                {
-                    throw new ArgumentException(
-                        String.Format("Retry Delay cannot be less than {0} ms.", MIN_RETRY_DELAY_IF_RATE_LIMITED), 
-                        "RetryDelayIfRateLimited");
-                }
-                retryDelayIfRateLimited = value;
-            }
+            get { return httpClientWithRetries.ShouldNotRetryIfRateLimited; }
+            set { httpClientWithRetries.ShouldNotRetryIfRateLimited = value; }
+        }
+
+        public int RetryDelayMilliSecondsIfRateLimited
+        {
+            get { return httpClientWithRetries.RetryDelayMilliSecondsIfRateLimited; }
+            set { httpClientWithRetries.RetryDelayMilliSecondsIfRateLimited = value; }
+
         }
 
 
@@ -54,12 +45,6 @@ namespace AirtableApiClient
         {
             // No delegating handler is given; a normal HttpClient will be constructed
             // to communicate with Airtable.
-
-            // Allow retries by default.
-            NoRetryIfRateLimited = false;
-
-            // Start with the minimum delay then increase exponentially with a base of 2.
-            RetryDelayIfRateLimited = MIN_RETRY_DELAY_IF_RATE_LIMITED;
         }
 
 
@@ -86,19 +71,7 @@ namespace AirtableApiClient
             }
 
             BaseId = baseId;
-
-            if (delegatingHandler == null)
-            {
-                Client = new HttpClient();                      // for communicating with Airtable
-            }
-            else
-            {
-                Client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
-            }
-
-            retryHandler = new RetryHandler(this, Client);
-
-            Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKey);
         }
 
 
@@ -127,7 +100,7 @@ namespace AirtableApiClient
             AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            var response = await retryHandler.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
@@ -164,7 +137,7 @@ namespace AirtableApiClient
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
-            var response = await retryHandler.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
@@ -260,7 +233,7 @@ namespace AirtableApiClient
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
-            var response = await retryHandler.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
@@ -280,7 +253,7 @@ namespace AirtableApiClient
 
         public void Dispose()
         {
-            Client.Dispose();
+            httpClientWithRetries.Dispose();
         }
 
 
@@ -416,7 +389,7 @@ namespace AirtableApiClient
             var json = JsonConvert.SerializeObject(fieldsAndTypecast, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             var request = new HttpRequestMessage(httpMethod, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await retryHandler.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
 
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
