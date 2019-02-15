@@ -26,10 +26,10 @@ namespace AirtableApiClient
             set { httpClientWithRetries.ShouldNotRetryIfRateLimited = value; }
         }
 
-        public int RetryDelayMilliSecondsIfRateLimited
+        public int RetryDelayMillisecondsIfRateLimited
         {
-            get { return httpClientWithRetries.RetryDelayMilliSecondsIfRateLimited; }
-            set { httpClientWithRetries.RetryDelayMilliSecondsIfRateLimited = value; }
+            get { return httpClientWithRetries.RetryDelayMillisecondsIfRateLimited; }
+            set { httpClientWithRetries.RetryDelayMillisecondsIfRateLimited = value; }
 
         }
 

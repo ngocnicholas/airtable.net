@@ -10,13 +10,13 @@ namespace AirtableApiClient
     internal class HttpClientWithRetries : IDisposable
     {
         public const int MAX_RETRIES = 3;
-        public const int MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED = 2000;   // 1 second
+        public const int MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED = 2000;   // 2 second
         public bool ShouldNotRetryIfRateLimited { get; set; }
 
-        private int retryDelayMilliSecondsIfRateLimited;
-        public int RetryDelayMilliSecondsIfRateLimited
+        private int retryDelayMillisecondsIfRateLimited;
+        public int RetryDelayMillisecondsIfRateLimited
         {
-            get { return retryDelayMilliSecondsIfRateLimited; }
+            get { return retryDelayMillisecondsIfRateLimited; }
             set
             {
                 if (value < MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED)
@@ -25,13 +25,10 @@ namespace AirtableApiClient
                         String.Format("Retry Delay cannot be less than {0} ms.", MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED),
                         "RetryDelayMilliSecondsIfRateLimited");
                 }
-                retryDelayMilliSecondsIfRateLimited = value;
+                retryDelayMillisecondsIfRateLimited = value;
             }
         }
 
-        private HttpMethod method;
-        private string content;
-        private Uri requestUri;
         private readonly HttpClient client;
 
 
@@ -48,7 +45,7 @@ namespace AirtableApiClient
             ShouldNotRetryIfRateLimited = false;
 
             // Start with the minimum delay then increase exponentially with a base of 2.
-            RetryDelayMilliSecondsIfRateLimited = MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED;
+            RetryDelayMillisecondsIfRateLimited = MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED;
 
             if (delegatingHandler == null)
             {
@@ -85,18 +82,17 @@ namespace AirtableApiClient
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
-            method = request.Method;
-            requestUri = request.RequestUri;
-            content = null;
+            string content = null;
 
-            // Store content so that we can regenerate HttpRequestMessage in case
+            // Content will be disposed once used.
+            // Store it so that we can regenerate HttpRequestMessage in case
             // of retries.
             if (request.Content != null)
             {
                 content = await request.Content.ReadAsStringAsync();
             }
 
-            int dueTimeDelay = RetryDelayMilliSecondsIfRateLimited;
+            int dueTimeDelay = RetryDelayMillisecondsIfRateLimited;
             int retries = 0;
 
             HttpResponseMessage response = await client.SendAsync(request);
@@ -106,7 +102,7 @@ namespace AirtableApiClient
                 !ShouldNotRetryIfRateLimited)
             {
                 await Task.Delay(dueTimeDelay);
-                var requestRegenerated = RegenerateRequest();
+                var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri, content);
                 response = await client.SendAsync(requestRegenerated);
                 retries++;
                 dueTimeDelay *= 2;
@@ -119,12 +115,12 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         // 
         // HttpClientWithRetries.RegenerateRequest
-        //  A new HttpRequestMessage needs to be generated for each retry
+        //      A new HttpRequestMessage needs to be generated for each retry
         // because the same message cannot be used more than once.
         // 
         //----------------------------------------------------------------------------
 
-        private HttpRequestMessage RegenerateRequest()
+        private HttpRequestMessage RegenerateRequest(HttpMethod method, Uri requestUri, string content)
         {
             var request = new HttpRequestMessage(method, requestUri);
             if (content != null)
@@ -133,5 +129,6 @@ namespace AirtableApiClient
             }
             return request;
         }
+
     }   // end class
 }   // end namespace
