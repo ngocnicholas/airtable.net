@@ -25,6 +25,8 @@ namespace AirtableApiClient.Tests
         {
             fakeResponseHandler = new FakeResponseHandler();
             airtableBase = new AirtableBase(API_KEY, APPLICATION_ID, fakeResponseHandler);
+            airtableBase.ShouldNotRetryIfRateLimited = false;
+            airtableBase.RetryDelayMillisecondsIfRateLimited = 2000;
             fakeResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
 

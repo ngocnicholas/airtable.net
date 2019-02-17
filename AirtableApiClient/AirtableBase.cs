@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,7 +18,21 @@ namespace AirtableApiClient
         private const string AIRTABLE_API_URL = "https://api.airtable.com/v0/";
 
         private readonly string BaseId;
-        private readonly HttpClient Client;
+        private readonly HttpClientWithRetries httpClientWithRetries;
+
+        public bool ShouldNotRetryIfRateLimited
+        {
+            get { return httpClientWithRetries.ShouldNotRetryIfRateLimited; }
+            set { httpClientWithRetries.ShouldNotRetryIfRateLimited = value; }
+        }
+
+        public int RetryDelayMillisecondsIfRateLimited
+        {
+            get { return httpClientWithRetries.RetryDelayMillisecondsIfRateLimited; }
+            set { httpClientWithRetries.RetryDelayMillisecondsIfRateLimited = value; }
+
+        }
+
 
         //----------------------------------------------------------------------------
         // 
@@ -58,17 +71,7 @@ namespace AirtableApiClient
             }
 
             BaseId = baseId;
-
-            if (delegatingHandler == null)
-            {
-                Client = new HttpClient();                      // for communicating with Airtable
-            }
-            else
-            {
-                Client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
-            }
-
-            Client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKey);
         }
 
 
@@ -94,17 +97,15 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-
             AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            var response = await Client.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
             }
-
             var responseBody = await response.Content.ReadAsStringAsync();
             recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
@@ -134,17 +135,16 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            AirtableRecord airtableRecord = null;
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
-            var response = await Client.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
+            var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableRetrieveRecordResponse(airtableRecord);
         }
@@ -233,7 +233,7 @@ namespace AirtableApiClient
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
-            var response = await Client.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
@@ -253,7 +253,7 @@ namespace AirtableApiClient
 
         public void Dispose()
         {
-            Client.Dispose();
+            httpClientWithRetries.Dispose();
         }
 
 
@@ -389,7 +389,7 @@ namespace AirtableApiClient
             var json = JsonConvert.SerializeObject(fieldsAndTypecast, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
             var request = new HttpRequestMessage(httpMethod, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await Client.SendAsync(request);
+            var response = await httpClientWithRetries.SendAsync(request);
 
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
@@ -436,9 +436,12 @@ namespace AirtableApiClient
                 case System.Net.HttpStatusCode.RequestEntityTooLarge:
                     return (new AirtableRequestEntityTooLargeException());
 
-                case (System.Net.HttpStatusCode)422:        // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
+                case (System.Net.HttpStatusCode)422:    // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
                     var error = await ReadResponseErrorMessage(response);
                     return (new AirtableInvalidRequestException(error));
+
+                case (System.Net.HttpStatusCode)429:    // There is no HttpStatusCode.TooManyRequests defined in HttpStatusCode Enumeration.
+                    return (new AirtableTooManyRequestsException());
 
                 default:
                     throw new AirtableUnrecognizedException(response.StatusCode);
