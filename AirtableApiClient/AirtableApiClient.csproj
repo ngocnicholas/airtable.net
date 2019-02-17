@@ -20,7 +20,9 @@
   <PackageProjectUrl>https://github.com/ngocnicholas/airtable.net</PackageProjectUrl>
   <PackageIconUrl>https://github.com/ngocnicholas/AirtableUsefulStuff/blob/master/airtable_64x64.png</PackageIconUrl>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Migragte to .NET Standard 2.0 specification</PackageReleaseNotes>
+  <PackageReleaseNotes>Allow retries if the user sends too many requests and causing the request to fail with HttpStatusCode 429 for Too Many Requests.
+The retry capability may be enabled or disabled. It's enabled by default. The maximum number of retries is 3.
+The default intial retry delay is 2000 milliseconds and this delay will increase by an exponent of 2 is each subsequent retry.</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
