@@ -171,6 +171,25 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         // 
+        // AirtableBase.CreateMultipleRecords
+        // 
+        // Called to create a record in the specified table.
+        // 
+        //----------------------------------------------------------------------------
+
+        public async Task<AirtableListRecordsResponse> CreateMultipleRecords(
+            string tableName,
+            Fields[] fields,
+            bool typecast = false)
+        {
+            Task<AirtableListRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, fields, OperationType.CREATE, typecast: typecast);
+            var response = await task;
+            return response;
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
         // AirtableBase.UpdateRecord
         // 
         // Called to update a record with the specified ID in the specified table using jsoncnotent .
@@ -400,6 +419,54 @@ namespace AirtableApiClient
             var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
+        }
+
+
+        private async Task<AirtableListRecordsResponse> CreateUpdateReplaceMultipleRecords(
+            string tableName,
+            Fields[] fields,
+            OperationType operationType,
+            string recordId = null,
+            bool typecast = false)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/";
+            HttpMethod httpMethod;
+            switch (operationType)
+            {
+                case OperationType.UPDATE:
+                    uriStr += recordId + "/";
+                    httpMethod = new HttpMethod("PATCH");
+                    break;
+                case OperationType.REPLACE:
+                    uriStr += recordId + "/";
+                    httpMethod = HttpMethod.Put;
+                    break;
+                case OperationType.CREATE:
+                    httpMethod = HttpMethod.Post;
+                    break;
+                default:
+                    throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, .REPLACE, OperationType.CREATE }", "operationType");
+            }
+
+            var json = JsonConvert.SerializeObject(new { records = fields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var request = new HttpRequestMessage(httpMethod, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClientWithRetries.SendAsync(request);
+
+            AirtableApiException error = await CheckForAirtableException(response);
+            if (error != null)
+            {
+                return new AirtableListRecordsResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+
+            return new AirtableListRecordsResponse(recordList);
         }
 
 
