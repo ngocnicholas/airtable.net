@@ -33,6 +33,27 @@ namespace AirtableApiClient
     }
 
 
+    public class IdFields
+    {
+        public IdFields(string id)
+        {
+            this.id = id;
+        }
+
+        [JsonProperty("id")]
+        public string id;
+
+        // Do not use class Fields here. Otherwise, we will have a nested JsonProperty fields in Update multiple records operations.
+        [JsonProperty("fields")]
+        public Dictionary<string, object> FieldsCollection { get; set; } = new Dictionary<string, object>();
+
+        public void AddField(string fieldName, object fieldValue)
+        {
+            FieldsCollection.Add(fieldName, fieldValue);
+        }
+    }
+
+
     internal class QueryParamHelper
     {
         static internal string

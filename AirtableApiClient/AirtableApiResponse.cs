@@ -73,6 +73,22 @@ namespace AirtableApiClient
     }
 
 
+    public class AirtableCreateUpdateMultipleRecordsResponse : AirtableApiResponse
+    {
+        public AirtableCreateUpdateMultipleRecordsResponse(AirtableApiException error) : base(error)
+        {
+            Records = null;
+        }
+
+        public AirtableCreateUpdateMultipleRecordsResponse(AirtableRecord[] records) : base()
+        {
+            Records = records;
+        }
+
+        public readonly AirtableRecord[] Records;
+    }
+
+
     public class AirtableDeleteRecordResponse : AirtableApiResponse
     {
         public AirtableDeleteRecordResponse(AirtableApiException error) : base(error)

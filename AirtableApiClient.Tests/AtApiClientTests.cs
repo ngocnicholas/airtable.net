@@ -464,6 +464,175 @@ namespace AirtableApiClient.Tests
         }
 
 
+        [TestMethod]
+        public async Task AtApiClientCreateOneRecordWithAttachmentsInArrayTest()
+        {
+            fakeResponse.Content = new StringContent
+                  ("{\"records\":[{\"id\":\"rect8RuwPR4i2h5Il\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"attUjIClCNTQoXbCE\",\"url\":\"https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\"}]},\"createdTime\":\"2019-06-20T18:55:21.000Z\"}]}");
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                HttpMethod.Post,
+                fakeResponse);
+
+            // Create Attachments list
+            var attachmentList = new List<AirtableAttachment>();
+            attachmentList.Add(new AirtableAttachment { Url = "https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg" });
+
+            Fields[] fields = new Fields[1];
+            fields[0] = new Fields();
+            fields[0].AddField("Name", "Pablo Picasso");
+            fields[0].AddField("Bio", "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+
+            fields[0].AddField("Attachments", attachmentList);
+            fields[0].AddField("On Display?", false);
+
+            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Pablo Picasso") == 0);
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.") == 0);
+            Assert.IsNull(response.Records[0].GetField("On Display?"));
+
+            var attListFromRecordCreated = response.Records[0].GetAttachmentField("Attachments");
+            Assert.IsNotNull(attListFromRecordCreated);
+            Assert.IsTrue(attListFromRecordCreated.Count() == 1);
+        }
+
+#if false
+        [TestMethod]
+        public async Task AtApiClientCreateMultipleRecordsTest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"reccCGM6Oz27xSTO7\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"attczM7GwMFGDknGm\",\"url\":\"https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\"}]},\"createdTime\":\"2019-06-19T23:50:10.000Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                HttpMethod.Post,
+                fakeResponse);
+
+            // Create Attachments list
+            var attachmentList = new List<AirtableAttachment>();
+            attachmentList.Add(new AirtableAttachment { Url = "https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg" });
+
+            Fields[] fields = new Fields[1];
+            fields[0] = new Fields();
+            fields[0].AddField("Name", "Pablo Picasso");
+            fields[0].AddField("Bio", "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+
+            fields[0].AddField("Attachments", attachmentList);
+            fields[0].AddField("On Display?", false);
+
+            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Pablo Picasso") == 0);
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.") == 0);
+            Assert.IsNull(response.Records[0].GetField("On Display?"));
+
+            var attListFromRecordCreated = response.Records[0].GetAttachmentField("Attachments");
+            Assert.IsNotNull(attListFromRecordCreated);
+            Assert.IsTrue(attListFromRecordCreated.Count() == 1);
+        }
+#endif
+
+        [TestMethod]
+        public async Task AtApiClientUpdateOneRecordInArrayTest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"rect8RuwPR4i2h5Il\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"attUjIClCNTQoXbCE\",\"url\":\"https://dl.airtable.com/.attachments/744a1c37b3e78fdfaf2988fafc9fe7ab/d2625467/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\",\"size\":17604,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/b44898ad9b4f8330ac0d36dec98e207d/fe53c2ed\",\"width\":41,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/fe7a6f768738512824429a45ea6f7464/c62f75b9\",\"width\":335,\"height\":296},\"full\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/9353ebde5722998512bb5b05883eaa87/76ae59ae\",\"width\":3000,\"height\":3000}}}],\"On Display?\":true},\"createdTime\":\"2019-06-20T18:55:21.000Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                new HttpMethod("PATCH"),
+                fakeResponse);
+
+            IdFields[] idFields = new IdFields[1];
+            idFields[0] = new IdFields("rect8RuwPR4i2h5Il");
+            idFields[0].AddField("On Display?", true);
+
+            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+
+            Assert.IsNotNull(response.Records[0].GetField("On Display?"));
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Pablo Picasso") == 0);
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.") == 0);
+            Assert.AreEqual((string)response.Records[0].Id, "rect8RuwPR4i2h5Il");
+        }
+
+
+        [TestMethod]
+        public async Task AtApiClientCreateMultipleRecordsTest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"recZqh1JC3pIwuQ9A\",\"fields\":{\"Name\":\"Claude Monet\",\"Bio\":\"Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting\"},\"createdTime\":\"2019-06-20T19:26:37.000Z\"},{\"id\":\"reckNzjEcM41FgXeZ\",\"fields\":{\"Name\":\"Vincent van Gogh\",\"Bio\":\"Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.\"},\"createdTime\":\"2019-06-20T19:26:37.000Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                HttpMethod.Post,
+                fakeResponse);
+
+            Fields[] fields = new Fields[2];
+            fields[0] = new Fields();
+            fields[0].AddField("Name", "Claude Monet");
+            fields[0].AddField("Bio", "Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting");
+
+            fields[1] = new Fields();
+            fields[1].AddField("Name", "Vincent van Gogh");
+            fields[1].AddField("Bio", "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.");
+
+            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Claude Monet") == 0);
+            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting") == 0);
+
+            Assert.IsTrue(string.Compare((string)(response.Records[1].GetField("Name")), "Vincent van Gogh") == 0);
+            Assert.IsTrue(string.Compare((string)(response.Records[1].GetField("Bio")), "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.") == 0);
+        }
+
+
+        [TestMethod]
+        public async Task AtApiClientUpdateMultipleRecordstest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"recZqh1JC3pIwuQ9A\",\"fields\":{\"Name\":\"Claude Monet\",\"Bio\":\"Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting\",\"On Display?\":true},\"createdTime\":\"2019-06-20T19:26:37.000Z\"},{\"id\":\"reckNzjEcM41FgXeZ\",\"fields\":{\"Name\":\"UpdatedNameVincentVanGogh\",\"Bio\":\"Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.\"},\"createdTime\":\"2019-06-20T19:26:37.000Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                new HttpMethod("PATCH"),
+                fakeResponse);
+
+
+            IdFields[] idFields = new IdFields[2];
+            idFields[0] = new IdFields("recZqh1JC3pIwuQ9A");
+            idFields[0].AddField("On Display?", true);
+
+            idFields[1] = new IdFields("reckNzjEcM41FgXeZ");
+            idFields[1].AddField("Name", "UpdatedNameVincentVanGogh");
+
+            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+
+            Assert.IsNotNull(response.Records[0].GetField("On Display?"));
+            Assert.IsTrue(string.Compare((string)(response.Records[1].GetField("Name")), "UpdatedNameVincentVanGogh") == 0);
+
+            // Id should be unchanged
+            Assert.AreEqual((string)response.Records[0].Id, "recZqh1JC3pIwuQ9A");
+            Assert.AreEqual((string)response.Records[1].Id, "reckNzjEcM41FgXeZ");
+        }
+
+
+
         //---------------------------------------------------------------------------------------------------------
         //------------------------------------------- Helper Functions --------------------------------------------
         //---------------------------------------------------------------------------------------------------------
