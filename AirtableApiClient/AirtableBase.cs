@@ -93,23 +93,61 @@ namespace AirtableApiClient
             IEnumerable<Sort> sort = null,
             string view = null)
         {
+            var (responseBody, error) = await ListRecordsInternal(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
+            if (error != null)
+            {
+                return new AirtableListRecordsResponse(error);
+            }
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+
+            return new AirtableListRecordsResponse(recordList);
+        }
+
+        public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
+            string tableName,
+            string offset = null,
+            IEnumerable<string> fields = null,
+            string filterByFormula = null,
+            int? maxRecords = null,
+            int? pageSize = null,
+            IEnumerable<Sort> sort = null,
+            string view = null)
+        {
+            var (responseBody, error) = await ListRecordsInternal(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
+            if (error != null)
+            {
+                return new AirtableListRecordsResponse<T>(error);
+            }
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList<T>>(responseBody);
+
+            return new AirtableListRecordsResponse<T>(recordList);
+        }
+
+        private async Task<(string ResponseBody, AirtableApiException Error)> ListRecordsInternal(
+            string tableName,
+            string offset,
+            IEnumerable<string> fields,
+            string filterByFormula,
+            int? maxRecords,
+            int? pageSize,
+            IEnumerable<Sort> sort,
+            string view)
+        {
             if (string.IsNullOrEmpty(tableName))
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-            AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
-                return new AirtableListRecordsResponse(error);
+                return (null, error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
-            return new AirtableListRecordsResponse(recordList);
+            return (responseBody, null);
         }
 
 

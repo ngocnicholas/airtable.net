@@ -83,4 +83,27 @@ namespace AirtableApiClient
             return attachments;
         }
     }
+
+
+    public class AirtableRecordList<T>
+    {
+        [JsonProperty("offset")]
+        public string Offset { get; internal set; }
+
+        [JsonProperty("records")]
+        public AirtableRecord<T>[] Records { get; internal set; }
+    }
+
+
+    public class AirtableRecord<T>
+    {
+        [JsonProperty("id")]
+        public string Id { get; internal set; }
+
+        [JsonProperty("createdTime")]
+        public DateTime CreatedTime { get; internal set; }
+
+        [JsonProperty("fields")]
+        public T Fields { get; internal set; }
+    }
 }
