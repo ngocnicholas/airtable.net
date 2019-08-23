@@ -73,14 +73,14 @@ namespace AirtableApiClient
     }
 
 
-    public class AirtableCreateUpdateMultipleRecordsResponse : AirtableApiResponse
+    public class AirtableCreateUpdateReplaceMultipleRecordsResponse : AirtableApiResponse
     {
-        public AirtableCreateUpdateMultipleRecordsResponse(AirtableApiException error) : base(error)
+        public AirtableCreateUpdateReplaceMultipleRecordsResponse(AirtableApiException error) : base(error)
         {
             Records = null;
         }
 
-        public AirtableCreateUpdateMultipleRecordsResponse(AirtableRecord[] records) : base()
+        public AirtableCreateUpdateReplaceMultipleRecordsResponse(AirtableRecord[] records) : base()
         {
             Records = records;
         }

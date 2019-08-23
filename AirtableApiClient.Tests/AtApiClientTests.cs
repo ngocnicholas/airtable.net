@@ -486,7 +486,7 @@ namespace AirtableApiClient.Tests
             fields[0].AddField("Attachments", attachmentList);
             fields[0].AddField("On Display?", false);
 
-            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -554,7 +554,7 @@ namespace AirtableApiClient.Tests
             idFields[0] = new IdFields("rect8RuwPR4i2h5Il");
             idFields[0].AddField("On Display?", true);
 
-            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -586,7 +586,7 @@ namespace AirtableApiClient.Tests
             fields[1].AddField("Name", "Vincent van Gogh");
             fields[1].AddField("Bio", "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.");
 
-            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -618,7 +618,7 @@ namespace AirtableApiClient.Tests
             idFields[1] = new IdFields("reckNzjEcM41FgXeZ");
             idFields[1].AddField("Name", "UpdatedNameVincentVanGogh");
 
-            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
