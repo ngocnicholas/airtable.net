@@ -84,7 +84,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public async Task<AirtableListRecordsResponse> ListRecords(
+        public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
             string tableName,
             string offset = null,
             IEnumerable<string> fields = null,
@@ -98,6 +98,37 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
+            AirtableRecordList<T> recordList = null;
+            var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var response = await httpClientWithRetries.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
+            if (error != null)
+            {
+                return new AirtableListRecordsResponse<T>(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            recordList = JsonConvert.DeserializeObject<AirtableRecordList<T>>(responseBody);
+
+            return new AirtableListRecordsResponse<T>(recordList);
+        }
+
+        public async Task<AirtableListRecordsResponse> ListRecords(
+            string tableName,
+            string offset = null,
+            IEnumerable<string> fields = null,
+            string filterByFormula = null,
+            int? maxRecords = null,
+            int? pageSize = null,
+            IEnumerable<Sort> sort = null,
+            string view = null
+            )
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request);
@@ -106,9 +137,9 @@ namespace AirtableApiClient
             {
                 return new AirtableListRecordsResponse(error);
             }
-
             var responseBody = await response.Content.ReadAsStringAsync();
-            AirtableRecordList recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList<AirtableRecord>>(responseBody);
+
             return new AirtableListRecordsResponse(recordList);
         }
 
@@ -486,7 +517,7 @@ namespace AirtableApiClient
                 return new AirtableCreateUpdateReplaceMultipleRecordsResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList<AirtableRecord>>(responseBody);
 
             return new AirtableCreateUpdateReplaceMultipleRecordsResponse(recordList.Records);
         }

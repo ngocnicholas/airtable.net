@@ -4,17 +4,17 @@ using Newtonsoft.Json;
 
 namespace AirtableApiClient
 {
-    public class AirtableRecordList
+    public class AirtableRecordList<T>
     {
         [JsonProperty("offset")]
         public string Offset { get; internal set; }
 
         [JsonProperty("records")]
-        public AirtableRecord[] Records { get; internal set; }
+        public T[] Records { get; internal set; }
     }
 
 
-    public class AirtableRecord
+    public class AirtableRecord<T>
     {
         [JsonProperty("id")]
         public string Id { get; internal set; }
@@ -23,10 +23,18 @@ namespace AirtableApiClient
         public DateTime CreatedTime { get; internal set; }
 
         [JsonProperty("fields")]
-        public Dictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        public T Fields { get; internal set; }
+    }
 
-        public object
-        GetField(string fieldName)
+
+    public class AirtableRecord : AirtableRecord<Dictionary<string, object>>
+    {
+        public AirtableRecord()
+        {
+            Fields = new Dictionary<string, object>();
+        }
+
+        public object GetField(string fieldName)
         {
             if (Fields.ContainsKey(fieldName))
             {
@@ -76,9 +84,9 @@ namespace AirtableApiClient
             }
             catch (Exception error)
             {
-                throw new ArgumentException("Field '" + attachmentsFieldName + "' is not an Attachments field." + 
+                throw new ArgumentException("Field '" + attachmentsFieldName + "' is not an Attachments field." +
                     Environment.NewLine +
-                    "It has caused the exception: " +  error.Message);
+                    "It has caused the exception: " + error.Message);
             }
             return attachments;
         }
