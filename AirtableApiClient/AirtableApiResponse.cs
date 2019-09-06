@@ -21,7 +21,7 @@ namespace AirtableApiClient
     }
 
 
-    public class AirtableListRecordsResponse : AirtableApiResponse
+    public class AirtableListRecordsResponse<T> : AirtableApiResponse
     {
         public AirtableListRecordsResponse(AirtableApiException error) : base(error)
         {
@@ -29,15 +29,34 @@ namespace AirtableApiClient
             Records = null;
         }
 
-
-        public AirtableListRecordsResponse(AirtableRecordList recordList) : base()
+        public AirtableListRecordsResponse(AirtableRecordList<T> recordList) : this(recordList.Offset)
         {
-            Offset = recordList.Offset;
             Records = recordList.Records;
         }
 
-        public readonly IEnumerable<AirtableRecord> Records;
+        protected AirtableListRecordsResponse(string offset) : base()
+        {
+            Offset = offset;
+        }
+
+        public readonly IEnumerable<AirtableRecord<T>> Records;
         public readonly string Offset;
+    }
+
+
+    public class AirtableListRecordsResponse : AirtableListRecordsResponse<Dictionary<string, object>>
+    {
+        public AirtableListRecordsResponse(AirtableApiException error) : base(error)
+        {
+            Records = null;
+        }
+
+        public AirtableListRecordsResponse(AirtableRecordList recordList) : base(recordList.Offset)
+        {
+            Records = recordList.Records;
+        }
+
+        public new readonly IEnumerable<AirtableRecord> Records;
     }
 
 

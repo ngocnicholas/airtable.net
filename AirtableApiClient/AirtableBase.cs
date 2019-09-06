@@ -7,6 +7,7 @@ using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+
 namespace AirtableApiClient
 {
     public class AirtableBase : IDisposable
@@ -97,7 +98,7 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-            AirtableRecordList recordList = null;
+
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request);
@@ -107,9 +108,39 @@ namespace AirtableApiClient
                 return new AirtableListRecordsResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
             return new AirtableListRecordsResponse(recordList);
+        }
+
+
+        public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
+            string tableName,
+            string offset = null,
+            IEnumerable<string> fields = null,
+            string filterByFormula = null,
+            int? maxRecords = null,
+            int? pageSize = null,
+            IEnumerable<Sort> sort = null,
+            string view = null)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+            AirtableRecordList<T> recordList = null;
+            var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var response = await httpClientWithRetries.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
+            if (error != null)
+            {
+                return new AirtableListRecordsResponse<T>(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            recordList = JsonConvert.DeserializeObject<AirtableRecordList<T>>(responseBody);
+
+            return new AirtableListRecordsResponse<T>(recordList);
         }
 
 
@@ -173,7 +204,7 @@ namespace AirtableApiClient
         // 
         // AirtableBase.UpdateRecord
         // 
-        // Called to update a record with the specified ID in the specified table using jsoncnotent .
+        // Called to update a record with the specified ID in the specified table.
         // 
         //----------------------------------------------------------------------------
 
@@ -204,8 +235,7 @@ namespace AirtableApiClient
             bool typeCast = false)
         {
             Task<AirtableCreateUpdateReplaceRecordResponse> task = CreateUpdateReplaceRecord(tableName, fields, OperationType.REPLACE, id, typeCast);
-            var response = await task;
-            return response;
+            return (await task);
         }
 
 
@@ -382,7 +412,7 @@ namespace AirtableApiClient
                     httpMethod = HttpMethod.Post;
                     break;
                 default:
-                    throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, .REPLACE, OperationType.CREATE }", "operationType");
+                    throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, OperationType.REPLACE, OperationType.CREATE }", "operationType");
             }
 
             var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };

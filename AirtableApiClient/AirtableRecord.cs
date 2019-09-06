@@ -4,17 +4,39 @@ using Newtonsoft.Json;
 
 namespace AirtableApiClient
 {
-    public class AirtableRecordList
+    public class AirtableRecordList<T>
     {
         [JsonProperty("offset")]
         public string Offset { get; internal set; }
 
         [JsonProperty("records")]
-        public AirtableRecord[] Records { get; internal set; }
+        public AirtableRecord<T>[] Records { get; internal set; }
+
+        [JsonConstructor]
+        public AirtableRecordList()
+        {
+
+        }
+
+        protected AirtableRecordList(string offset)
+        {
+            Offset = offset;
+        }
     }
 
 
-    public class AirtableRecord
+    public class AirtableRecordList : AirtableRecordList<Dictionary<string, object>>
+    {
+        [JsonProperty("records")]
+        public new AirtableRecord[] Records { get; internal set; }
+        public AirtableRecordList(string offset, AirtableRecord[] records) : base(offset)
+        {
+            Records = records;
+        }
+    }
+
+
+    public class AirtableRecord<T>
     {
         [JsonProperty("id")]
         public string Id { get; internal set; }
@@ -23,10 +45,18 @@ namespace AirtableApiClient
         public DateTime CreatedTime { get; internal set; }
 
         [JsonProperty("fields")]
-        public Dictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        public T Fields { get; internal set; }
+    }
 
-        public object
-        GetField(string fieldName)
+
+    public class AirtableRecord : AirtableRecord<Dictionary<string, object>>
+    {
+        public AirtableRecord()
+        {
+            Fields = new Dictionary<string, object>();
+        }
+
+        public object GetField(string fieldName)
         {
             if (Fields.ContainsKey(fieldName))
             {
