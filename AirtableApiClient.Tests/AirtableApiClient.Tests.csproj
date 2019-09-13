@@ -39,7 +39,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AirtableApiClient, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="AirtableApiClient, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\AirtableApiClient\bin\Debug\AirtableApiClient.dll</HintPath>
     </Reference>

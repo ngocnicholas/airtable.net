@@ -464,6 +464,14 @@ namespace AirtableApiClient.Tests
         }
 
 
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientCreateOneRecordWithAttachmentsInArrayTest
+        // Create a record using the batch create API.
+        //
+        // Any "empty" fields (e.g. "", [], or false) in the record will not be returned.
+        //
+        //----------------------------------------------------------------------------
         [TestMethod]
         public async Task AtApiClientCreateOneRecordWithAttachmentsInArrayTest()
         {
@@ -500,77 +508,127 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(attListFromRecordCreated.Count() == 1);
         }
 
-#if false
-        [TestMethod]
-        public async Task AtApiClientCreateMultipleRecordsTest()
-        {
-            fakeResponse.Content = new StringContent
-                ("{\"records\":[{\"id\":\"reccCGM6Oz27xSTO7\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"attczM7GwMFGDknGm\",\"url\":\"https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\"}]},\"createdTime\":\"2019-06-19T23:50:10.000Z\"}]}");
 
-            fakeResponseHandler.AddFakeResponse(
-                BASE_URL + "/",
-                HttpMethod.Post,
-                fakeResponse);
-
-            // Create Attachments list
-            var attachmentList = new List<AirtableAttachment>();
-            attachmentList.Add(new AirtableAttachment { Url = "https://upload.wikimedia.org/wikipedia/en/d/d1/Picasso_three_musicians_moma_2006.jpg" });
-
-            Fields[] fields = new Fields[1];
-            fields[0] = new Fields();
-            fields[0].AddField("Name", "Pablo Picasso");
-            fields[0].AddField("Bio", "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
-
-            fields[0].AddField("Attachments", attachmentList);
-            fields[0].AddField("On Display?", false);
-
-            Task<AirtableCreateUpdateMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
-            var response = await task;
-
-            Assert.IsTrue(response.Success);
-
-            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Pablo Picasso") == 0);
-            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.") == 0);
-            Assert.IsNull(response.Records[0].GetField("On Display?"));
-
-            var attListFromRecordCreated = response.Records[0].GetAttachmentField("Attachments");
-            Assert.IsNotNull(attListFromRecordCreated);
-            Assert.IsTrue(attListFromRecordCreated.Count() == 1);
-        }
-#endif
-
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientUpdateOneRecordInArrayTest
+        // Update one record using the batch Update API
+        //
+        //----------------------------------------------------------------------------
         [TestMethod]
         public async Task AtApiClientUpdateOneRecordInArrayTest()
         {
             fakeResponse.Content = new StringContent
-                ("{\"records\":[{\"id\":\"rect8RuwPR4i2h5Il\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"attUjIClCNTQoXbCE\",\"url\":\"https://dl.airtable.com/.attachments/744a1c37b3e78fdfaf2988fafc9fe7ab/d2625467/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\",\"size\":17604,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/b44898ad9b4f8330ac0d36dec98e207d/fe53c2ed\",\"width\":41,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/fe7a6f768738512824429a45ea6f7464/c62f75b9\",\"width\":335,\"height\":296},\"full\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/9353ebde5722998512bb5b05883eaa87/76ae59ae\",\"width\":3000,\"height\":3000}}}],\"On Display?\":true},\"createdTime\":\"2019-06-20T18:55:21.000Z\"}]}");
+                ("{\"records\":[{\"id\":\"reclLsd1gUzI8U2Mr\",\"fields\":{\"Name\":\"Pablo Picasso\",\"Bio\":\"Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.\",\"Attachments\":[{\"id\":\"atti2jSIPLf5yUK5M\",\"url\":\"https://dl.airtable.com/.attachments/9b33dccd27b0130e27865ea9df058a71/b6712e9e/Picasso_three_musicians_moma_2006.jpg\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\",\"size\":17604,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/a616ad0489991246642da3f602607e97/9f0499c1\",\"width\":41,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/d2032977a9e0bac886b624e2799672f2/519229c4\",\"width\":335,\"height\":296},\"full\":{\"url\":\"https://dl.airtable.com/.attachmentThumbnails/660aa774ea1b34da8b52e94edf465ac1/b8458a4e\",\"width\":3000,\"height\":3000}}}],\"On Display?\":true},\"createdTime\":\"2019-09-12T22:53:02.000Z\"}]}");
 
             fakeResponseHandler.AddFakeResponse(
                 BASE_URL + "/",
                 new HttpMethod("PATCH"),
                 fakeResponse);
 
+            string errorMessage = null;
             IdFields[] idFields = new IdFields[1];
-            idFields[0] = new IdFields("rect8RuwPR4i2h5Il");
+            idFields[0] = new IdFields("reclLsd1gUzI8U2Mr");
             idFields[0].AddField("On Display?", true);
-
-            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, true);
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields);
             var response = await task;
+            AirtableRecord[] records = null;
+            if (!response.Success)
+            {
+                if (response.AirtableApiError is AirtableApiException)
+                {
+                    errorMessage = response.AirtableApiError.ErrorMessage;
+                }
+                else
+                {
+                    errorMessage = "Unknown error";
+                }
+            }
+            else
+            {
+                records = response.Records;
 
-            Assert.IsTrue(response.Success);
+                // The following field should be updated
+                Assert.AreEqual(records[0].GetField("On Display?"), true);
 
-            Assert.IsNotNull(response.Records[0].GetField("On Display?"));
-            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Name")), "Pablo Picasso") == 0);
-            Assert.IsTrue(string.Compare((string)(response.Records[0].GetField("Bio")), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.") == 0);
-            Assert.AreEqual((string)response.Records[0].Id, "rect8RuwPR4i2h5Il");
+                // The following 2 fields should be unchanged
+                Assert.AreEqual((string)records[0].GetField("Name"), "Pablo Picasso");
+                Assert.AreEqual((string)records[0].GetField("Bio"), "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+            }
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                Console.WriteLine(errorMessage);
+            }
+            Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
         }
 
 
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientReplaceOneRecordTest
+        // Replace one record using the batch Replace API
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task AtApiClientReplaceOneRecordTest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"recQgWxvahRiMid9b\",\"fields\":{\"Name\":\"Auguste Rodin\"},\"createdTime\":\"2019-09-12T23:19:24.000Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                HttpMethod.Put,
+                fakeResponse);
+
+            string errorMessage = null;
+            IdFields[] idFields = new IdFields[1];
+            idFields[0] = new IdFields("recQgWxvahRiMid9b");
+            idFields[0].AddField("Name", "Auguste Rodin");
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.ReplaceMultipleRecords(TABLE_NAME, idFields);
+            var response = await task;
+            AirtableRecord[] records = null;
+            if (!response.Success)
+            {
+                if (response.AirtableApiError is AirtableApiException)
+                {
+                    errorMessage = response.AirtableApiError.ErrorMessage;
+                }
+                else
+                {
+                    errorMessage = "Unknown error";
+                }
+            }
+            else
+            {
+                records = response.Records;
+
+                // The following field should be updated
+                Assert.AreEqual(records[0].GetField("On Display?"), null);
+                Assert.AreEqual(records[0].GetField("Bio?"), null);
+
+                // The following field should be unchanged
+                Assert.AreEqual((string)records[0].GetField("Name"), "Auguste Rodin");
+            }
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                Console.WriteLine(errorMessage);
+            }
+            Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientCreateMultipleRecordsTest
+        // Create multiple records in one operation using the batch create API.
+        //
+        //----------------------------------------------------------------------------
         [TestMethod]
         public async Task AtApiClientCreateMultipleRecordsTest()
         {
             fakeResponse.Content = new StringContent
-                ("{\"records\":[{\"id\":\"recZqh1JC3pIwuQ9A\",\"fields\":{\"Name\":\"Claude Monet\",\"Bio\":\"Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting\"},\"createdTime\":\"2019-06-20T19:26:37.000Z\"},{\"id\":\"reckNzjEcM41FgXeZ\",\"fields\":{\"Name\":\"Vincent van Gogh\",\"Bio\":\"Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.\"},\"createdTime\":\"2019-06-20T19:26:37.000Z\"}]}");
+                ("{\"records\":[{\"id\":\"recsL7oHjaiXTQKW8\",\"fields\":{\"Name\":\"Claude Monet\",\"Bio\":\"Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting\"},\"createdTime\":\"2019-09-12T22:32:48.000Z\"},{\"id\":\"rechozKRY4D6lmuLn\",\"fields\":{\"Name\":\"Vincent van Gogh\",\"Bio\":\"Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.\"},\"createdTime\":\"2019-09-12T22:32:48.000Z\"}]}");
 
             fakeResponseHandler.AddFakeResponse(
                 BASE_URL + "/",
@@ -599,6 +657,12 @@ namespace AirtableApiClient.Tests
         }
 
 
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientUpdateMultipleRecordstest
+        // Update multiple records in one operation using the batch Update API.
+        //
+        //----------------------------------------------------------------------------
         [TestMethod]
         public async Task AtApiClientUpdateMultipleRecordstest()
         {
@@ -631,6 +695,72 @@ namespace AirtableApiClient.Tests
             Assert.AreEqual((string)response.Records[1].Id, "reckNzjEcM41FgXeZ");
         }
 
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.AtApiClientReplaceMultipleRecordTest
+        // Replace multiple records in one single operation using the batch Replace API
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task AtApiClientReplaceMultipleRecordTest()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"recAIeXgk58nPozOl\",\"fields\":{\"Name\":\"Claude Monet\",\"On Display?\":true},\"createdTime\":\"2019-09-12T23:35:47.000Z\"},{\"id\":\"recq0W7W4PWDUw8bp\",\"fields\":{\"Name\":\"Vincent VanGogh replaced\"},\"createdTime\":\"2019-09-12T23:35:47.000Z\"}]}");
+
+            string idMonet = "recAIeXgk58nPozOl";
+            string idVanGogh = "recq0W7W4PWDUw8bp";
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                HttpMethod.Put,
+                fakeResponse);
+
+            string errorMessage = null;
+
+            IdFields[] idFields = new IdFields[2];
+            idFields[0] = new IdFields(idMonet);
+            idFields[0].AddField("Name", "Claude Monet");
+            idFields[0].AddField("On Display?", true);
+
+            idFields[1] = new IdFields(idVanGogh);
+            idFields[1].AddField("Name", "Vincent VanGogh replaced");
+
+            AirtableRecord[] records = null;
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.ReplaceMultipleRecords(TABLE_NAME, idFields);
+            var response = await task;
+
+            if (!response.Success)
+            {
+                if (response.AirtableApiError is AirtableApiException)
+                {
+                    errorMessage = response.AirtableApiError.ErrorMessage;
+                }
+                else
+                {
+                    errorMessage = "Unknown error";
+                }
+            }
+            else
+            {
+                errorMessage = null;
+                records = response.Records;
+
+                // The following 2 fields should be updated
+                Assert.AreEqual(records[0].GetField("On Display?"), true);
+                Assert.AreEqual((string)records[1].GetField("Name"), "Vincent VanGogh replaced");
+
+                // The following 4 fields should be unchanged
+                Assert.AreEqual((string)records[0].Id, idMonet);
+                Assert.AreEqual((string)records[1].Id, idVanGogh);
+                Assert.AreEqual((string)records[0].GetField("Name"), "Claude Monet");
+                Assert.AreEqual(records[1].GetField("On Display?"), null);
+            }
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                Console.WriteLine(errorMessage);
+            }
+            Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
+        }
 
 
         //---------------------------------------------------------------------------------------------------------
@@ -638,12 +768,12 @@ namespace AirtableApiClient.Tests
         //---------------------------------------------------------------------------------------------------------
 
         private async Task<ListAllRecordsTestResponse> ListAllRecords(
-            IEnumerable<string> fields = null,
-            string filterByFormula = null,
-            int? maxRecords = null,
-            int? pageSize = null,
-            IEnumerable<Sort> sort = null,
-            string view = null)
+        IEnumerable<string> fields = null,
+        string filterByFormula = null,
+        int? maxRecords = null,
+        int? pageSize = null,
+        IEnumerable<Sort> sort = null,
+        string view = null)
         {
             string offset = null;
             string errorMessage = null;
