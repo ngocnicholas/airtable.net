@@ -788,7 +788,7 @@ namespace AirtableApiClient.Tests
 
                     if (response.Success)
                     {
-                        records = response.Records.ToList();
+                        records.AddRange(response.Records.ToList());
                         offset = response.Offset;
                     }
                     else if (response.AirtableApiError is AirtableApiException)
