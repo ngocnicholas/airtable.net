@@ -7,6 +7,7 @@ using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+
 namespace AirtableApiClient
 {
     public class AirtableBase : IDisposable
@@ -97,7 +98,6 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-            AirtableRecordList recordList = null;
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request);
@@ -106,9 +106,9 @@ namespace AirtableApiClient
             {
                 return new AirtableListRecordsResponse(error);
             }
-            var responseBody = await response.Content.ReadAsStringAsync();
-            recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
 
+            var responseBody = await response.Content.ReadAsStringAsync();
+            AirtableRecordList recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
             return new AirtableListRecordsResponse(recordList);
         }
 
@@ -173,7 +173,7 @@ namespace AirtableApiClient
         // 
         // AirtableBase.UpdateRecord
         // 
-        // Called to update a record with the specified ID in the specified table using jsoncnotent .
+        // Called to update a record with the specified ID in the specified table.
         // 
         //----------------------------------------------------------------------------
 
@@ -204,8 +204,7 @@ namespace AirtableApiClient
             bool typeCast = false)
         {
             Task<AirtableCreateUpdateReplaceRecordResponse> task = CreateUpdateReplaceRecord(tableName, fields, OperationType.REPLACE, id, typeCast);
-            var response = await task;
-            return response;
+            return (await task);
         }
 
 
@@ -244,6 +243,64 @@ namespace AirtableApiClient
             return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
 
+
+        //----------------------------------------------------------------------------
+        // 
+        // AirtableBase.CreateMultipleRecords
+        // 
+        // Called to create multiple records in the specified table in one single operation.
+        // 
+        //----------------------------------------------------------------------------
+
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
+            string tableName,
+            Fields[] fields,
+            bool typecast = false)
+        {
+            var json = JsonConvert.SerializeObject(new { records = fields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Post, json);
+            var response = await task;
+            return response;
+
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
+        // AirtableBase.UpdateMultipleRecords
+        // 
+        // Called to update multiple records with the specified IDs in the specified table in one single operation.
+        // 
+        //----------------------------------------------------------------------------
+
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> UpdateMultipleRecords(
+            string tableName,
+            IdFields[] idFields,
+            bool typecast = false)
+        {
+            var json = JsonConvert.SerializeObject(new { records = idFields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, new HttpMethod("PATCH"), json);
+            return (await task);
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
+        // AirtableBase.ReplaceMultipleRecords
+        // 
+        // Called to update multiple records with the specified IDs in the specified table in one single operation.
+        // 
+        //----------------------------------------------------------------------------
+
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> ReplaceMultipleRecords(
+            string tableName,
+            IdFields[] idFields,
+            bool typecast = false)
+        {
+            var json = JsonConvert.SerializeObject(new { records = idFields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Put, json);
+            return (await task);
+        }
 
         //----------------------------------------------------------------------------
         // 
@@ -382,7 +439,7 @@ namespace AirtableApiClient
                     httpMethod = HttpMethod.Post;
                     break;
                 default:
-                    throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, .REPLACE, OperationType.CREATE }", "operationType");
+                    throw new ArgumentException("Operation Type must be one of { OperationType.UPDATE, OperationType.REPLACE, OperationType.CREATE }", "operationType");
             }
 
             var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };
@@ -400,6 +457,38 @@ namespace AirtableApiClient
             var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
+        // AirtableBase.CreateUpdateReplaceMultipleRecords
+        // 
+        // worker function which does the real work for creating, updating or replacing multiple records
+        // in one operation
+        // 
+        //----------------------------------------------------------------------------
+
+        private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(string tableName, HttpMethod method, string json)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/";
+            var request = new HttpRequestMessage(method, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClientWithRetries.SendAsync(request);
+
+            AirtableApiException error = await CheckForAirtableException(response);
+            if (error != null)
+            {
+                return new AirtableCreateUpdateReplaceMultipleRecordsResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+
+            return new AirtableCreateUpdateReplaceMultipleRecordsResponse(recordList.Records);
         }
 
 
