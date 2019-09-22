@@ -601,13 +601,13 @@ namespace AirtableApiClient
 
         private async Task<HttpResponseMessage> ListRecordsPreCheck(
             string tableName,
-            string offset = null,
-            IEnumerable<string> fields = null,
-            string filterByFormula = null,
-            int? maxRecords = null,
-            int? pageSize = null,
-            IEnumerable<Sort> sort = null,
-            string view = null)
+            string offset,
+            IEnumerable<string> fields,
+            string filterByFormula,
+            int? maxRecords,
+            int? pageSize,
+            IEnumerable<Sort> sort,
+            string view)
         {
             if (string.IsNullOrEmpty(tableName))
             {
