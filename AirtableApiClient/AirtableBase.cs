@@ -94,8 +94,13 @@ namespace AirtableApiClient
             IEnumerable<Sort> sort = null,
             string view = null)
         {
-            var response = await ListRecordsPreCheck(tableName, offset, fields, filterByFormula,
-                maxRecords, pageSize, sort, view);
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+            var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
             if (error != null)
             {
@@ -105,39 +110,6 @@ namespace AirtableApiClient
             var responseBody = await response.Content.ReadAsStringAsync();
             AirtableRecordList recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
             return new AirtableListRecordsResponse(recordList);
-        }
-
-
-        //----------------------------------------------------------------------------
-        // 
-        // AirtableBase.ListRecords<T>
-        // 
-        // Called to get a list of records<T> in the table specified by 'tableName'
-        // The fields of each record are deserialized to type <T>.
-        //
-        //----------------------------------------------------------------------------
-
-        public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
-            string tableName,
-            string offset = null,
-            IEnumerable<string> fields = null,
-            string filterByFormula = null,
-            int? maxRecords = null,
-            int? pageSize = null,
-            IEnumerable<Sort> sort = null,
-            string view = null)
-        {
-            var response = await ListRecordsPreCheck(tableName, offset, fields, filterByFormula,
-                maxRecords, pageSize, sort, view);
-            AirtableApiException error = await CheckForAirtableException(response);
-            if (error != null)
-            {
-                return new AirtableListRecordsResponse<T>(error);
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            AirtableRecordList<T> recordList = JsonConvert.DeserializeObject<AirtableRecordList<T>>(responseBody);
-            return new AirtableListRecordsResponse<T>(recordList);
         }
 
 
@@ -329,7 +301,6 @@ namespace AirtableApiClient
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Put, json);
             return (await task);
         }
-
 
         //----------------------------------------------------------------------------
         // 
@@ -588,34 +559,6 @@ namespace AirtableApiClient
             var errorMessage = json["error"]?["message"]?.Value<string>();
 
             return errorMessage;
-        }
-
-
-        //----------------------------------------------------------------------------
-        // 
-        // AirtableBase.ListRecordsPreCheck
-        // 
-        // Error checks before proceeding ListRecords
-        // 
-        //----------------------------------------------------------------------------
-
-        private async Task<HttpResponseMessage> ListRecordsPreCheck(
-            string tableName,
-            string offset = null,
-            IEnumerable<string> fields = null,
-            string filterByFormula = null,
-            int? maxRecords = null,
-            int? pageSize = null,
-            IEnumerable<Sort> sort = null,
-            string view = null)
-        {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
-            }
-            var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view);
-            var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            return (await httpClientWithRetries.SendAsync(request));
         }
 
     }   // end class

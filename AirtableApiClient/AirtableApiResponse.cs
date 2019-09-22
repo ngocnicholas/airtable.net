@@ -41,26 +41,6 @@ namespace AirtableApiClient
     }
 
 
-    public class AirtableListRecordsResponse<T> : AirtableApiResponse
-    {
-        public AirtableListRecordsResponse(AirtableApiException error) : base(error)
-        {
-            Offset = null;
-            Records = null;
-        }
-
-
-        public AirtableListRecordsResponse(AirtableRecordList<T> recordList) : base()
-        {
-            Offset = recordList.Offset;
-            Records = recordList.Records;
-        }
-
-        public readonly IEnumerable<AirtableRecord<T>> Records;
-        public readonly string Offset;
-    }
-
-
     public class AirtableRetrieveRecordResponse : AirtableApiResponse
     {
         public AirtableRetrieveRecordResponse(AirtableApiException error) : base(error)
