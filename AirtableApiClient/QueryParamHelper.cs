@@ -33,6 +33,18 @@ namespace AirtableApiClient
     }
 
 
+    public class IdFields : Fields
+    {
+        public IdFields(string id)
+        {
+            this.id = id;
+        }
+
+        [JsonProperty("id")]
+        public string id;
+    }
+
+
     internal class QueryParamHelper
     {
         static internal string
