@@ -18,7 +18,8 @@
   <Authors>Ngoc Nicholas</Authors>
   <owners>Ngoc Nicholas</owners>
   <PackageProjectUrl>https://github.com/ngocnicholas/airtable.net</PackageProjectUrl>
-  <PackageIconUrl>https://github.com/ngocnicholas/AirtableUsefulStuff/blob/master/airtable_64x64.png</PackageIconUrl>
+  <PackageIcon>airtable_64x64.png</PackageIcon>
+  <PackageLicenseFile>LICENSE</PackageLicenseFile>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
   <PackageReleaseNotes>Added support for Airtable Batch API: Create, Update, Replace multiple records in one single operation.
 Added ListRecords&lt;T&gt; where T encapsulates fields in an Airtable record. (merged code mostly contributed by Kyubuns)</PackageReleaseNotes>
@@ -27,6 +28,11 @@ Added ListRecords&lt;T&gt; where T encapsulates fields in an Airtable record. (m
   <RepositoryType>git</RepositoryType>
   <Copyright>Copyright 2019</Copyright>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="images\airtable_64x64.png" Pack="true" PackagePath="\"/>
+    <None Include="..\LICENSE" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="readme.txt" />
