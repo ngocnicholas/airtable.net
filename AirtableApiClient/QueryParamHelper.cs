@@ -87,7 +87,7 @@ namespace AirtableApiClient
                 {
                     toInsert = "&";
                 }
-                string param = $"fields[{i}]";
+                string param = "fields[]";
                 flattenFieldsParam += $"{toInsert}{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(fieldName)}";
                 i++;
             }
