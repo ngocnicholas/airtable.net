@@ -163,7 +163,7 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
             var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
@@ -258,7 +258,7 @@ namespace AirtableApiClient
                 throw new ArgumentException("Record ID cannot be null", "id");
             }
 
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/" + id;
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await httpClientWithRetries.SendAsync(request);
             AirtableApiException error = await CheckForAirtableException(response);
@@ -360,7 +360,7 @@ namespace AirtableApiClient
             IEnumerable<Sort> sort,
             string view)
         {
-            var uriBuilder = new UriBuilder(AIRTABLE_API_URL + BaseId + "/" + tableName);
+            var uriBuilder = new UriBuilder(AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName));
 
             if (!string.IsNullOrEmpty(offset))
             {
@@ -451,7 +451,7 @@ namespace AirtableApiClient
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
 
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/";
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/";
             HttpMethod httpMethod;
             switch (operationType)
             {
@@ -503,7 +503,7 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + tableName + "/";
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + HttpUtility.UrlEncode(tableName) + "/";
             var request = new HttpRequestMessage(method, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request);
