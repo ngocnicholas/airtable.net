@@ -21,7 +21,7 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <PackageLicenseFile>LICENSE</PackageLicenseFile>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Omit array indexes in query for requesting fields[] (merged code contributed by Gary Chapman)</PackageReleaseNotes>
+  <PackageReleaseNotes>Url Encode table name. Bug discovered and code contributed by Titouan C.</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
