@@ -30,10 +30,10 @@ namespace AirtableApiClient.Tests
     [TestClass]
     public class AtApiClientTests
     {
-        const string APPLICATION_ID = "app1234567890ABCD";  // fake app id for tests
-        const string API_KEY = "key1234567890ABCD";         // fake airtable api key for tests
-        const string TABLE_NAME = "Artists";                // fake table name for tests
-        readonly string BASE_URL = $"https://api.airtable.com/v0/{APPLICATION_ID}/{Uri.EscapeUriString(TABLE_NAME)}";
+        const string APPLICATION_ID = "app1234567890ABCD";                          // fake app id for tests
+        const string API_KEY = "key1234567890ABCD";                                 // fake airtable api key for tests
+        const string TABLE_NAME = ":/?#[]@!$&'()*+,;= Best Artists\\ %2F -._~";     // fake table name for tests
+        readonly string BASE_URL = $"https://api.airtable.com/v0/{APPLICATION_ID}/{Uri.EscapeDataString(TABLE_NAME)}";
 
         static private AirtableBase airtableBase;
         private FakeResponseHandler fakeResponseHandler;
