@@ -21,7 +21,7 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <PackageLicenseFile>LICENSE</PackageLicenseFile>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Url Encode table name. Bug discovered and code contributed by Titouan C.</PackageReleaseNotes>
+  <PackageReleaseNotes>Fixed bug introduced by last release (1.1.3) where table names with spaces were no longer encoded correctly.</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
