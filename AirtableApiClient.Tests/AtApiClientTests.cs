@@ -325,6 +325,40 @@ namespace AirtableApiClient.Tests
 
         //----------------------------------------------------------------------------
         //
+        // AtApiClientTests.AtApiClientRetrieveRecordTest_Template
+        //  Retrieve a record with a known record ID
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task AtApiClientRetrieveRecordTest_Template()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"id\":\"recTvUcipNbHvX0S9\",\"fields\":{\"Name\":\"Miya Ando\",\"Attachments\":[{\"id\":\"attLVumLibzCVC78C\",\"url\":\"https://dl.airtable.com/Y80E3oL8TYSDOcKOzxle_blue%2Blight.jpg\",\"filename\":\"blue+light.jpg\",\"size\":52668,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/yPuixUODQVy2kxdZkGvU_small_blue%2Blight.jpg\",\"width\":36,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/Sn6Y8YoERLaHFZ6VSeUX_large_blue%2Blight.jpg\",\"width\":512,\"height\":512},\"full\":{\"url\":\"https://dl.airtable.com/FnUW3gT3R3GJIcSiDD0F_full_blue%2Blight.jpg\",\"width\":1000,\"height\":1000}}},{\"id\":\"attKMaJXwjMiuZdLI\",\"url\":\"https://dl.airtable.com/9Z3DOoUiRneBgiQcEMBH_miya_ando_sui_getsu_ka_grid-copy.jpg\",\"filename\":\"miya_ando_sui_getsu_ka_grid-copy.jpg\",\"size\":442579,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/sVf1evOpTIuYNBq112JB_small_miya_ando_sui_getsu_ka_grid-copy.jpg\",\"width\":36,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/ULxSWukSEqkMA8PrdtWk_large_miya_ando_sui_getsu_ka_grid-copy.jpg\",\"width\":512,\"height\":512},\"full\":{\"url\":\"https://dl.airtable.com/dt16nj4fSOyTkFBRaarb_full_miya_ando_sui_getsu_ka_grid-copy.jpg\",\"width\":1000,\"height\":1000}}},{\"id\":\"attNFdk6dFEIc8umv\",\"url\":\"https://dl.airtable.com/CRVMBftRaWcb9CYGAP0Q_miya_ando_blue_green_24x24inch_alumium_dye_patina_phosphorescence_resin-2.jpg\",\"filename\":\"miya_ando_blue_green_24x24inch_alumium_dye_patina_phosphorescence_resin-2.jpg\",\"size\":355045,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/b1cFxd9ORAG3h6TmC4U0_small_miya_ando_blue_green_24x24inch_alumium_dye_patina_phosphorescence_resin-2.jpg\",\"width\":36,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/cBeBS401SlqFfKpOaRp9_large_miya_ando_blue_green_24x24inch_alumium_dye_patina_phosphorescence_resin-2.jpg\",\"width\":512,\"height\":512},\"full\":{\"url\":\"https://dl.airtable.com/OzrcokTEQgeVQ4N5206n_full_miya_ando_blue_green_24x24inch_alumium_dye_patina_phosphorescence_resin-2.jpg\",\"width\":1000,\"height\":1000}}},{\"id\":\"attFdi66XbBwzKzQl\",\"url\":\"https://dl.airtable.com/4ayqP53bQnSR7TYjykqd_miya_ando_shinobu_santa_cruz_size_48x48inches_year_2010_medium_aluminum_patina_pigment_automotive_lacquer.jpg\",\"filename\":\"miya_ando_shinobu_santa_cruz_size_48x48inches_year_2010_medium_aluminum_patina_pigment_automotive_lacquer.jpg\",\"size\":151282,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://dl.airtable.com/RZcqDKiaS0qmit6bijR7_small_miya_ando_shinobu_santa_cruz_size_48x48inches_year_2010_medium_aluminum_patina_pigment_automotive_lacquer.jpg\",\"width\":36,\"height\":36},\"large\":{\"url\":\"https://dl.airtable.com/Tu3lQRdHQMUBceMoL8De_large_miya_ando_shinobu_santa_cruz_size_48x48inches_year_2010_medium_aluminum_patina_pigment_automotive_lacquer.jpg\",\"width\":512,\"height\":512},\"full\":{\"url\":\"https://dl.airtable.com/WxJ5rxvFT3WbKQrlUEHW_full_miya_ando_shinobu_santa_cruz_size_48x48inches_year_2010_medium_aluminum_patina_pigment_automotive_lacquer.jpg\",\"width\":600,\"height\":600}}}],\"Bio\":\"Miya Ando is an American artist whose metal canvases and sculpture articulate themes of perception and one's relationship to time. The foundation of her practice is the transformation of surfaces. Half Japanese & half Russian-American, Ando is a descendant of Bizen sword makers and spent part of her childhood in a Buddhist temple in Japan as well as on 25 acres of redwood forest in rural coastal Northern California. She has continued her 16th-generation Japanese sword smithing and Buddhist lineage by combining metals, reflectivity and light in her luminous paintings and sculpture.\",\"Genre\":[\"Post-minimalism\",\"Color Field\"],\"Collection\":[\"recoOI0BXBdmR4JfZ\"]},\"createdTime\":\"2015-02-10T16:53:03.000Z\"}");
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/recTvUcipNbHvX0S9",
+                HttpMethod.Get,
+                fakeResponse);
+
+            Task<AirtableRetrieveRecordResponse<Artist>> task = airtableBase.RetrieveRecord<Artist>(TABLE_NAME, "recTvUcipNbHvX0S9");
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Assert.IsTrue(string.Compare(response.Record.Id, "recTvUcipNbHvX0S9") == 0);
+
+            // Abstract all fields of the record as an instance of Artist.
+            Artist MiyaAndo = response.Record.Fields;
+
+            Assert.AreEqual(MiyaAndo.Name, "Miya Ando");
+            Assert.IsFalse(MiyaAndo.OnDisplay);
+            Assert.AreEqual(MiyaAndo.Collection.Count, 1);
+            Assert.AreEqual(MiyaAndo.Genre.Count, 2);
+            Assert.IsNotNull(MiyaAndo.Bio);
+            Assert.AreEqual(MiyaAndo.Attachments.Count, 4);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
         // AtApiClientTests.AtApiClientCreateRecordWithAttachmentsTest
         // Create a record
         // To create new attachments in Attachments, set the field value to an array of attachment objects.

@@ -180,6 +180,44 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         // 
+        // AirtableBase.RetrieveRecord<T>
+        // 
+        // Called to retrieve a record with the specified id from the specified table.
+        // The fields of the retrieved record are deserialized to type <T>.
+        // 
+        //----------------------------------------------------------------------------
+
+        public async Task<AirtableRetrieveRecordResponse<T>> RetrieveRecord<T>(
+            string tableName,
+            string id)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Record ID cannot be null", "id");
+            }
+
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id;
+            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
+            var response = await httpClientWithRetries.SendAsync(request);
+            AirtableApiException error = await CheckForAirtableException(response);
+            if (error != null)
+            {
+                return new AirtableRetrieveRecordResponse<T>(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            AirtableRecord<T> airtableRecord = JsonConvert.DeserializeObject<AirtableRecord<T>>(responseBody);
+
+            return new AirtableRetrieveRecordResponse<T>(airtableRecord);
+        }
+
+
+        //----------------------------------------------------------------------------
+        // 
         // AirtableBase.CreateRecord
         // 
         // Called to create a record in the specified table.

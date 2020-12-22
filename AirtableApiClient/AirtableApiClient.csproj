@@ -21,7 +21,10 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <PackageLicenseFile>LICENSE</PackageLicenseFile>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Fixed bug introduced by last release (1.1.3) where table names with spaces were no longer encoded correctly.</PackageReleaseNotes>
+  <PackageReleaseNotes>Added the generic version of RetrieveRecord&lt;T&gt;():
+        public async Task&lt;AirtableRetrieveRecordResponse&lt;T&gt;&gt; RetrieveRecord&lt;T&gt;(
+            string tableName,
+            string id)</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>

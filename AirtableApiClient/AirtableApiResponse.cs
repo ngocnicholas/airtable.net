@@ -77,6 +77,22 @@ namespace AirtableApiClient
     }
 
 
+    public class AirtableRetrieveRecordResponse<T> : AirtableApiResponse
+    {
+        public AirtableRetrieveRecordResponse(AirtableApiException error) : base(error)
+        {
+            Record = null;
+        }
+
+        public AirtableRetrieveRecordResponse(AirtableRecord<T> record) : base()
+        {
+            Record = record;
+        }
+
+        public readonly AirtableRecord<T> Record;
+    }
+
+
     public class AirtableCreateUpdateReplaceRecordResponse : AirtableApiResponse
     {
         public AirtableCreateUpdateReplaceRecordResponse(AirtableApiException error) : base(error)
