@@ -68,7 +68,7 @@ readonly string appKey = YOUR_APP_KEY;
             Task<AirtableListRecordsResponse> task = airtableBase.ListRecords(
                    YOUR_TABLE_NAME, 
                    offset, 
-                   fieldsArray, 
+                   fields, 
                    filterByFormula, 
                    maxRecords, 
                    pageSize, 
