@@ -7,24 +7,27 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the latest nuget package Airtable.1.1.5.nupkg
+Install the latest nuget package Airtable.1.1.6.nupkg
 
 ## Requirements
 
-.NET Framework 4.7.2 or newer
 Operating System: Windows 10 or newer
-Microsoft Visual Studio 2017 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
-.NET Standard 2.0 is supported in Visual Studio 2017.
+Microsoft Visual Studio 2019 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
+.NET Standard 2.0 and the usage of System.Text.Json are supported in Visual Studio 2019.
 
 ## Build AirtableApiClient.dll
 
-Download .NET SDK 2.1.202 or newer.
-
 Download Airtable.net c# source files from github.com. To compile to an assembly, simply create a new project in visual studio 
-of C# .NET Standard Class Library and add these source files to the project. 
-Refer to this link for creating a .NET Standard class library creation project using VS 2017 or newer:
-https://blogs.msdn.microsoft.com/dotnet/2017/08/14/announcing-net-standard-2-0/
-This link also shows how to use Manage Nuget Packages in Visual Studio to refer to the Newtonsoft.Json.dll.11.0.2.
+of C# .NET Standard Class Library and add these source files to the project.
+ 
+Refer to this link for downloading VS 2019 andd creating a .NET Standard class library using VS 2019:
+https://www.codementor.io/@dewetvanthomas/tutorial-class-library-dll-for-c-129spithmr
+
+Refer to the link below for downloading .NET SDK for VS 2019
+https://dotnet.microsoft.com/download/visual-studio-sdks
+
+Refer to the link below to learn more about what's in .NET Standard 2.0
+https://docs.microsoft.com/en-us/dotnet/standard/net-standard
 
 # Quickstart
 
