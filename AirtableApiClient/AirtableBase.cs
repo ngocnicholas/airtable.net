@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 
 namespace AirtableApiClient
@@ -20,6 +19,8 @@ namespace AirtableApiClient
 
         private readonly string BaseId;
         private readonly HttpClientWithRetries httpClientWithRetries;
+
+        private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { IgnoreNullValues = true,};
 
         public bool ShouldNotRetryIfRateLimited
         {
@@ -103,7 +104,7 @@ namespace AirtableApiClient
             }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            AirtableRecordList recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+            AirtableRecordList recordList = JsonSerializer.Deserialize<AirtableRecordList>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableListRecordsResponse(recordList);
         }
 
@@ -136,7 +137,7 @@ namespace AirtableApiClient
             }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            AirtableRecordList<T> recordList = JsonConvert.DeserializeObject<AirtableRecordList<T>>(responseBody);
+            AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody);
             return new AirtableListRecordsResponse<T>(recordList);
         }
 
@@ -172,7 +173,7 @@ namespace AirtableApiClient
                 return new AirtableRetrieveRecordResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
+            var airtableRecord = JsonSerializer.Deserialize<AirtableRecord>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableRetrieveRecordResponse(airtableRecord);
         }
@@ -210,7 +211,7 @@ namespace AirtableApiClient
                 return new AirtableRetrieveRecordResponse<T>(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            AirtableRecord<T> airtableRecord = JsonConvert.DeserializeObject<AirtableRecord<T>>(responseBody);
+            AirtableRecord<T> airtableRecord = JsonSerializer.Deserialize<AirtableRecord<T>>(responseBody);
 
             return new AirtableRetrieveRecordResponse<T>(airtableRecord);
         }
@@ -305,7 +306,7 @@ namespace AirtableApiClient
                 return new AirtableDeleteRecordResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            var deletedRecord = JsonConvert.DeserializeObject<AirtableDeletedRecord>(responseBody);
+            var deletedRecord = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
             return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
 
@@ -323,7 +324,7 @@ namespace AirtableApiClient
             Fields[] fields,
             bool typecast = false)
         {
-            var json = JsonConvert.SerializeObject(new { records = fields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var json = JsonSerializer.Serialize(new { records = fields, typecast = typecast }, JsonOptionIgnoreNullValues);
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Post, json);
             var response = await task;
             return response;
@@ -344,7 +345,7 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false)
         {
-            var json = JsonConvert.SerializeObject(new { records = idFields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, new HttpMethod("PATCH"), json);
             return (await task);
         }
@@ -363,7 +364,7 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false)
         {
-            var json = JsonConvert.SerializeObject(new { records = idFields, typecast = typecast }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Put, json);
             return (await task);
         }
@@ -509,7 +510,7 @@ namespace AirtableApiClient
             }
 
             var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };
-            var json = JsonConvert.SerializeObject(fieldsAndTypecast, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+            var json = JsonSerializer.Serialize(fieldsAndTypecast, JsonOptionIgnoreNullValues);
             var request = new HttpRequestMessage(httpMethod, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request);
@@ -520,7 +521,7 @@ namespace AirtableApiClient
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            var airtableRecord = JsonConvert.DeserializeObject<AirtableRecord>(responseBody);
+            var airtableRecord = JsonSerializer.Deserialize<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
         }
@@ -552,7 +553,7 @@ namespace AirtableApiClient
                 return new AirtableCreateUpdateReplaceMultipleRecordsResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync();
-            var recordList = JsonConvert.DeserializeObject<AirtableRecordList>(responseBody);
+            var recordList = JsonSerializer.Deserialize<AirtableRecordList>(responseBody);
 
             return new AirtableCreateUpdateReplaceMultipleRecordsResponse(recordList.Records);
         }
@@ -604,6 +605,12 @@ namespace AirtableApiClient
         }
 
 
+        class MessagePart
+        {
+            public string Error { get; set; }
+            public string Message { get; set; }
+        }
+
         //----------------------------------------------------------------------------
         // 
         // AirtableBase.ReadResponseErrorMessage
@@ -621,10 +628,12 @@ namespace AirtableApiClient
                 return null;
             }
 
-            var json = JObject.Parse(content);
-            var errorMessage = json["error"]?["message"]?.Value<string>();
-
-            return errorMessage;
+            MessagePart json = JsonSerializer.Deserialize<MessagePart>(content);
+            if (json.Error != null)
+            {
+                return json.Error;
+            }
+            return json.Message;
         }
 
 
