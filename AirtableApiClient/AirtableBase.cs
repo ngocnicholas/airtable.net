@@ -137,7 +137,7 @@ namespace AirtableApiClient
             }
             
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody)
+            AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody);
             return new AirtableListRecordsResponse<T>(recordList);
         }
 
