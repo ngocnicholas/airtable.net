@@ -89,21 +89,21 @@ namespace AirtableApiClient
             // of retries.
             if (request.Content != null)
             {
-                content = await request.Content.ReadAsStringAsync();
+                content = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
 
             int dueTimeDelay = RetryDelayMillisecondsIfRateLimited;
             int retries = 0;
 
-            HttpResponseMessage response = await client.SendAsync(request);
+            HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
 
             while (response.StatusCode == (HttpStatusCode)429 &&
                 retries < MAX_RETRIES &&
                 !ShouldNotRetryIfRateLimited)
             {
-                await Task.Delay(dueTimeDelay);
+                await Task.Delay(dueTimeDelay).ConfigureAwait(false);
                 var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri, content);
-                response = await client.SendAsync(requestRegenerated);
+                response = await client.SendAsync(requestRegenerated).ConfigureAwait(false);
                 retries++;
                 dueTimeDelay *= 2;
             }
