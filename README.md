@@ -1,9 +1,9 @@
 # Airtable .NET API Client
 
 Airtable.net is the C-Sharp client of the public APIs of Airtable. It builds a Windows class library that targets .NET Standard named AirtableClientApi.dll.
-AirtableClientApi.dll facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP, 
+AirtableClientApi.dll facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP,
 the low-level concepts like HTTP status codes and records paging. The users can write C-Sharp applications which integrate with
-Airtable by consuming what Airtable public APIs have to offer programmatically such as List Records, Create Record, Retrieve Record, 
+Airtable by consuming what Airtable public APIs have to offer programmatically such as List Records, Create Record, Retrieve Record,
 Update Record, Replace Record, Delete Record.
 
 # Installation
@@ -17,10 +17,10 @@ Microsoft Visual Studio 2019 or newer (only if you choose to build AirtableApiCl
 
 ## Build AirtableApiClient.dll
 
-Download Airtable.net c# source files from github.com. To compile to an assembly, simply create a new project in visual studio 
+Download Airtable.net c# source files from github.com. To compile to an assembly, simply create a new project in visual studio
 of C# .NET Standard Class Library and add these source files to the project.
- 
-Refer to this link for downloading VS 2019 andd creating a .NET Standard class library using VS 2019:
+
+Refer to this link for downloading VS 2019 and creating a .NET Standard class library using VS 2019:
 https://www.codementor.io/@dewetvanthomas/tutorial-class-library-dll-for-c-129spithmr
 
 Refer to the link below for downloading .NET SDK for VS 2019
@@ -69,13 +69,13 @@ readonly string appKey = YOUR_APP_KEY;
        do
        {
             Task<AirtableListRecordsResponse> task = airtableBase.ListRecords(
-                   YOUR_TABLE_NAME, 
-                   offset, 
-                   fields, 
-                   filterByFormula, 
-                   maxRecords, 
-                   pageSize, 
-                   sort, 
+                   YOUR_TABLE_NAME,
+                   offset,
+                   fields,
+                   filterByFormula,
+                   maxRecords,
+                   pageSize,
+                   sort,
                    view);
 
             AirtableListRecordsResponse response = await task;
@@ -106,7 +106,7 @@ readonly string appKey = YOUR_APP_KEY;
     {
         // Do something with the retrieved 'records' and the 'offset'
         // for the next page of the record list.
-    } 
+    }
 
 ```
 
