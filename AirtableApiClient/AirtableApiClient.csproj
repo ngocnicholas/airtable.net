@@ -21,14 +21,12 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <PackageLicenseFile>LICENSE</PackageLicenseFile>
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Added the generic version of RetrieveRecord&lt;T&gt;():
-        public async Task&lt;AirtableRetrieveRecordResponse&lt;T&gt;&gt; RetrieveRecord&lt;T&gt;(
-            string tableName,
-            string id)</PackageReleaseNotes>
+  <PackageReleaseNotes>Replaced Newtonsoft.json with System.Text.Json. 6.0.2.
+Added ConfigureAwait(false) on async await calls (contributed by hinek).</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
-  <Copyright>Copyright 2020</Copyright>
+  <Copyright>Copyright 2022</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
