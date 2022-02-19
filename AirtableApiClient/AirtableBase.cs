@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
@@ -20,7 +21,7 @@ namespace AirtableApiClient
         private readonly string BaseId;
         private readonly HttpClientWithRetries httpClientWithRetries;
 
-        private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { IgnoreNullValues = true,};
+        private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, };
 
         public bool ShouldNotRetryIfRateLimited
         {
