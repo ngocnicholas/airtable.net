@@ -19,7 +19,7 @@
   <owners>Ngoc Nicholas</owners>
   <PackageProjectUrl>https://github.com/ngocnicholas/airtable.net</PackageProjectUrl>
   <PackageIcon>airtable_64x64.png</PackageIcon>
-  <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
   <PackageReleaseNotes>Replaced Newtonsoft.json with System.Text.Json. 6.0.2.
 Added ConfigureAwait(false) on async await calls (contributed by hinek).</PackageReleaseNotes>
@@ -31,6 +31,13 @@ Added ConfigureAwait(false) on async await calls (contributed by hinek).</Packag
 
   <ItemGroup>
     <None Include="images\airtable_64x64.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <PropertyGroup>
+      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <None Include="..\LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
