@@ -33,6 +33,9 @@ namespace AirtableApiClient
     }
 
 
+    /// <summary>
+    /// This class is used in the Update and Replace record(s) operations.
+    /// </summary>
     public class IdFields : Fields
     {
         public IdFields(string id)
@@ -41,11 +44,11 @@ namespace AirtableApiClient
         }
 
         // Note: System.Text.Json's Serialization includes Properties by default
-        // So it good practice to use Property instead of Fields.
+        // So it's good practice to use Property instead of Fields.
         // Change 'field' to 'property' but not changing the case of 'i' in 'Id'
         // to keep backward compatiblity.
         [JsonPropertyName("id")]
-        public string id { get; set; }          
+        public string id { get; set; }      // Note: this is intended to be the record ID of the record containing Fields (not to be confused with the field ID)
     }
 
 
