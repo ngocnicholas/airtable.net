@@ -42,11 +42,6 @@ namespace AirtableApiClient
         }
 
 
-        public void ResetId()
-        {
-            Id = null;
-        }
-
         //----------------------------------------------------------------------------
         // 
         // AirtableRecord.GetAttachmentField

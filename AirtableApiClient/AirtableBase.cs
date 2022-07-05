@@ -333,6 +333,10 @@ namespace AirtableApiClient
             Fields[] fields,
             bool typecast = false)
         {
+            if (fields == null || fields.Length == 0 || fields.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records to be created must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
             var json = JsonSerializer.Serialize(new { records = fields, typecast = typecast }, JsonOptionIgnoreNullValues);
             return await (CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Post, json)).ConfigureAwait(false);
         }
@@ -350,6 +354,11 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false)
         {
+            if (idFields == null || idFields.Length == 0 || idFields.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records to be updated must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
+
             var json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
             return await (CreateUpdateReplaceMultipleRecords(tableName, new HttpMethod("PATCH"), json)).ConfigureAwait(false);
         }
@@ -368,6 +377,11 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false)
         {
+            if (idFields == null || idFields.Length == 0 || idFields.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records to be replaced must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
+
             var json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
             return await (CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Put, json)).ConfigureAwait(false);
         }
@@ -375,12 +389,12 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
-        // AirtableBase.CreateRecordsFromList
+        // AirtableBase.CreateMultipleRecords
         //
         // Called to create all records specified in the provided record list.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateRecordsFromList(
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
             string tableName,
             AirtableRecord[] records,
             bool typecast = false)
@@ -396,11 +410,6 @@ namespace AirtableApiClient
             for (int index = 0; index < records.Length; index++)
             {
                 AirtableRecord record = records[index];
-                if (!string.IsNullOrEmpty(record.Id))           // This record exists already?
-                {
-                    throw new ArgumentException("Record list contains a record with an ID", "records");
-                }
-
                 fieldsList.Add(new Fields());
                 fieldsList[index].FieldsCollection = record.Fields;
 
@@ -417,12 +426,12 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
-        // AirtableBase.UpdateRecordsFromList
+        // AirtableBase.UpdateMultipleRecords
         //
         // Called to update all records specified in the provided record list.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> UpdateRecordsFromList(
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> UpdateMultipleRecords(
             string tableName,
             AirtableRecord[] records,
             bool typecast = false)
@@ -433,12 +442,12 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
-        // AirtableBase.ReplaceRecordsFromList
+        // AirtableBase.ReplaceMultipleRecords
         //
         // Called to replace all records specified in the provided record list.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> ReplaceRecordsFromList(
+        public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> ReplaceMultipleRecords(
             string tableName,
             AirtableRecord[] records,
             bool typecast = false)
@@ -624,6 +633,7 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("Table Name cannot be null", "tableName");
             }
+
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/";
             var request = new HttpRequestMessage(method, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -720,6 +730,10 @@ namespace AirtableApiClient
 
                 case (System.Net.HttpStatusCode)422:    // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
                     var error = await ReadResponseErrorMessage(response).ConfigureAwait(false);
+                    if (error == null)
+                    {
+                        error = "Airtable is unable to process the instructions contained in the request. This is likely due to the parameters passed into the HTTP request.";
+                    }
                     return (new AirtableInvalidRequestException(error));
 
                 case (System.Net.HttpStatusCode)429:    // There is no HttpStatusCode.TooManyRequests defined in HttpStatusCode Enumeration.
