@@ -732,7 +732,7 @@ namespace AirtableApiClient
                     var error = await ReadResponseErrorMessage(response).ConfigureAwait(false);
                     if (error == null)
                     {
-                        error = "Airtable is unable to process the instructions contained in the request. This is likely due to the parameters passed into the HTTP request.";
+                        error = "Airtable is unable to process the instructions contained in the request. This is likely due to some errors in the parameters passed into the HTTP request.";
                     }
                     return (new AirtableInvalidRequestException(error));
 
