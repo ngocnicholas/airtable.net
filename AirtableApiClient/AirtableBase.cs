@@ -370,12 +370,7 @@ namespace AirtableApiClient
 
                 if (index == (records.Length - 1))              // Done filling fieldsList?
                 {
-#if true
                     json = JsonSerializer.Serialize(new { records = fieldsList.ToArray(), typecast = typecast }, JsonOptionIgnoreNullValues);
-#else
-                    // The line of code below is only for causing HttpStataus code 422 on purpose FOR TESTING HttpStatus 422 ONLY 
-                    json = JsonSerializer.Serialize(new { typecast = typecast }, JsonOptionIgnoreNullValues);
-#endif
                     response = await (CreateUpdateReplaceMultipleRecords(tableName, HttpMethod.Post, json)).ConfigureAwait(false);
                     break;
                 }
@@ -466,7 +461,6 @@ namespace AirtableApiClient
         // AirtableBase.Dispose
         //
         //----------------------------------------------------------------------------
-
         public void Dispose()
         {
             httpClientWithRetries.Dispose();
@@ -480,7 +474,6 @@ namespace AirtableApiClient
         // Build URI for the List Records operation
         //
         //----------------------------------------------------------------------------
-
         private Uri BuildUriForListRecords(
             string tableName,
             string offset,
@@ -542,12 +535,19 @@ namespace AirtableApiClient
                 AddParametersToQuery(ref uriBuilder, $"pageSize={pageSize}");
             }
 
+            if (!string.IsNullOrEmpty(timeZone))
+            {
+                AddParametersToQuery(ref uriBuilder, $"timeZone={HttpUtility.UrlEncode(timeZone)}");
+            }
+
+            if (!string.IsNullOrEmpty(userLocale))
+            {
+                AddParametersToQuery(ref uriBuilder, $"userLocale={HttpUtility.UrlEncode(userLocale)}");
+            }
+
             if (!string.IsNullOrEmpty(cellFormat) && !string.IsNullOrEmpty(timeZone) && !string.IsNullOrEmpty(userLocale))
             {
                 AddParametersToQuery(ref uriBuilder, $"cellFormat={HttpUtility.UrlEncode(cellFormat)}");
-                AddParametersToQuery(ref uriBuilder, $"timeZone={HttpUtility.UrlEncode(timeZone)}");
-                AddParametersToQuery(ref uriBuilder, $"userLocale={HttpUtility.UrlEncode(userLocale)}");
-
             }
 
             if (returnFieldsByFieldId != false)
@@ -565,7 +565,6 @@ namespace AirtableApiClient
         // Helper function for URI parameters
         //
         //----------------------------------------------------------------------------
-
         private void AddParametersToQuery(ref UriBuilder uriBuilder, string queryToAppend)
         {
             if (uriBuilder.Query != null && uriBuilder.Query.Length > 1)
@@ -586,7 +585,6 @@ namespace AirtableApiClient
         // worker function which does the real work for creating, updating, or replacing a record
         //
         //----------------------------------------------------------------------------
-
         private async Task<AirtableCreateUpdateReplaceRecordResponse> CreateUpdateReplaceRecord(
             string tableName,
             Fields fields,
@@ -631,7 +629,6 @@ namespace AirtableApiClient
         // in one operation
         //
         //----------------------------------------------------------------------------
-
         private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(string tableName, HttpMethod method, string json)
         {
             if (string.IsNullOrEmpty(tableName))
@@ -671,7 +668,7 @@ namespace AirtableApiClient
         {
             if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
             {
-                throw new ArgumentException("Record list cannot be null or empty or more than 10", "records");
+                throw new ArgumentException("Record list cannot be null or empty or cannot have more than 10 records");
             }
 
             AirtableCreateUpdateReplaceMultipleRecordsResponse response = null;
@@ -707,7 +704,6 @@ namespace AirtableApiClient
         // construct and return the appropriate exception based on the specified message response
         //
         //----------------------------------------------------------------------------
-
         private async Task<AirtableApiException> CheckForAirtableException(HttpResponseMessage response)
         {
             switch (response.StatusCode)
@@ -745,7 +741,15 @@ namespace AirtableApiClient
             }
         }
 
-        private class InvalidDataError
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.InvalidRequestError
+        //
+        // Wrapper class of the HTTP Invalid Request error
+        //
+        //----------------------------------------------------------------------------
+        private class InvalidRequestError
         {
             [JsonPropertyName("error")]
             [JsonInclude]
@@ -753,6 +757,13 @@ namespace AirtableApiClient
         }
 
 
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.MessagePart
+        //
+        // The error message of the HTTP Invalid Request error
+        //
+        //----------------------------------------------------------------------------
         private class MessagePart
         {
             [JsonPropertyName("type")]
@@ -782,7 +793,7 @@ namespace AirtableApiClient
                 return null;
             }
 
-            InvalidDataError json = JsonSerializer.Deserialize<InvalidDataError>(content);
+            InvalidRequestError json = JsonSerializer.Deserialize<InvalidRequestError>(content);
             if (json.MessagePart != null && json.MessagePart.ErrorType != null)
             {
                 return json.MessagePart.Message;
@@ -796,7 +807,6 @@ namespace AirtableApiClient
         // AirtableBase.ListRecordsInternal
         //
         //----------------------------------------------------------------------------
-
         private async Task<HttpResponseMessage> ListRecordsInternal(
             string tableName,
             string offset,
@@ -817,10 +827,9 @@ namespace AirtableApiClient
             }
             if (!string.IsNullOrEmpty(cellFormat) && (cellFormat == "string"))
             {
-                // The timeZone and userLocale parameters are required when using string as the cellFormat.
                 if (string.IsNullOrEmpty(timeZone) || string.IsNullOrEmpty(userLocale))
                 {
-                    throw new ArgumentException("The timeZone and userLocale parameters are required when using string as the cellFormat.");
+                    throw new ArgumentException("Both \'timeZone\' and \'userLocal\' parameters are required when using \'string\' as \'cellFormat\'.");
                 }
             }
             var uri = BuildUriForListRecords(tableName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
