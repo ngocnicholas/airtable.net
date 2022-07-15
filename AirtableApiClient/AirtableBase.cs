@@ -356,7 +356,7 @@ namespace AirtableApiClient
         {
             if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
             {
-                throw new ArgumentException("Record list cannot be null or empty or more than 10", "records");
+                throw new ArgumentException("Record list cannot be null or empty or cannot have more than 10 records");
             }
 
             AirtableCreateUpdateReplaceMultipleRecordsResponse response = null;
