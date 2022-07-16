@@ -7,23 +7,23 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the latest nuget package Airtable.1.1.6.nupkg
+Install the latest nuget package Airtable.2.0.0.nupkg
 
 ## Requirements
 
 Operating System: Windows 10 or newer
-Microsoft Visual Studio 2019 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
-.NET Standard 2.0 and the usage of System.Text.Json are supported in Visual Studio 2019.
+Microsoft Visual Studio 2022 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
+.NET Standard 2.0 and the usage of System.Text.Json are supported in Visual Studio 2022.
 
 ## Build AirtableApiClient.dll
 
 Download Airtable.net c# source files from github.com. To compile to an assembly, simply create a new project in visual studio
 of C# .NET Standard Class Library and add these source files to the project.
 
-Refer to this link for downloading VS 2019 and creating a .NET Standard class library using VS 2019:
-https://www.codementor.io/@dewetvanthomas/tutorial-class-library-dll-for-c-129spithmr
+Refer to this link for downloading VS 2022 Community Edition:
+https://visualstudio.microsoft.com/free-developer-offers/
 
-Refer to the link below for downloading .NET SDK for VS 2019
+Refer to the link below for downloading .NET SDK for VS 2022
 https://dotnet.microsoft.com/download/visual-studio-sdks
 
 Refer to the link below to learn more about what's in .NET Standard 2.0
@@ -88,6 +88,11 @@ readonly string appKey = YOUR_APP_KEY;
             else if (response.AirtableApiError is AirtableApiException)
             {
                 errorMessage = response.AirtableApiError.ErrorMessage;
+                if (response.AirtableApiError is AirtableInvalidRequestException)
+                {
+                    errorMessage += "\nDetailed error message: ";
+                    errorMessage += response.AirtableApiError.DetailedErrorMessage;
+                }
                 break;
             }
             else

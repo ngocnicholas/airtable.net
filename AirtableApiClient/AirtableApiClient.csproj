@@ -33,7 +33,11 @@ Added ConfigureAwait(false) on async await calls (contributed by hinek).</Packag
     <None Include="images\airtable_64x64.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   <PropertyGroup>
-      <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <PackageLicenseFile>C:\Projects\airtable.net\LICENSE</PackageLicenseFile>
+      <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+      <Version>$(Version)</Version>
+      <AssemblyVersion>2.0.0</AssemblyVersion>
+      <FileVersion>2.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
