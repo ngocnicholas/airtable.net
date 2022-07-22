@@ -21,8 +21,12 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Replaced Newtonsoft.json with System.Text.Json. 6.0.2.
-Added ConfigureAwait(false) on async await calls (contributed by hinek).</PackageReleaseNotes>
+  <PackageReleaseNotes>Added support for returnFieldsByFieldId, cellFormat, timeZone, and userLocale used in List Records operations.
+Fixed bug in not setting the detail error message for Invalid Request Exeption.
+Added overloaded methods for taking a record list as an argument in Create/Update/Replace records operations.
+Updated System.Text.Json from 6.0.2 to 6.0.5.
+Removed no longer needed dependency on Newtonsoft.json in AirtableApiClient.Tests  project. 
+Added more test methods in AirtableApiClient.Tests.</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
@@ -34,6 +38,10 @@ Added ConfigureAwait(false) on async await calls (contributed by hinek).</Packag
   </ItemGroup>
   <PropertyGroup>
       <PackageLicenseFile>LICENSE</PackageLicenseFile>
+      <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+      <Version>$(Version)</Version>
+      <AssemblyVersion>1.2.0</AssemblyVersion>
+      <FileVersion>1.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,7 +53,7 @@ Added ConfigureAwait(false) on async await calls (contributed by hinek).</Packag
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="6.0.2" />
+    <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 
 </Project>
