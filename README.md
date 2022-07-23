@@ -39,6 +39,7 @@ Example demonstrating usage of the API to list records:
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Linq;
 using System.Threading.Tasks;
 using AirtableApiClient;
