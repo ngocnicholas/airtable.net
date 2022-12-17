@@ -5,6 +5,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <ApplicationIcon />
     <Win32Resource />
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
