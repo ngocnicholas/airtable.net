@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -29,17 +30,59 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public Dictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
 
-        public object
-        GetField(string fieldName)
+#nullable enable
+        public object? GetField(string fieldName)
+            => Fields.ContainsKey(fieldName) ? Fields[fieldName] : null;
+        
+        public JsonElement? GetFieldAsJson(string fieldName)
+            => GetField(fieldName) as JsonElement?;
+        
+        public T? GetField<T>(string fieldName)
         {
-            if (Fields.ContainsKey(fieldName))
-            {
-                return Fields[fieldName];
-            }
-            return null;
+            JsonElement? jsonElement = GetFieldAsJson(fieldName);
+            if (jsonElement is not JsonElement jsonElement_)
+                return default;
+            
+            object? value = ParsePrimitiveValue(jsonElement_, typeof(T));
+            if (typeof(T) == typeof(DateTimeOffset))
+                value = jsonElement_.GetDateTimeOffset();
+            
+            return (T?)value;
         }
+        
+        /// <summary>
+        /// Parse field as an enumerable (either an array, list, collection or enumerable).
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <typeparam name="TEnumerable"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="NotSupportedException"></exception>
+        public TEnumerable? GetField<TEnumerable, T>(string fieldName)
+            where TEnumerable : class, IEnumerable<T>
+        {
+            JsonElement? jsonElement = GetFieldAsJson(fieldName);
+            if (jsonElement is not JsonElement jsonElement_)
+                return default;
+            
+            IEnumerable<T> enumerable = jsonElement_.EnumerateArray()
+                .Select(_ => ParsePrimitiveValue( _, typeof(T)))
+                .Cast<T>();
+            
+            return typeof(TEnumerable) switch
+            {
+                Type t when t == typeof(T[])
+                    => enumerable.ToArray() as TEnumerable,
+                Type t when t == typeof(IList<T>) || t == typeof(ICollection<T>)
+                    => enumerable.ToList() as TEnumerable,
+                Type t when t == typeof(IEnumerable<T>)
+                    => (TEnumerable)enumerable,
+                _ => throw new NotSupportedException($"Unknown enumerable type '{typeof(TEnumerable).Name}'"),
+            };
+        }
+#nullable restore
 
 
         //----------------------------------------------------------------------------
@@ -88,8 +131,37 @@ namespace AirtableApiClient
             }
             return attachments;
         }
+        
+#nullable enable
+        private static object? ParsePrimitiveValue(JsonElement element, Type type) {
+            // handle nullable types
+            if( type.IsGenericType ){
+                if( type.GetGenericTypeDefinition() != typeof(Nullable<>) )
+                    throw new NotSupportedException( $"The only generic type supported is Nullable<T>" );
+                
+                type = type.GenericTypeArguments.Single();
+            }
+            return Type.GetTypeCode( type ) switch {
+                TypeCode.Boolean => element.GetBoolean(),
+                TypeCode.SByte => element.GetSByte(),
+                TypeCode.Byte => element.GetByte(),
+                TypeCode.Int16 => element.GetInt16(),
+                TypeCode.UInt16 => element.GetUInt16(),
+                TypeCode.Int32 => element.GetInt32(),
+                TypeCode.UInt32 => element.GetUInt32(),
+                TypeCode.Int64 => element.GetInt64(),
+                TypeCode.UInt64 => element.GetUInt64(),
+                TypeCode.Single => element.GetDecimal(),
+                TypeCode.Double => element.GetDouble(),
+                TypeCode.Decimal => element.GetDecimal(),
+                TypeCode.DateTime => element.GetDateTime(),
+                TypeCode.String => element.GetString(),
+                _ => default,
+            };
+        }
+#nullable restore
     }
-
+    
 
     public class AirtableRecordList<T>
     {
