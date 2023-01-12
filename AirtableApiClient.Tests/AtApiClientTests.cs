@@ -586,7 +586,7 @@ namespace AirtableApiClient.Tests
                 HttpMethod.Delete,
                 fakeResponse);
 
-            Task<AirtableDeleteRecordOrCommentResponse> task = airtableBase.DeleteRecord(TABLE_NAME, "recae5HJYj9f33JnS");
+            Task<AirtableDeleteRecordResponse> task = airtableBase.DeleteRecord(TABLE_NAME, "recae5HJYj9f33JnS");
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Deleted);

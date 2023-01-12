@@ -44,7 +44,7 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
 
-        public AirtableBase(string apiKey, string baseId) : this(apiKey, baseId, null)
+        public AirtableBase(string apiKeyOrAccessToken, string baseId) : this(apiKeyOrAccessToken, baseId, null)
         {
             // No delegating handler is given; a normal HttpClient will be constructed
             // to communicate with Airtable.
@@ -59,13 +59,13 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
 
         public AirtableBase(
-            string apiKey,
+            string apiKeyOrAccessToken,
             string baseId,
             DelegatingHandler delegatingHandler)
         {
-            if (String.IsNullOrEmpty(apiKey))
+            if (String.IsNullOrEmpty(apiKeyOrAccessToken))
             {
-                throw new ArgumentException("apiKey cannot be null", "apiKey");
+                throw new ArgumentException("apiKey cannot be null", "apiKeyOrAccessToken");
             }
 
             if (String.IsNullOrEmpty(baseId))
@@ -74,7 +74,7 @@ namespace AirtableApiClient
             }
 
             BaseId = baseId;
-            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKey);
+            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
 
 
@@ -289,7 +289,7 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
 
-        public async Task<AirtableDeleteRecordOrCommentResponse> DeleteRecord(
+        public async Task<AirtableDeleteRecordResponse> DeleteRecord(
             string tableName,
             string id)
         {
@@ -309,11 +309,11 @@ namespace AirtableApiClient
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
-                return new AirtableDeleteRecordOrCommentResponse(error);
+                return new AirtableDeleteRecordResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deletedRecord = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
-            return new AirtableDeleteRecordOrCommentResponse(deletedRecord.Deleted, deletedRecord.Id);
+            return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
 
 
@@ -527,7 +527,7 @@ namespace AirtableApiClient
         }
 
 
-        public async Task<AirtableDeleteRecordOrCommentResponse> DeleteComment(
+        public async Task<AirtableDeleteCommentResponse> DeleteComment(
             string tableName,
             string recordId,
             string rowCommentId)
@@ -549,11 +549,11 @@ namespace AirtableApiClient
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
-                return new AirtableDeleteRecordOrCommentResponse(error);
+                return new AirtableDeleteCommentResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deletedComment = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
-            return new AirtableDeleteRecordOrCommentResponse(deletedComment.Deleted, deletedComment.Id);
+            return new AirtableDeleteCommentResponse(deletedComment.Deleted, deletedComment.Id);
         }
 
 

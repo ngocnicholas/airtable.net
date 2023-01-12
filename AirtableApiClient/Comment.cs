@@ -57,8 +57,8 @@ namespace AirtableApiClient
             }
             return commentText;
         }
+    }   // end Comment
 
-    }
 
     public class CommentData
     {
@@ -81,14 +81,7 @@ namespace AirtableApiClient
     }
 
 
-    public class UserMentioned : UserGroupMentioned
-    {
-        [JsonPropertyName("email")]
-        [JsonInclude]
-        public string Email { get; set; }
-    }
-
-    public class UserGroupMentioned
+    public class UserGroupMentioned     // does not have an email
     {
         [JsonPropertyName("type")]
         [JsonInclude]
@@ -102,6 +95,21 @@ namespace AirtableApiClient
         [JsonInclude]
         public string DisplayName { get; set; }
     }
+
+
+    public class UserMentioned : UserGroupMentioned
+    {
+        [JsonPropertyName("email")]
+        [JsonInclude]
+        public string Email { get; set; }
+    }
+
+
+    public class userEmail : UserMentioned  // If this person has not signed up then it does not have a user ID.
+    {
+
+    }
+
 
     public class CommentList
     {
