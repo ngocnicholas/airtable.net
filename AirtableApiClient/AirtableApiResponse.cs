@@ -125,15 +125,15 @@ namespace AirtableApiClient
     }
 
 
-    public class AirtableDeleteRecordResponse : AirtableApiResponse
+    public class AirtableDeleteRecordOrCommentResponse : AirtableApiResponse
     {
-        public AirtableDeleteRecordResponse(AirtableApiException error) : base(error)
+        public AirtableDeleteRecordOrCommentResponse(AirtableApiException error) : base(error)
         {
             Deleted = false;
             Id = null;
         }
 
-        public AirtableDeleteRecordResponse(bool deleted, string id) : base()
+        public AirtableDeleteRecordOrCommentResponse(bool deleted, string id) : base()
         {
             Deleted = deleted;
             Id = id;
@@ -142,4 +142,40 @@ namespace AirtableApiClient
         public readonly bool Deleted;
         public readonly string Id;
     }
+
+    public class AirtableCreateUpdateCommentResponse : AirtableApiResponse
+    {
+        public AirtableCreateUpdateCommentResponse(AirtableApiException error) : base(error)
+        {
+            Comment = null;
+        }
+
+        public AirtableCreateUpdateCommentResponse(Comment comment) : base()
+        {
+            Comment = comment;
+        }
+
+        public readonly Comment Comment;
+    }
+
+
+    public class AirtableListCommentsResponse : AirtableApiResponse
+    {
+        public AirtableListCommentsResponse(AirtableApiException error) : base(error)
+        {
+            CommentList = null;
+            Offset = null;
+        }
+
+        public AirtableListCommentsResponse(CommentList commentList) : base()
+        {
+            CommentList = commentList;
+            Offset = commentList.Offset;
+        }
+
+        public readonly CommentList CommentList;
+        public readonly string Offset;
+    }
+
+
 }

@@ -85,7 +85,6 @@ namespace AirtableApiClient
         // Called to get a list of records in the table specified by 'tableName'
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableListRecordsResponse> ListRecords(
             string tableName,
             string offset = null,
@@ -98,8 +97,7 @@ namespace AirtableApiClient
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false
-            )
+            bool returnFieldsByFieldId = false)
         {
             HttpResponseMessage response = await ListRecordsInternal(tableName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view,
@@ -139,20 +137,19 @@ namespace AirtableApiClient
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false
-            )
+            bool returnFieldsByFieldId = false)
         {
-            HttpResponseMessage response = await ListRecordsInternal(tableName, offset, fields, filterByFormula,
-                maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
-            if (error != null)
-            {
-                return new AirtableListRecordsResponse<T>(error);
-            }
+                HttpResponseMessage response = await ListRecordsInternal(tableName, offset, fields, filterByFormula,
+                    maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId).ConfigureAwait(false);
+                AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+                if (error != null)
+                {
+                    return new AirtableListRecordsResponse<T>(error);
+                }
 
-            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody);
-            return new AirtableListRecordsResponse<T>(recordList);
+                var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody);
+                return new AirtableListRecordsResponse<T>(recordList);
         }
 
 
@@ -292,7 +289,7 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
 
-        public async Task<AirtableDeleteRecordResponse> DeleteRecord(
+        public async Task<AirtableDeleteRecordOrCommentResponse> DeleteRecord(
             string tableName,
             string id)
         {
@@ -312,11 +309,11 @@ namespace AirtableApiClient
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
-                return new AirtableDeleteRecordResponse(error);
+                return new AirtableDeleteRecordOrCommentResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deletedRecord = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
-            return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
+            return new AirtableDeleteRecordOrCommentResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
 
 
@@ -453,6 +450,110 @@ namespace AirtableApiClient
             bool typecast = false)
         {
             return await (UpdateReplaceRecordsFromList(tableName, records, HttpMethod.Put, typecast)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ListComments
+        //
+        // Called to list all comments for the record with the provided record ID
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableListCommentsResponse> ListComments(
+        string tableName,
+            string id)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Record ID cannot be null", "id");
+            }
+
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id + "/comments";
+            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
+            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableListCommentsResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var commentList = JsonSerializer.Deserialize<CommentList>(responseBody, JsonOptionIgnoreNullValues);
+            return new AirtableListCommentsResponse(commentList);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateComment
+        //
+        // Called to create comment(s) with info stored in commenData for the record with the provided record ID
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateUpdateCommentResponse> CreateComment(
+            string tableName,
+            string recordId,
+            CommentData commentData)
+        {
+            return await (CreateUpdateComment(tableName, recordId, commentData)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.UpdateComment
+        //
+        // Called to Update a comment row with info stored in commenData for the row comments specified by rowCommentId of the record
+        // with the provided record ID
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateUpdateCommentResponse> UpdateComment(
+        string tableName,
+           string recordId,
+           CommentData commentData,
+           string rowCommentId)
+        {
+            if (string.IsNullOrEmpty(rowCommentId))
+            {
+                throw new ArgumentException("Comment ID cannot be null.", "rowCommentId");
+            }
+
+            return await (CreateUpdateComment(tableName, recordId, commentData, rowCommentId)).ConfigureAwait(false);
+        }
+
+
+        public async Task<AirtableDeleteRecordOrCommentResponse> DeleteComment(
+            string tableName,
+            string recordId,
+            string rowCommentId)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
+            if (string.IsNullOrEmpty(recordId) || string.IsNullOrEmpty(rowCommentId))
+            {
+                throw new ArgumentException("Record ID and Comment ID cannot be null", "recordId, CommentId");
+            }
+
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + recordId + "/comments" + "/" + rowCommentId;
+            var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
+            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableDeleteRecordOrCommentResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var deletedComment = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
+            return new AirtableDeleteRecordOrCommentResponse(deletedComment.Deleted, deletedComment.Id);
         }
 
 
@@ -836,6 +937,52 @@ namespace AirtableApiClient
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             return (await httpClientWithRetries.SendAsync(request).ConfigureAwait(false));
         }
+
+
+        private async Task<AirtableCreateUpdateCommentResponse> CreateUpdateComment(
+           string tableName,
+           string recordId,
+           CommentData commentData,
+           string rowCommentId = null)
+        {
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table Name cannot be null", "tableName");
+            }
+
+            if (string.IsNullOrEmpty(recordId))
+            {
+                throw new ArgumentException("Record ID cannot be null", "recordId");
+            }
+
+            if (string.IsNullOrEmpty(recordId))
+            {
+                throw new ArgumentException("CommentData cannot be null", "commentData");
+            }
+
+            HttpMethod httpMethod = HttpMethod.Post;
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + recordId + "/comments";
+            if (rowCommentId != null)
+            {
+                uriStr += "/" + rowCommentId;
+                httpMethod = new HttpMethod("PATCH");
+            }
+            var jsonCmt = JsonSerializer.Serialize(commentData);
+            var request = new HttpRequestMessage(httpMethod, uriStr);
+            request.Content = new StringContent(jsonCmt, Encoding.UTF8, "application/json");
+            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableCreateUpdateCommentResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var comment = JsonSerializer.Deserialize<Comment>(responseBody, JsonOptionIgnoreNullValues);
+
+            return new AirtableCreateUpdateCommentResponse(comment);
+        }
+
 
     }   // end class
 
