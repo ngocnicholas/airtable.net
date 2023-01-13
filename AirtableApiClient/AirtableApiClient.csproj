@@ -5,6 +5,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <ApplicationIcon />
     <Win32Resource />
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,7 +26,7 @@
 Fixed bug in not setting the detail error message for Invalid Request Exeption.
 Added overloaded methods for taking a record list as an argument in Create/Update/Replace records operations.
 Updated System.Text.Json from 6.0.2 to 6.0.5.
-Removed no longer needed dependency on Newtonsoft.json in AirtableApiClient.Tests  project. 
+Removed no longer needed dependency on Newtonsoft.json in AirtableApiClient.Tests  project.
 Added more test methods in AirtableApiClient.Tests.
 Made private AirtableBase constructor public so that users can pass in a custom HTTP delegating handler.</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
@@ -54,7 +55,7 @@ Made private AirtableBase constructor public so that users can pass in a custom 
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Include="System.Text.Json" Version="7.0.1" />
   </ItemGroup>
 
 </Project>

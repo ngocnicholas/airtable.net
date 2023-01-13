@@ -32,7 +32,6 @@ namespace AirtableApiClient
         {
             get { return httpClientWithRetries.RetryDelayMillisecondsIfRateLimited; }
             set { httpClientWithRetries.RetryDelayMillisecondsIfRateLimited = value; }
-
         }
 
 
@@ -65,7 +64,7 @@ namespace AirtableApiClient
         {
             if (String.IsNullOrEmpty(apiKeyOrAccessToken))
             {
-                throw new ArgumentException("apiKey cannot be null", "apiKeyOrAccessToken");
+                throw new ArgumentException("apiKey or access token cannot be null", "apiKeyOrAccessToken");
             }
 
             if (String.IsNullOrEmpty(baseId))
@@ -165,15 +164,7 @@ namespace AirtableApiClient
             string tableName,
             string id)
         {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
-            }
-
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("Record ID cannot be null", "id");
-            }
+            TableNameAndRecordIdCheck(tableName, id);
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
@@ -203,15 +194,7 @@ namespace AirtableApiClient
             string tableName,
             string id)
         {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
-            }
-
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("Record ID cannot be null", "id");
-            }
+            TableNameAndRecordIdCheck(tableName, id);
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
@@ -293,15 +276,7 @@ namespace AirtableApiClient
             string tableName,
             string id)
         {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table name cannot be null", "tableName");
-            }
-
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("Record ID cannot be null", "id");
-            }
+            TableNameAndRecordIdCheck(tableName, id);
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
@@ -464,15 +439,7 @@ namespace AirtableApiClient
         string tableName,
             string id)
         {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
-            }
-
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("Record ID cannot be null", "id");
-            }
+            TableNameAndRecordIdCheck(tableName, id);
 
             string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id + "/comments";
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
@@ -529,20 +496,16 @@ namespace AirtableApiClient
 
         public async Task<AirtableDeleteCommentResponse> DeleteComment(
             string tableName,
-            string recordId,
+            string id,
             string rowCommentId)
         {
-            if (string.IsNullOrEmpty(tableName))
+            TableNameAndRecordIdCheck(tableName, id);
+            if (string.IsNullOrEmpty(rowCommentId))
             {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
+                throw new ArgumentException("Comment ID cannot be null", "recordId, rowCommentId");
             }
 
-            if (string.IsNullOrEmpty(recordId) || string.IsNullOrEmpty(rowCommentId))
-            {
-                throw new ArgumentException("Record ID and Comment ID cannot be null", "recordId, CommentId");
-            }
-
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + recordId + "/comments" + "/" + rowCommentId;
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id + "/comments" + "/" + rowCommentId;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
 
@@ -941,27 +904,19 @@ namespace AirtableApiClient
 
         private async Task<AirtableCreateUpdateCommentResponse> CreateUpdateComment(
            string tableName,
-           string recordId,
+           string id,
            CommentData commentData,
-           string rowCommentId = null)
+           string rowCommentId = null)      // == null if we are doing Update Comment Otherwise we are doing Create Comment
         {
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentException("Table Name cannot be null", "tableName");
-            }
+            TableNameAndRecordIdCheck(tableName, id);
 
-            if (string.IsNullOrEmpty(recordId))
-            {
-                throw new ArgumentException("Record ID cannot be null", "recordId");
-            }
-
-            if (string.IsNullOrEmpty(recordId))
+            if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentException("CommentData cannot be null", "commentData");
             }
 
             HttpMethod httpMethod = HttpMethod.Post;
-            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + recordId + "/comments";
+            string uriStr = AIRTABLE_API_URL + BaseId + "/" + Uri.EscapeDataString(tableName) + "/" + id + "/comments";
             if (rowCommentId != null)
             {
                 uriStr += "/" + rowCommentId;
@@ -984,6 +939,18 @@ namespace AirtableApiClient
         }
 
 
+        private void TableNameAndRecordIdCheck(string tableName, string id)
+        { 
+            if (string.IsNullOrEmpty(tableName))
+            {
+                throw new ArgumentException("Table name cannot be null", "tableName");
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Record ID cannot be null", "id");
+            }
+        }
     }   // end class
 
 }

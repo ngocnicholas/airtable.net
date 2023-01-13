@@ -24,7 +24,7 @@ namespace AirtableApiClient
     public class Fields
     {
         [JsonPropertyName("fields")]
-        public Dictionary<string, object> FieldsCollection { get; set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> FieldsCollection { get; set; } = new Dictionary<string, object>();
 
         public void AddField(string fieldName, object fieldValue)
         {
