@@ -16,7 +16,7 @@ namespace AirtableApiClient
         [JsonInclude]
         public Author Author { get; set; }
 
-        [JsonPropertyName("mentioned")] // mentioned is not just one user, it can contains multiple users. Each user is a key value pair of UserMentioned in the dictionary.
+        [JsonPropertyName("mentioned")] // mentioned may contain one or more multiple. Each user is a key value pair of UserMentioned in the dictionary.
         [JsonInclude]
         public Dictionary<string, UserMentioned> Mentioned { get; set; } = new Dictionary<string, UserMentioned>();
 
@@ -32,11 +32,37 @@ namespace AirtableApiClient
         [JsonInclude]
         public DateTime? LastUpdatedTime { get; internal set; }
 
-        public string GetTextWithMentionedUserNames(Dictionary<string, UserMentioned> mentioned)
+        public string GetTextWithMentionedDisplayNames(Dictionary<string, UserMentioned> mentioned)
         {
-            Regex pattern = new Regex("(@\\[[a-zA-Z0-9]*\\])");
-            var matches = pattern.Matches(Text);
-            string commentText = Text;
+           string commentText = Text;
+           if (mentioned != null)   // Comment has any Mentioned?
+           {
+                bool hasSingleUser = false;
+                foreach (KeyValuePair<string, UserMentioned> usrOrUgp in mentioned)
+                {
+                    if (!string.IsNullOrEmpty((string)usrOrUgp.Value.Email))
+                    {
+                        hasSingleUser = true;
+                    }
+                }
+
+                Regex pattern = null;
+                if (hasSingleUser)
+                {
+                    pattern = new Regex("@\\[usr[a-zA-Z0-9]{14}\\]");
+                    commentText = ReplaceUserOrGroupIdWithDisplayName(pattern, commentText, mentioned);
+                }
+                // Assume that it also has Group user(s)
+                pattern = new Regex("@\\[ugp[a-zA-Z0-9]{14}\\]");
+                commentText = ReplaceUserOrGroupIdWithDisplayName(pattern, commentText, mentioned);
+
+            }
+            return commentText;
+        }
+        private string ReplaceUserOrGroupIdWithDisplayName(Regex pattern, string text, Dictionary<string, UserMentioned> mentioned)
+        {
+            var matches = pattern.Matches(text);
+            string commentText = text;
             string value;
             int index;
 
@@ -57,6 +83,7 @@ namespace AirtableApiClient
             }
             return commentText;
         }
+
     }   // end Comment
 
 
@@ -102,12 +129,6 @@ namespace AirtableApiClient
         [JsonPropertyName("email")]
         [JsonInclude]
         public string Email { get; set; }
-    }
-
-
-    public class userEmail : UserMentioned  // If this person has not signed up then it does not have a user ID.
-    {
-
     }
 
 
