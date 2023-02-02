@@ -87,11 +87,6 @@ namespace AirtableApiClient
     }   // end Comment
 
 
-    public class CommentData
-    {
-        public string text { get; set; }
-    }
-
     public class Author
     {
         [JsonPropertyName("id")]

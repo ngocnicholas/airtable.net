@@ -30,7 +30,9 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        // <string, object> where string is the Field ID/Field Name (different than the record ID) and object is one Field value
+        //public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Fields { get; set; } = new Dictionary<string, object>(); // Make set public for upSert operations 01/30/2023
 
 
 #nullable enable
@@ -192,5 +194,28 @@ namespace AirtableApiClient
         [JsonPropertyName("fields")]
         [JsonInclude]
         public T Fields { get; internal set; }
+    }
+
+
+    public class AirtableUpSertRecordList : AirtableRecordList
+    {
+        [JsonPropertyName("createdRecords")]
+        [JsonInclude]
+        public IEnumerable<string> CreatedRecords { get; internal set; }
+
+        [JsonPropertyName("updatedRecords")]
+        [JsonInclude]
+        public IEnumerable<string> UpdatedRecords { get; internal set; }
+    }
+
+    public class AirtableUpSertRecordList<T> : AirtableRecordList<T>
+    {
+        [JsonPropertyName("createdRecords")]
+        [JsonInclude]
+        public IEnumerable<string> CreatedRecords { get; internal set; }
+
+        [JsonPropertyName("updatedRecords")]
+        [JsonInclude]
+        public IEnumerable<string> UpdatedRecords { get; internal set; }
     }
 }
