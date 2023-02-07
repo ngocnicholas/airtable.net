@@ -17,6 +17,10 @@ namespace AirtableApiClient.Tests
 
         internal void AddFakeResponse(string uri, HttpMethod method, HttpResponseMessage response)
         {
+            if (_FakeResponses.ContainsKey(uri))        // This is obsolete. Remove it, so that we can add the new one with the same key but different value.
+            {
+                _FakeResponses.Remove(uri);
+            }
             _FakeResponses.Add(uri, new MethodAndResponse { Method = method, Response = response });
         }
 

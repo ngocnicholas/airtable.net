@@ -118,48 +118,36 @@ namespace AirtableApiClient
     internal class ListRecordsParameters
     {
         [JsonPropertyName("offset")]
-        [JsonInclude]
         public string Offset { get; set; }
 
         [JsonPropertyName("fields")]
-        [JsonInclude]
         public string[] Fields { get; set; }
 
         [JsonPropertyName("filterByFormula")]
-        [JsonInclude]
         public string FilterByFormula { get; set; }
 
         [JsonPropertyName("maxRecords")]
-        [JsonInclude]
         public int? MaxRecords { get; set; }
 
         [JsonPropertyName("pageSize")]
-        [JsonInclude]
         public int? PageSize { get; set; }
 
         [JsonPropertyName("sort")]
-        [JsonInclude]
         public List<SortWithDirectionString> Sort { get; set; }
-        //public Dictionary<string, string> Sort { get; set; }   
 
         [JsonPropertyName("view")]
-        [JsonInclude]
         public string View { get; set; }
 
         [JsonPropertyName("cellFormat")]
-        [JsonInclude]
         public string CellFormat { get; set; }
 
         [JsonPropertyName("timeZone")]
-        [JsonInclude]
         public string TimeZone { get; set; }
 
         [JsonPropertyName("userLocale")]
-        [JsonInclude]
         public string UserLocale { get; set; }
 
         [JsonPropertyName("returnFieldsByFieldId")]
-        [JsonInclude]
         public bool ReturnFieldsByFieldId { get; set; }
     }
 
@@ -167,26 +155,21 @@ namespace AirtableApiClient
     internal class UpSertRecordsParameters
     {
         [JsonPropertyName("performUpsert")]
-        [JsonInclude]
         public PerformUpsert PerformUpsert { get; set; }
 
         [JsonPropertyName("returnFieldsByFieldId")]
-        [JsonInclude]
         public bool ReturnFieldsByFieldId { get; set; }
 
         [JsonPropertyName("typecast")]
-        [JsonInclude]
         public bool Typecast { get; set; }
 
         [JsonPropertyName("records")]
-        [JsonInclude]
         public IdFields[] Records { get; internal set; }
     }
 
     public class PerformUpsert
     {
         [JsonPropertyName("fieldsToMergeOn")]
-        [JsonInclude]
         public string[] FieldsToMergeOn { get; set; }
     }
 
