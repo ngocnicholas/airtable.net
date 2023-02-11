@@ -34,6 +34,9 @@ namespace AirtableApiClient
         //public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
         public IDictionary<string, object> Fields { get; set; } = new Dictionary<string, object>(); // Make set public for upSert operations 01/30/2023
 
+        [JsonPropertyName("commentCount")]
+        [JsonInclude]
+        public int? CommentCount { get; internal set; }
 
 #nullable enable
         public object? GetField(string fieldName)
@@ -194,6 +197,10 @@ namespace AirtableApiClient
         [JsonPropertyName("fields")]
         [JsonInclude]
         public T Fields { get; internal set; }
+
+        [JsonPropertyName("commentCount")]
+        [JsonInclude]
+        public int CommentCount { get; internal set; } 
     }
 
 

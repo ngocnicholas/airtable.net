@@ -1221,7 +1221,6 @@ namespace AirtableApiClient.Tests
 
         private async Task<ListAllRecordsTestResponse> ListAllRecords(
             IEnumerable<string> fields = null,
-            //string[] fields = null,
             string filterByFormula = null,
             int? maxRecords = null,
             int? pageSize = null,
@@ -1230,7 +1229,8 @@ namespace AirtableApiClient.Tests
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false)
+            bool returnFieldsByFieldId = false,
+            bool includeCommentCount = false)
         {
             string offset = null;
             string errorMessage = null;
@@ -1240,7 +1240,7 @@ namespace AirtableApiClient.Tests
                 do
                 {
                     Task<AirtableListRecordsResponse> task = airtableBase.ListRecords(TABLE_NAME, offset, fields, filterByFormula, maxRecords, pageSize, sort, view,
-                        cellFormat, timeZone, userLocale, returnFieldsByFieldId);
+                        cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
                     var response = await task;
 
                     if (response.Success)

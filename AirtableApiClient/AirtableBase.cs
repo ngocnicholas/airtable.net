@@ -116,12 +116,14 @@ namespace AirtableApiClient
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false)
+            bool returnFieldsByFieldId = false,
+            bool? includeCommentCount = null
+            )
         {
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view,
                 cellFormat, timeZone, userLocale,
-                returnFieldsByFieldId
+                returnFieldsByFieldId, includeCommentCount
                 ).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
@@ -157,10 +159,11 @@ namespace AirtableApiClient
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false)
+            bool returnFieldsByFieldId = false,
+            bool? includeCommentCount = null)
         {
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
-                maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId).ConfigureAwait(false);
+                maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -386,23 +389,7 @@ namespace AirtableApiClient
             bool returnFieldsByFieldId = false,
             PerformUpsert performUpsert = null)
         {
-            if (idFields == null || idFields.Length == 0 || idFields.Length > MAX_RECORD_OPERATION_SIZE)
-            {
-                throw new ArgumentException(String.Format("Number of records to be updated must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
-            }
-
-            UpSertRecordsParameters upsertRecordsParameters = new UpSertRecordsParameters { 
-                                                                  PerformUpsert = performUpsert,
-                                                                  ReturnFieldsByFieldId = returnFieldsByFieldId,
-                                                                  Typecast = typecast, 
-                                                                  Records = idFields};
-
-            if (performUpsert != null && (performUpsert.FieldsToMergeOn != null && performUpsert.FieldsToMergeOn.Length < 1 || performUpsert.FieldsToMergeOn.Length>3))
-            {
-                throw new ArgumentException("FieldsToMergeOn must be >0 && <= 3");
-            }
-
-            var json = JsonSerializer.Serialize<UpSertRecordsParameters>(upsertRecordsParameters, JsonOptionIgnoreNullValues);
+            var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json)).ConfigureAwait(false);
         }
 
@@ -422,7 +409,8 @@ namespace AirtableApiClient
             PerformUpsert performUpsert = null)
         {
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
-            return await (UpdateMultipleRecords(tableIdOrName, idFields, typecast, returnFieldsByFieldId, performUpsert)).ConfigureAwait(false);
+            var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
         }
 
 
@@ -436,14 +424,11 @@ namespace AirtableApiClient
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> ReplaceMultipleRecords(
             string tableIdOrName,
             IdFields[] idFields,
-            bool typecast = false)
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            PerformUpsert performUpsert = null)
         {
-            if (idFields == null || idFields.Length == 0 || idFields.Length > MAX_RECORD_OPERATION_SIZE)
-            {
-                throw new ArgumentException(String.Format("Number of records to be replaced must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
-            }
-
-            var json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
+            var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
         }
 
@@ -458,10 +443,12 @@ namespace AirtableApiClient
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> ReplaceMultipleRecords(
             string tableIdOrName,
             AirtableRecord[] records,
-            bool typecast = false)
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            PerformUpsert performUpsert = null)
         {
-            IdFields[] idFields = ConvertAirtableRecordsToIdFields(records);
-            string json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast }, JsonOptionIgnoreNullValues);
+            IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
+            var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
         }
 
@@ -607,7 +594,9 @@ namespace AirtableApiClient
             string cellFormat,
             string timeZone,
             string userLocale,
-            bool returnFieldsByFieldId)
+            bool returnFieldsByFieldId,
+            bool? includeCommentCount           
+            )
         {
             if (pageSize != null)
             {
@@ -635,7 +624,8 @@ namespace AirtableApiClient
                 CellFormat = cellFormat,
                 TimeZone = timeZone,
                 UserLocale = userLocale,
-                ReturnFieldsByFieldId = returnFieldsByFieldId
+                ReturnFieldsByFieldId = returnFieldsByFieldId,
+                RecordMetadata = null
             };
 
             if (fields != null)
@@ -652,6 +642,11 @@ namespace AirtableApiClient
                     string dir = s.Direction.ToString().ToLower();
                     listRecordsParameters.Sort.Add(new SortWithDirectionString { Field = s.Field, Direction = dir });     
                 }
+            }
+
+            if (includeCommentCount.HasValue && includeCommentCount.Value)
+            {
+                listRecordsParameters.RecordMetadata = (includeCommentCount.Value ? "commentCount" : null);
             }
 
             return JsonSerializer.Serialize(listRecordsParameters, JsonOptionIgnoreNullValues);
@@ -871,6 +866,38 @@ namespace AirtableApiClient
             return idFieldsArray;
         }
 
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ReplaceUpdateMultipleRecordsInternal
+        //
+        //----------------------------------------------------------------------------
+        private string ReplaceUpdateMultipleRecordsInternal(
+            IdFields[] idFields,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            PerformUpsert performUpsert = null)
+        {
+            if (idFields == null || idFields.Length == 0 || idFields.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records to be replaced/updated must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
+
+            UpSertRecordsParameters upsertRecordsParameters = new UpSertRecordsParameters
+            {
+                PerformUpsert = performUpsert,
+                ReturnFieldsByFieldId = returnFieldsByFieldId,
+                Typecast = typecast,
+                Records = idFields
+            };
+
+            if (performUpsert != null && (performUpsert.FieldsToMergeOn != null && performUpsert.FieldsToMergeOn.Length < 1 || performUpsert.FieldsToMergeOn.Length > 3))
+            {
+                throw new ArgumentException("FieldsToMergeOn must be >0 && <= 3");
+            }
+
+            return JsonSerializer.Serialize<UpSertRecordsParameters>(upsertRecordsParameters, JsonOptionIgnoreNullValues);
+        }
+
 
         //----------------------------------------------------------------------------
         //
@@ -995,7 +1022,9 @@ namespace AirtableApiClient
             string cellFormat,
             string timeZone,
             string userLocale,
-            bool returnFieldsByFieldId)
+            bool returnFieldsByFieldId,
+            bool? includeCommentCount
+            )
         {
             if (string.IsNullOrEmpty(tableIdOrName))
             {
@@ -1024,7 +1053,8 @@ namespace AirtableApiClient
                 // New method: has all the parameters in the request body.
                 string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/listRecords";
                 request = new HttpRequestMessage(HttpMethod.Post, uriStr);
-                string jsonParameters = BuildParametersForListRecords(offset, fields, filterByFormula, maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
+                string jsonParameters = BuildParametersForListRecords(offset, fields, filterByFormula, maxRecords, pageSize, sort, view, 
+                    cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
 
                 // Pass the parameters within the body of the request instead of the query parameters.
                 request.Content = new StringContent(jsonParameters, Encoding.UTF8, "application/json");

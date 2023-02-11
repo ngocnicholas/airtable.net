@@ -49,7 +49,7 @@ namespace AirtableApiClient
     /// </summary>
     public class IdFields : Fields
     {
-        public IdFields(string id)
+        public IdFields(string id=null)
         {
             this.id = id;
         }
@@ -125,6 +125,9 @@ namespace AirtableApiClient
 
         [JsonPropertyName("filterByFormula")]
         public string FilterByFormula { get; set; }
+
+        [JsonPropertyName("recordMetadata")]
+        public string RecordMetadata { get; set; }
 
         [JsonPropertyName("maxRecords")]
         public int? MaxRecords { get; set; }
