@@ -213,7 +213,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Records.Count > 0);
             foreach(var record in response.Records)
             {
-                BoolTest(record.GetField("On Display?"), true);
+                Assert.IsTrue(record.GetField<bool>("On Display?"));
             }
         }
 
@@ -319,7 +319,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Record.Id == "recTvUcipNbHvX0S9");
-            Assert.IsTrue(response.Record.GetField("Name").ToString() == "Miya Ando");
+            Assert.IsTrue(response.Record.GetField<string>("Name") == "Miya Ando");
         }
 
 
@@ -348,7 +348,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Record.Id == "recTvUcipNbHvX0S9");
-            Assert.IsTrue(response.Record.GetField("Name").ToString() == "Miya Ando");
+            Assert.IsTrue(response.Record.GetField<string>("Name") == "Miya Ando");
 
             var attachmentList = response.Record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentList);
@@ -428,9 +428,9 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(Convert.ToString(response.Record.GetField("Name")) == "Pablo Picasso");
+            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso");
 
-            Assert.IsTrue(Convert.ToString(response.Record.GetField("Bio")) == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+            Assert.IsTrue(response.Record.GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
 
             Assert.IsNull(response.Record.GetField("On Display?"));
             var attListFromRecordCreated = response.Record.GetAttachmentField("Attachments");
@@ -478,8 +478,8 @@ namespace AirtableApiClient.Tests
             AirtableRecord record = response.Record;
 
             // the following 2 fields should be updated
-            Assert.IsTrue(Convert.ToString(record.GetField("Name")) == "Pablo Picasso Updated");
-            BoolTest(record.GetField("On Display?"), true);
+            Assert.IsTrue(record.GetField<string>("Name") == "Pablo Picasso Updated");
+            Assert.IsTrue(record.GetField<bool>("On Display?"));
 
             var attachmentListFromUpdatedRecord = record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentListFromUpdatedRecord);
@@ -521,8 +521,8 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(Convert.ToString(response.Record.GetField("Name")) == "Pablo Picasso Updated");
-            BoolTest(response.Record.GetField("On Display?"), true);
+            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso Updated");
+            Assert.IsTrue(response.Record.GetField<bool>("On Display?"));
 
             var attachmentListFromUpdatedRecord = response.Record.GetAttachmentField("Attachments");
             Assert.IsNull(attachmentListFromUpdatedRecord);
@@ -561,8 +561,8 @@ namespace AirtableApiClient.Tests
             var response = await testRecordTask;
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(Convert.ToString(response.Record.GetField("Name")) == "Pablo Picasso Replaced");
-            BoolTest(response.Record.GetField("On Display?"), true);
+            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso Replaced");
+            Assert.IsTrue(response.Record.GetField<bool>("On Display?"));
 
             var attachmentListFromReplacedRecord = response.Record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentListFromReplacedRecord);
@@ -629,11 +629,10 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(Convert.ToString(response.Records[0].GetField("Name")) == "Pablo Picasso");
-            Assert.IsTrue(Convert.ToString(response.Records[0].GetField("Bio")) == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+            Assert.IsTrue(response.Records[0].GetField<string>("Name") == "Pablo Picasso");
+            Assert.IsTrue(response.Records[0].GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
 
-            bool onDisplay;
-            Assert.IsFalse(Boolean.TryParse(Convert.ToString(response.Records[0].GetField("On Display?")), out onDisplay));  // because "On Display?" is null
+            Assert.IsFalse(response.Records[0].GetField<bool>("On Display?"));  // because "On Display?" is null, default to false
 
             var attListFromRecordCreated = response.Records[0].GetAttachmentField("Attachments");
             Assert.IsNotNull(attListFromRecordCreated);
@@ -681,11 +680,11 @@ namespace AirtableApiClient.Tests
                 records = response.Records;
 
                 // the following field should be updated
-                BoolTest(response.Records[0].GetField("On Display?"), true);
+                Assert.IsTrue(response.Records[0].GetField<bool>("On Display?"));
 
                 // the following 2 fields should be unchanged
-                Assert.IsTrue(Convert.ToString(records[0].GetField("Name")) == "Pablo Picasso");
-                Assert.IsTrue(Convert.ToString(records[0].GetField("Bio")) == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
+                Assert.IsTrue(records[0].GetField<string>("Name") == "Pablo Picasso");
+                Assert.IsTrue(records[0].GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
             }
             if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -736,13 +735,12 @@ namespace AirtableApiClient.Tests
                 records = response.Records;
 
                 // the following field should be updated
-                bool onDisplay;
-                Assert.IsFalse(Boolean.TryParse(Convert.ToString(records[0].GetField("On Display?")), out onDisplay));  // false for null value 
+                Assert.IsFalse(records[0].GetField<bool>("On Display?"));  // false for null value 
 
                 Assert.IsNull(records[0].GetField("Bio?"));
 
                 // the following field should be unchanged
-                Assert.IsTrue(Convert.ToString(records[0].GetField("Name")) == "Auguste Rodin");
+                Assert.IsTrue(records[0].GetField<string>("Name") == "Auguste Rodin");
             }
             if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -783,13 +781,13 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(Convert.ToString(response.Records[0].GetField("Name")) == "Claude Monet");
+            Assert.IsTrue(response.Records[0].GetField<string>("Name") == "Claude Monet");
 
-            Assert.IsTrue(Convert.ToString(response.Records[0].GetField("Bio")) == "Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting");
+            Assert.IsTrue(response.Records[0].GetField<string>("Bio") == "Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement's philosophy of expressing one's perceptions before nature, especially as applied to plein air landscape painting");
 
-            Assert.IsTrue(Convert.ToString(response.Records[1].GetField("Name")) == "Vincent van Gogh");
+            Assert.IsTrue(response.Records[1].GetField<string>("Name") == "Vincent van Gogh");
 
-            Assert.IsTrue(Convert.ToString(response.Records[1].GetField("Bio")) == "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.");
+            Assert.IsTrue(response.Records[1].GetField<string>("Bio") == "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.");
         }
 
 
@@ -824,8 +822,8 @@ namespace AirtableApiClient.Tests
             AirtableRecord[] records = response.Records;
 
             // the following 2 fields should be updated
-            BoolTest(records[0].GetField("On Display?"), true);
-            Assert.IsTrue(Convert.ToString(response.Records[1].GetField("Name")) == "UpdatedNameVincentVanGogh");
+            Assert.IsTrue(records[0].GetField<bool>("On Display?"));
+            Assert.IsTrue(response.Records[1].GetField<string>("Name") == "UpdatedNameVincentVanGogh");
 
             // Id should be unchanged
             Assert.IsTrue(records[0].Id == "recXsdICTUaFz4O8r");
@@ -884,16 +882,14 @@ namespace AirtableApiClient.Tests
                 records = response.Records;
 
                 // the following 2 fields should be updated
-                BoolTest(records[0].GetField("On Display?"), true);
-                Assert.IsTrue(Convert.ToString(records[1].GetField("Name")) == "Vincent VanGogh replaced");
+                Assert.IsTrue(records[0].GetField<bool>("On Display?"));
+                Assert.IsTrue(records[1].GetField<string>("Name") == "Vincent VanGogh replaced");
 
                 // the following 4 fields should be unchanged
                 Assert.IsTrue(records[0].Id == idMonet);
                 Assert.IsTrue(records[1].Id == idVanGogh);
-                Assert.IsTrue(Convert.ToString(records[0].GetField("Name")) == "Claude Monet");
-                bool onDisplay;
-                Assert.IsFalse(Boolean.TryParse(Convert.ToString(records[1].GetField("On Display?")), out onDisplay));  // onDisplay does not exist
-                                                                                    //Assert.AreEqual(records[1].GetField("On Display?"), null);
+                Assert.IsTrue(records[0].GetField<string>("Name") == "Claude Monet");
+                Assert.IsFalse(records[1].GetField<bool>("On Display?"));  // onDisplay does not exist
             }
             if (!string.IsNullOrEmpty(errorMessage))
             {
@@ -928,7 +924,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Records.Count > 0);
             var record = response.Records[0];                // We knew this is the record for "Al Held"
             string fieldIdOfFieldName = "fldSpygUmQW6GPpxW";    // We also knew this is the field ID for "Al Held"
-            string artistName = Convert.ToString(record.GetField(fieldIdOfFieldName));
+            string artistName = record.GetField<string>(fieldIdOfFieldName);
             Assert.IsTrue(artistName == "Al Held");
         }
 

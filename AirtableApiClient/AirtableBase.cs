@@ -410,7 +410,7 @@ namespace AirtableApiClient
         {
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json)).ConfigureAwait(false);
         }
 
 
