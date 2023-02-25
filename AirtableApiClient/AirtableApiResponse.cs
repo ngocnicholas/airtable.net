@@ -34,7 +34,7 @@ namespace AirtableApiClient
             Scopes = null;
         }
         public readonly string UserId;
-        public readonly IEnumerable<string> Scopes;
+        public readonly ICollection<string> Scopes;
     }
 
 
@@ -161,12 +161,22 @@ namespace AirtableApiClient
     }
 
 
-    public class AirtableDeleteCommentResponse : AirtableDeleteRecordResponse
+    public class AirtableDeleteCommentResponse : AirtableApiResponse
     {
-        public AirtableDeleteCommentResponse(AirtableApiException error) : base(error) { }
+        public AirtableDeleteCommentResponse(AirtableApiException error) : base(error)
+        {
+            Deleted = false;
+            Id = null;
+        }
 
+        public AirtableDeleteCommentResponse(bool deleted, string id) : base()
+        {
+            Deleted = deleted;
+            Id = id;
+        }
 
-        public AirtableDeleteCommentResponse(bool deleted, string id) : base(deleted, id) { }
+        public readonly bool Deleted;
+        public readonly string Id;
     }
 
 
@@ -190,17 +200,17 @@ namespace AirtableApiClient
     {
         public AirtableListCommentsResponse(AirtableApiException error) : base(error)
         {
-            CommentList = null;
+            Comments = null;
             Offset = null;
         }
 
         public AirtableListCommentsResponse(CommentList commentList) : base()
         {
-            CommentList = commentList;
+            Comments = commentList.Comments;
             Offset = commentList.Offset;
         }
 
-        public readonly CommentList CommentList;
+        public readonly Comment[] Comments;
         public readonly string Offset;
     }
 

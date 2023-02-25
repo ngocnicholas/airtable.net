@@ -20,7 +20,7 @@ namespace AirtableApiClient
         [JsonInclude]
         // NOTE: UserMentioned is a derived class of GroupMentioned. It inherits all properties from GrouplUser and has the Email property
         // that GroupMentioned does not have.
-        public Dictionary<string, UserMentioned> Mentioned { get; set; } = new Dictionary<string, UserMentioned>();
+        public Dictionary<string, MentionedEntity> Mentioned { get; set; } = new Dictionary<string, MentionedEntity>();
 
         [JsonPropertyName("text")]
         [JsonInclude]
@@ -46,67 +46,38 @@ namespace AirtableApiClient
         // <Key, Value> pairs representing 2 UserMentioned objects.
         //
         //----------------------------------------------------------------------------
-        public string GetTextWithMentionedDisplayNames(Dictionary<string, UserMentioned> mentioned)
+        public string GetTextWithMentionedDisplayNames()
         {
-           string commentText = Text;
-           if (mentioned != null)   // Comment has any Mentioned?
+            string commentText = Text;
+           if (Mentioned != null)   // Comment has any Mentioned?
            {
-                bool hasSingleUser = false;
-                foreach (KeyValuePair<string, UserMentioned> usrOrUgp in mentioned)
-                {
-                    if (!string.IsNullOrEmpty((string)usrOrUgp.Value.Email))        // Group user does not have Email.
-                    {
-                        hasSingleUser = true;
-                        break;
-                    }
-                }
+                string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
-                Regex pattern = null;
-                if (hasSingleUser)
-                {
-                    pattern = new Regex("@\\[usr[a-zA-Z0-9]{14}\\]");
-                    commentText = ReplaceUserOrGroupIdWithDisplayName(pattern, commentText, mentioned);
-                }
-                // Assume that it also has Group user(s)
-                pattern = new Regex("@\\[ugp[a-zA-Z0-9]{14}\\]");
-                commentText = ReplaceUserOrGroupIdWithDisplayName(pattern, commentText, mentioned);
-
+                // Remove matched value which is a mentioned such as @[UgpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
+                // Note: the MatchEvaluator is a delegate which only takes one argument so I need to create a delegate
+                // that calls a method with an additional parameter (easy with lambda expressions).
+                // The Display Name is returned by the delegate ReplaceUserOrGroupIdWithDisplayName.
+                return Regex.Replace(commentText, pattern, match => ReplaceUserOrGroupIdWithDisplayName(match, commentText));
             }
-            return commentText;
+            return null;
         }
 
 
         //----------------------------------------------------------------------------
         //
         // Comment.ReplaceUserOrGroupIdWithDisplayName
-        //
+        // This method is called as many times as matches that Regex.Replace() finds in this Comment.
         //
         //----------------------------------------------------------------------------
-        private string ReplaceUserOrGroupIdWithDisplayName(Regex pattern, string text, Dictionary<string, UserMentioned> mentioned)
+        private string ReplaceUserOrGroupIdWithDisplayName(Match match, string commentText)
         {
-            var matches = pattern.Matches(text);
-            string commentText = text;
-            string value;
-            int index;
-
-            // Loop from the end count because the commentText keeps changing.
-            for (int count = matches.Count - 1; count >= 0; count--)
+            string value = match.Value;                      // i.e. @[UgpBw4fdcVFbu5ug6]
+            string key = value.Substring(2).TrimEnd(']');    // Get rid of "@[" at beginning and ']' at the end.The resulting string is the key for the dictionary of Mentioned objects.
+            if (Mentioned.ContainsKey(key))
             {
-                value = matches[count].Value;                    // @[UgpBw4fdcVFbu5ug6]
-                string key = value.Substring(2).TrimEnd(']');    // Get rid of "@[" at beginning and ']' at the end.The resulting string is the key for the dictionary of Mentioned objects.
-
-                index = matches[count].Groups[0].Index;
-                if (mentioned.ContainsKey(key))
-                {
-                    // Remove matched value @[UgpBw4fdcVFbu5ug6] in comment and replace it with the Display Name
-                    commentText = commentText.Remove(index, value.Length).Insert(index, mentioned[key].DisplayName);
-                }
-                else
-                {
-                    return null;
-                }
+                return Mentioned[key].DisplayName;
             }
-            return commentText;
+            return null;
         }
 
     }   // end Comment
@@ -128,7 +99,7 @@ namespace AirtableApiClient
     }
 
 
-    public class GroupMentioned     // does not have an email
+    public class MentionedEntity
     {
         [JsonPropertyName("type")]
         [JsonInclude]
@@ -141,11 +112,7 @@ namespace AirtableApiClient
         [JsonPropertyName("displayName")]
         [JsonInclude]
         public string DisplayName { get; internal set; }
-    }
 
-
-    public class UserMentioned : GroupMentioned
-    {
         [JsonPropertyName("email")]
         [JsonInclude]
         public string Email { get; internal set; }
@@ -156,7 +123,8 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("comments")]
         [JsonInclude]
-        public List<Comment> Comments { get; internal set; }
+        public Comment[] Comments { get; internal set; }
+
 
         [JsonPropertyName("offset")]
         [JsonInclude]

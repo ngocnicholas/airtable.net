@@ -10,7 +10,7 @@ namespace AirtableApiClient
         Desc
     }
 
-    public class Sort           // This class is here for backward compatibility, no longer used for (De)serialization.
+    public class Sort           // This class is here for backward compatibility, no longer used for (De)serialization but still used as input arguments for the ListRecords public API.
     {
         public string Field { get; set; }
 
@@ -36,13 +36,7 @@ namespace AirtableApiClient
         {
             FieldsCollection.Add(fieldName, fieldValue);
         }
-
-        public void AddField(KeyValuePair<string, object> fld)
-        {
-            FieldsCollection.Add(fld);
-        }
     }
-
 
     /// <summary>
     /// This class is used in the Update and Replace record(s) operations; Record ID + (Field ID/Field Name + Field value)
@@ -155,7 +149,7 @@ namespace AirtableApiClient
     }
 
 
-    internal class UpSertRecordsParameters
+    internal class UpsertRecordsParameters
     {
         [JsonPropertyName("performUpsert")]
         public PerformUpsert PerformUpsert { get; set; }
@@ -182,6 +176,6 @@ namespace AirtableApiClient
         public string Id { get; set; }
 
         [JsonPropertyName("scopes")]
-        public IEnumerable<string> Scopes { get; set; }
+        public ICollection<string> Scopes { get; set; }
     }
 }   // end namespace 

@@ -63,7 +63,7 @@ namespace AirtableApiClient
         {
             if (String.IsNullOrEmpty(apiKeyOrAccessToken))
             {
-                throw new ArgumentException("apiKey or access token cannot be null", "apiKeyOrAccessToken");
+                throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
             }
 
             if (String.IsNullOrEmpty(baseId))
@@ -462,12 +462,12 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableListCommentsResponse> ListComments(
         string tableIdOrName,
-            string id,                  // ID of record that we want to list the comments for
+            string recordId,                  // ID of record that we want to list the comments for
             string offset = null,
             int? pageSize = null)
         {
-            TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
-            var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + id + "/comments");
+            TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
+            var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + recordId + "/comments");
             if (!string.IsNullOrEmpty(offset))
             {
                 AddParametersToQuery(ref uriBuilder, $"offset={HttpUtility.UrlEncode(offset)}");
@@ -541,16 +541,16 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableDeleteCommentResponse> DeleteComment(
         string tableIdOrName,
-            string id,
+            string recordId,
             string rowCommentId)
         {
-            TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
+            TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
             if (string.IsNullOrEmpty(rowCommentId))
             {
                 throw new ArgumentException("Comment ID cannot be null", "recordId, rowCommentId");
             }
 
-            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + id + "/comments" + "/" + rowCommentId;
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + recordId + "/comments" + "/" + rowCommentId;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
 
@@ -882,7 +882,7 @@ namespace AirtableApiClient
                 throw new ArgumentException(String.Format("Number of records to be replaced/updated must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
             }
 
-            UpSertRecordsParameters upsertRecordsParameters = new UpSertRecordsParameters
+            UpsertRecordsParameters upsertRecordsParameters = new UpsertRecordsParameters
             {
                 PerformUpsert = performUpsert,
                 ReturnFieldsByFieldId = returnFieldsByFieldId,
@@ -895,7 +895,7 @@ namespace AirtableApiClient
                 throw new ArgumentException("FieldsToMergeOn must be >0 && <= 3");
             }
 
-            return JsonSerializer.Serialize<UpSertRecordsParameters>(upsertRecordsParameters, JsonOptionIgnoreNullValues);
+            return JsonSerializer.Serialize<UpsertRecordsParameters>(upsertRecordsParameters, JsonOptionIgnoreNullValues);
         }
 
 
