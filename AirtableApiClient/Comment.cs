@@ -40,8 +40,8 @@ namespace AirtableApiClient
         // Comment.GetTextWithMentionedDisplayNames
         //
         // Replace the user ID in the text with the user's Display Name
-        // Ex: Comment Text is: "Al Held should work. @[usr1w2fdcVFbu7ug3]  good morning @[UgpBw4fdcVFbu5ug6] I thinks that's it."
-        // The output Text will be: "al Held should work. Ngoc Nicholas  good morning Foo Bars I thinks that's it."
+        // Ex: Comment Text is: "Al Held should work. @[usr1w2fdcVFbu7ug3]  good morning @[ugpBw4fdcVFbu5ug6] I think that's it."
+        // The output Text will be: "Al Held should work. Ngoc Nicholas  good morning Foo Bars I think that's it."
         // Each mentioned is a Dictionary. In the example above, The Dictionary contains two
         // <Key, Value> pairs representing 2 UserMentioned objects.
         //
@@ -53,11 +53,10 @@ namespace AirtableApiClient
            {
                 string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
-                // Remove matched value which is a mentioned such as @[UgpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
-                // Note: the MatchEvaluator is a delegate which only takes one argument so I need to create a delegate
-                // that calls a method with an additional parameter (easy with lambda expressions).
-                // The Display Name is returned by the delegate ReplaceUserOrGroupIdWithDisplayName.
-                return Regex.Replace(commentText, pattern, match => ReplaceUserOrGroupIdWithDisplayName(match, commentText));
+                // Remove matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
+                // Note: the MatchEvaluator is a delegate which only takes one argument so need to create a delegate
+                // that calls FindDisp;ayName with an additional parameter (easy with lambda expressions).
+                return Regex.Replace(commentText, pattern, match => FindDisplayName(match, commentText));
             }
             return null;
         }
@@ -65,13 +64,14 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
-        // Comment.ReplaceUserOrGroupIdWithDisplayName
+        // Comment.FindDisplayName
         // This method is called as many times as matches that Regex.Replace() finds in this Comment.
+        // Each match is a User ID or Group ID. The corresponding Display Name will be returned.
         //
         //----------------------------------------------------------------------------
-        private string ReplaceUserOrGroupIdWithDisplayName(Match match, string commentText)
+        private string FindDisplayName(Match match, string commentText)
         {
-            string value = match.Value;                      // i.e. @[UgpBw4fdcVFbu5ug6]
+            string value = match.Value;                      // i.e. @[ugpBw4fdcVFbu5ug6]
             string key = value.Substring(2).TrimEnd(']');    // Get rid of "@[" at beginning and ']' at the end.The resulting string is the key for the dictionary of Mentioned objects.
             if (Mentioned.ContainsKey(key))
             {
