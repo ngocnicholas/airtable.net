@@ -12,18 +12,11 @@ namespace AirtableApiClient
 
     public class Sort           // This class is here for backward compatibility, no longer used for (De)serialization but still used as input arguments for the ListRecords public API.
     {
-        public string Field { get; set; }
-
-        public SortDirection Direction { get; set; }
-    }
-
-    internal class SortWithDirectionString
-    {
         [JsonPropertyName("field")]
         public string Field { get; set; }
 
         [JsonPropertyName("direction")]
-        public string Direction { get; set; }       // Direction is now a string for the support of having the 'sort' parameter in the request body of ListRecords.
+        public SortDirection Direction { get; set; }
     }
 
 
@@ -130,7 +123,7 @@ namespace AirtableApiClient
         public int? PageSize { get; set; }
 
         [JsonPropertyName("sort")]
-        public List<SortWithDirectionString> Sort { get; set; }
+        public IEnumerable<Sort> Sort { get; set; }
 
         [JsonPropertyName("view")]
         public string View { get; set; }
@@ -170,12 +163,4 @@ namespace AirtableApiClient
         public string[] FieldsToMergeOn { get; set; }
     }
 
-    public class UserIdAndScopes
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-
-        [JsonPropertyName("scopes")]
-        public ICollection<string> Scopes { get; set; }
-    }
 }   // end namespace 

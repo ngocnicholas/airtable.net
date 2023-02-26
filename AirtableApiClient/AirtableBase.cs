@@ -589,7 +589,7 @@ namespace AirtableApiClient
             string filterByFormula,
             int? maxRecords,
             int? pageSize,
-            IEnumerable<Sort> sortList,
+            IEnumerable<Sort> sort,
             string view,
             string cellFormat,
             string timeZone,
@@ -620,6 +620,7 @@ namespace AirtableApiClient
                 FilterByFormula = filterByFormula,
                 MaxRecords = maxRecords,
                 PageSize = pageSize,
+                Sort = sort,
                 View = view,
                 CellFormat = cellFormat,
                 TimeZone = timeZone,
@@ -633,23 +634,18 @@ namespace AirtableApiClient
                 listRecordsParameters.Fields = new List<string>(fields).ToArray();
             }
 
-            if (sortList != null)
-            {
-                listRecordsParameters.Sort = new List<SortWithDirectionString>();
-
-                foreach(var s in sortList)
-                {
-                    string dir = s.Direction.ToString().ToLower();
-                    listRecordsParameters.Sort.Add(new SortWithDirectionString { Field = s.Field, Direction = dir });     
-                }
-            }
-
             if (includeCommentCount.HasValue && includeCommentCount.Value)
             {
                 listRecordsParameters.RecordMetadata = (includeCommentCount.Value ? "commentCount" : null);
             }
 
-            return JsonSerializer.Serialize(listRecordsParameters, JsonOptionIgnoreNullValues);
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+            };
+
+            return JsonSerializer.Serialize(listRecordsParameters, options);
         }
 
 
