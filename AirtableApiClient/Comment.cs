@@ -48,17 +48,14 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public string GetTextWithMentionedDisplayNames()
         {
-            string commentText = Text;
            if (Mentioned != null)   // Comment has any Mentioned?
            {
                 string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
                 // Remove matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
-                // Note: the MatchEvaluator is a delegate which only takes one argument so need to create a delegate
-                // that calls FindDisp;ayName with an additional parameter (easy with lambda expressions).
-                return Regex.Replace(commentText, pattern, match => FindDisplayName(match, commentText));
+                return Regex.Replace(Text, pattern, match => FindDisplayName(match));
             }
-            return null;
+            return Text;
         }
 
 
@@ -69,7 +66,7 @@ namespace AirtableApiClient
         // Each match is a User ID or Group ID. The corresponding Display Name will be returned.
         //
         //----------------------------------------------------------------------------
-        private string FindDisplayName(Match match, string commentText)
+        private string FindDisplayName(Match match)
         {
             string value = match.Value;                      // i.e. @[ugpBw4fdcVFbu5ug6]
             string key = value.Substring(2).TrimEnd(']');    // Get rid of "@[" at beginning and ']' at the end.The resulting string is the key for the dictionary of Mentioned objects.
@@ -77,7 +74,7 @@ namespace AirtableApiClient
             {
                 return Mentioned[key].DisplayName;
             }
-            return null;
+            return value;
         }
 
     }   // end Comment

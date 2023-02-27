@@ -639,6 +639,7 @@ namespace AirtableApiClient
                 listRecordsParameters.RecordMetadata = (includeCommentCount.Value ? "commentCount" : null);
             }
 
+            // Need to set the Converters to convert the SortDirection Enum to string to be used in the request boday of ListRecords.
             JsonSerializerOptions options = new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
