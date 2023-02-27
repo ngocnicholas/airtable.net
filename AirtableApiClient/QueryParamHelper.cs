@@ -10,7 +10,7 @@ namespace AirtableApiClient
         Desc
     }
 
-    public class Sort           // This class is here for backward compatibility, no longer used for (De)serialization but still used as input arguments for the ListRecords public API.
+    public class Sort
     {
         [JsonPropertyName("field")]
         public string Field { get; set; }
