@@ -52,8 +52,13 @@ namespace AirtableApiClient
            {
                 string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
-                // Remove matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
+                //Replace matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
                 return Regex.Replace(Text, pattern, match => FindDisplayName(match));
+
+                // The 2 lines of code below demonstrate that, match => FindDisplayName(match), is the same as the line above
+                // and using lambda expression directly is just easier.
+                // Func<Match, string> evaluator = match => FindDisplayName(match);
+                // return Regex.Replace(Text, pattern, new MatchEvaluator(evaluator));
             }
             return Text;
         }
@@ -74,7 +79,7 @@ namespace AirtableApiClient
             {
                 return Mentioned[key].DisplayName;
             }
-            return value;
+            return value;       // The match value is not usable. Return it, 
         }
 
     }   // end Comment
