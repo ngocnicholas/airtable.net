@@ -50,14 +50,14 @@ namespace AirtableApiClient
             JsonElement? jsonElement = GetFieldAsJson(fieldName);
             if (jsonElement is not JsonElement jsonElement_)
                 return default;
-
+            
             object? value = ParsePrimitiveValue(jsonElement_, typeof(T));
             if (typeof(T) == typeof(DateTimeOffset))
                 value = jsonElement_.GetDateTimeOffset();
-
+            
             return (T?)value;
         }
-
+        
         /// <summary>
         /// Parse field as an enumerable (either an array, list, collection or enumerable).
         /// </summary>
@@ -72,11 +72,11 @@ namespace AirtableApiClient
             JsonElement? jsonElement = GetFieldAsJson(fieldName);
             if (jsonElement is not JsonElement jsonElement_)
                 return default;
-
+            
             IEnumerable<T> enumerable = jsonElement_.EnumerateArray()
-                .Select(_ => ParsePrimitiveValue(_, typeof(T)))
+                .Select(_ => ParsePrimitiveValue( _, typeof(T)))
                 .Cast<T>();
-
+            
             return typeof(TEnumerable) switch
             {
                 Type t when t == typeof(T[])
@@ -170,7 +170,7 @@ namespace AirtableApiClient
         }
     #nullable restore
     }
-
+    
 
     public class AirtableRecordList<T>
     {
