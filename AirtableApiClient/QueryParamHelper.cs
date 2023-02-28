@@ -10,10 +10,9 @@ namespace AirtableApiClient
         Desc
     }
 
-
     public class Sort
     {
-        [JsonPropertyName("fields")]
+        [JsonPropertyName("field")]
         public string Field { get; set; }
 
         [JsonPropertyName("direction")]
@@ -32,13 +31,12 @@ namespace AirtableApiClient
         }
     }
 
-
     /// <summary>
-    /// This class is used in the Update and Replace record(s) operations.
+    /// This class is used in the Update and Replace record(s) operations; Record ID + (Field ID/Field Name + Field value)
     /// </summary>
     public class IdFields : Fields
     {
-        public IdFields(string id)
+        public IdFields(string id=null)
         {
             this.id = id;
         }
@@ -48,7 +46,7 @@ namespace AirtableApiClient
         // Change 'field' to 'property' but not changing the case of 'i' in 'Id'
         // to keep backward compatiblity.
         [JsonPropertyName("id")]
-        public string id { get; set; }      // Note: this is intended to be the record ID of the record containing Fields (not to be confused with the field ID)
+        public string id { get; set; }      // Note: this is the record ID of the record containing Fields (not to be confused with the field ID)
     }
 
 
@@ -81,7 +79,7 @@ namespace AirtableApiClient
         }
 
 
-        static internal string 
+        static internal string
         FlattenFieldsParam(
             IEnumerable<string> fields)
         {
@@ -102,4 +100,67 @@ namespace AirtableApiClient
         }
 
     }   // end class
+
+
+    internal class ListRecordsParameters
+    {
+        [JsonPropertyName("offset")]
+        public string Offset { get; set; }
+
+        [JsonPropertyName("fields")]
+        public string[] Fields { get; set; }
+
+        [JsonPropertyName("filterByFormula")]
+        public string FilterByFormula { get; set; }
+
+        [JsonPropertyName("recordMetadata")]
+        public string RecordMetadata { get; set; }
+
+        [JsonPropertyName("maxRecords")]
+        public int? MaxRecords { get; set; }
+
+        [JsonPropertyName("pageSize")]
+        public int? PageSize { get; set; }
+
+        [JsonPropertyName("sort")]
+        public IEnumerable<Sort> Sort { get; set; }
+
+        [JsonPropertyName("view")]
+        public string View { get; set; }
+
+        [JsonPropertyName("cellFormat")]
+        public string CellFormat { get; set; }
+
+        [JsonPropertyName("timeZone")]
+        public string TimeZone { get; set; }
+
+        [JsonPropertyName("userLocale")]
+        public string UserLocale { get; set; }
+
+        [JsonPropertyName("returnFieldsByFieldId")]
+        public bool ReturnFieldsByFieldId { get; set; }
+    }
+
+
+    internal class UpsertRecordsParameters
+    {
+        [JsonPropertyName("performUpsert")]
+        public PerformUpsert PerformUpsert { get; set; }
+
+        [JsonPropertyName("returnFieldsByFieldId")]
+        public bool ReturnFieldsByFieldId { get; set; }
+
+        [JsonPropertyName("typecast")]
+        public bool Typecast { get; set; }
+
+        [JsonPropertyName("records")]
+        public IdFields[] Records { get; internal set; }
+    }
+
+    public class PerformUpsert
+    {
+        [JsonPropertyName("fieldsToMergeOn")]
+        public string[] FieldsToMergeOn { get; set; }
+    }
+
 }   // end namespace 

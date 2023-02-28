@@ -30,15 +30,21 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        // <string, object> where string is the Field ID/Field Name (different than the record ID) and object is one Field value
+        //public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        public IDictionary<string, object> Fields { get; set; } = new Dictionary<string, object>(); // Make set public for upSert operations 01/30/2023
+
+        [JsonPropertyName("commentCount")]
+        [JsonInclude]
+        public int? CommentCount { get; internal set; }
 
 #nullable enable
         public object? GetField(string fieldName)
             => Fields.ContainsKey(fieldName) ? Fields[fieldName] : null;
-        
+
         public JsonElement? GetFieldAsJson(string fieldName)
             => GetField(fieldName) as JsonElement?;
-        
+
         public T? GetField<T>(string fieldName)
         {
             JsonElement? jsonElement = GetFieldAsJson(fieldName);
@@ -83,7 +89,6 @@ namespace AirtableApiClient
             };
         }
 #nullable restore
-
 
         //----------------------------------------------------------------------------
         // 
@@ -131,17 +136,21 @@ namespace AirtableApiClient
             }
             return attachments;
         }
-        
+
+
 #nullable enable
-        private static object? ParsePrimitiveValue(JsonElement element, Type type) {
+        private static object? ParsePrimitiveValue(JsonElement element, Type type)
+        {
             // handle nullable types
-            if( type.IsGenericType ){
-                if( type.GetGenericTypeDefinition() != typeof(Nullable<>) )
-                    throw new NotSupportedException( $"The only generic type supported is Nullable<T>" );
-                
+            if (type.IsGenericType)
+            {
+                if (type.GetGenericTypeDefinition() != typeof(Nullable<>))
+                    throw new NotSupportedException($"The only generic type supported is Nullable<T>");
+
                 type = type.GenericTypeArguments.Single();
             }
-            return Type.GetTypeCode( type ) switch {
+            return Type.GetTypeCode(type) switch
+            {
                 TypeCode.Boolean => element.GetBoolean(),
                 TypeCode.SByte => element.GetSByte(),
                 TypeCode.Byte => element.GetByte(),
@@ -159,7 +168,7 @@ namespace AirtableApiClient
                 _ => default,
             };
         }
-#nullable restore
+    #nullable restore
     }
     
 
@@ -188,5 +197,32 @@ namespace AirtableApiClient
         [JsonPropertyName("fields")]
         [JsonInclude]
         public T Fields { get; internal set; }
+
+        [JsonPropertyName("commentCount")]
+        [JsonInclude]
+        public int CommentCount { get; internal set; } 
+    }
+
+
+    public class AirtableUpSertRecordList : AirtableRecordList
+    {
+        [JsonPropertyName("createdRecords")]
+        [JsonInclude]
+        public IEnumerable<string> CreatedRecords { get; internal set; }
+
+        [JsonPropertyName("updatedRecords")]
+        [JsonInclude]
+        public IEnumerable<string> UpdatedRecords { get; internal set; }
+    }
+
+    public class AirtableUpSertRecordList<T> : AirtableRecordList<T>
+    {
+        [JsonPropertyName("createdRecords")]
+        [JsonInclude]
+        public IEnumerable<string> CreatedRecords { get; internal set; }
+
+        [JsonPropertyName("updatedRecords")]
+        [JsonInclude]
+        public IEnumerable<string> UpdatedRecords { get; internal set; }
     }
 }

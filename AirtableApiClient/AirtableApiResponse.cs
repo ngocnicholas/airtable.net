@@ -21,6 +21,23 @@ namespace AirtableApiClient
     }
 
 
+    public class AirtableGetUserIdAndScopesResponse : AirtableApiResponse
+    {
+        public AirtableGetUserIdAndScopesResponse(UserIdAndScopes userIdAndScopes) : base()
+        {
+            UserId = userIdAndScopes.Id;
+            Scopes = userIdAndScopes.Scopes;
+        }
+        public AirtableGetUserIdAndScopesResponse(AirtableApiException error) : base(error)
+        {
+            UserId = null;
+            Scopes = null;
+        }
+        public readonly string UserId;
+        public readonly ICollection<string> Scopes;
+    }
+
+
     public class AirtableListRecordsResponse : AirtableApiResponse
     {
         public AirtableListRecordsResponse(AirtableApiException error) : base(error)
@@ -142,4 +159,60 @@ namespace AirtableApiClient
         public readonly bool Deleted;
         public readonly string Id;
     }
+
+
+    public class AirtableDeleteCommentResponse : AirtableApiResponse
+    {
+        public AirtableDeleteCommentResponse(AirtableApiException error) : base(error)
+        {
+            Deleted = false;
+            Id = null;
+        }
+
+        public AirtableDeleteCommentResponse(bool deleted, string id) : base()
+        {
+            Deleted = deleted;
+            Id = id;
+        }
+
+        public readonly bool Deleted;
+        public readonly string Id;
+    }
+
+
+    public class AirtableCreateUpdateCommentResponse : AirtableApiResponse
+    {
+        public AirtableCreateUpdateCommentResponse(AirtableApiException error) : base(error)
+        {
+            Comment = null;
+        }
+
+        public AirtableCreateUpdateCommentResponse(Comment comment) : base()
+        {
+            Comment = comment;
+        }
+
+        public readonly Comment Comment;
+    }
+
+
+    public class AirtableListCommentsResponse : AirtableApiResponse
+    {
+        public AirtableListCommentsResponse(AirtableApiException error) : base(error)
+        {
+            Comments = null;
+            Offset = null;
+        }
+
+        public AirtableListCommentsResponse(CommentList commentList) : base()
+        {
+            Comments = commentList.Comments;
+            Offset = commentList.Offset;
+        }
+
+        public readonly Comment[] Comments;
+        public readonly string Offset;
+    }
+
+
 }
