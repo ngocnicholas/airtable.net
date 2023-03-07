@@ -94,8 +94,8 @@ namespace AirtableApiClient
             UserIdAndScopes userIdAndScopes = JsonSerializer.Deserialize<UserIdAndScopes>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableGetUserIdAndScopesResponse(userIdAndScopes);
         }
-
-
+        
+        
         //----------------------------------------------------------------------------
         //
         // AirtableBase.ListRecords
