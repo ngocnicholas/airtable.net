@@ -24,7 +24,7 @@ namespace AirtableApiClient.Tests
 
         public List<string> Collection { get; set;}
         public List<string> Genre { get; set;}
-}
+    }
 
 
     [TestClass]
@@ -54,7 +54,7 @@ namespace AirtableApiClient.Tests
             airtableBase.ShouldNotRetryIfRateLimited = false;
             airtableBase.RetryDelayMillisecondsIfRateLimited = 2000;
             fakeResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-    }
+        }
 
         [TestCleanup()]
         public void TestCleanup()
@@ -62,8 +62,8 @@ namespace AirtableApiClient.Tests
             if (airtableBase != null)
             {
                 airtableBase.Dispose();
+                }
         }
-    }
 
 
         //----------------------------------------------------------------------------
@@ -91,7 +91,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Records.Count > 0);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ namespace AirtableApiClient.Tests
             Assert.AreEqual(AlHeld.Genre.Count, 2);
             Assert.IsNotNull(AlHeld.Bio);
             Assert.AreEqual(AlHeld.Attachments.Count, 4);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -166,7 +166,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Records.Count > 0);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -200,7 +200,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Records.Count > 0);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -237,8 +237,8 @@ namespace AirtableApiClient.Tests
             foreach(var record in response.Records)
             {
                 Assert.IsTrue(record.GetField<bool>("On Display?"));
+            }
         }
-    }
 
 
         //----------------------------------------------------------------------------
@@ -265,7 +265,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Records.Count > 0 && response.Records.Count <= 4);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -290,7 +290,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(view: "Gallery View");
             var response = await task;
             Assert.IsTrue(response.Success);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -323,7 +323,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(sort: sortList);
             var response = await task;
             Assert.IsTrue(response.Success);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -348,7 +348,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Record.Id == MIYA_ANDO_RECORD_ID);
             Assert.IsTrue(response.Record.GetField<string>("Name") == "Miya Ando");
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -381,7 +381,7 @@ namespace AirtableApiClient.Tests
             var attachmentList = response.Record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentList);
             Assert.IsTrue(attachmentList.Count() == 4);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -417,7 +417,7 @@ namespace AirtableApiClient.Tests
             Assert.AreEqual(MiyaAndo.Genre.Count, 2);
             Assert.IsNotNull(MiyaAndo.Bio);
             Assert.AreEqual(MiyaAndo.Attachments.Count, 4);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -464,7 +464,7 @@ namespace AirtableApiClient.Tests
             var attListFromRecordCreated = response.Record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attListFromRecordCreated);
             Assert.IsTrue(attListFromRecordCreated.Count() == 1);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -516,8 +516,7 @@ namespace AirtableApiClient.Tests
             var attachmentListFromUpdatedRecord = record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentListFromUpdatedRecord);
             Assert.AreEqual(attachmentListFromUpdatedRecord.Count(), 1);
-
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -561,7 +560,7 @@ namespace AirtableApiClient.Tests
 
             var attachmentListFromUpdatedRecord = response.Record.GetAttachmentField("Attachments");
             Assert.IsNull(attachmentListFromUpdatedRecord);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -604,7 +603,7 @@ namespace AirtableApiClient.Tests
             var attachmentListFromReplacedRecord = response.Record.GetAttachmentField("Attachments");
             Assert.IsNotNull(attachmentListFromReplacedRecord);
             Assert.IsTrue(attachmentListFromReplacedRecord.Count() == 2);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -628,7 +627,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Success);
             Assert.IsTrue(response.Deleted);
             Assert.IsTrue(response.Id == "recasystgp3TLdTOs");
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -678,7 +677,7 @@ namespace AirtableApiClient.Tests
             var attListFromRecordCreated = response.Records[0].GetAttachmentField("Attachments");
             Assert.IsNotNull(attListFromRecordCreated);
             Assert.IsTrue(attListFromRecordCreated.Count() == 1);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -717,8 +716,8 @@ namespace AirtableApiClient.Tests
                 else
                 {
                     errorMessage = "Unknown error";
+                }
             }
-        }
             else
             {
                 records = response.Records;
@@ -729,13 +728,13 @@ namespace AirtableApiClient.Tests
                 // the following 2 fields should be unchanged
                 Assert.IsTrue(records[0].GetField<string>("Name") == "Pablo Picasso");
                 Assert.IsTrue(records[0].GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
-        }
+            }
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 Console.WriteLine(errorMessage);
-        }
+            }
             Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
-    }
+        }
 
 
 
@@ -770,12 +769,12 @@ namespace AirtableApiClient.Tests
                 if (response.AirtableApiError is AirtableApiException)
                 {
                     errorMessage = response.AirtableApiError.ErrorMessage;
-            }
+                }
                 else
                 {
                     errorMessage = "Unknown error";
+                }
             }
-        }
             else
             {
                 records = response.Records;
@@ -787,13 +786,13 @@ namespace AirtableApiClient.Tests
 
                 // the following field should be unchanged
                 Assert.IsTrue(records[0].GetField<string>("Name") == "Auguste Rodin");
-        }
+            }
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 Console.WriteLine(errorMessage);
-        }
+            }
             Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -836,7 +835,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Records[1].GetField<string>("Name") == "Vincent van Gogh");
 
             Assert.IsTrue(response.Records[1].GetField<string>("Bio") == "Vincent Willem van Gogh was a Dutch post-impressionist painter who is among the most famous and influential figures in the history of Western art. In just over a decade he created about 2,100 artworks, including around 860 oil paintings, most of them in the last two years of his life.");
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -879,7 +878,7 @@ namespace AirtableApiClient.Tests
             // Id should be unchanged
             Assert.IsTrue(records[0].Id == "rec9SVBYo2VdmRFeL");
             Assert.IsTrue(records[1].Id == "recGIyNcNw3PHFF1J");
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -923,12 +922,12 @@ namespace AirtableApiClient.Tests
                 if (response.AirtableApiError is AirtableApiException)
                 {
                     errorMessage = response.AirtableApiError.ErrorMessage;
-            }
+                }
                 else
                 {
                     errorMessage = "Unknown error";
+                }
             }
-        }
             else
             {
                 errorMessage = null;
@@ -943,13 +942,13 @@ namespace AirtableApiClient.Tests
                 Assert.IsTrue(records[1].Id == idVanGogh);
                 Assert.IsTrue(records[0].GetField<string>("Name") == "Claude Monet");
                 Assert.IsFalse(records[1].GetField<bool>("On Display?"));  // onDisplay does not exist
-        }
+            }
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 Console.WriteLine(errorMessage);
-        }
+            }
             Assert.IsTrue(string.IsNullOrEmpty(errorMessage));
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -982,7 +981,7 @@ namespace AirtableApiClient.Tests
             string fieldIdOfFieldName = "fldSAUw6qVy9NzXzF";    // We also knew this is the field ID for "Al Held"
             string artistName = record.GetField<string>(fieldIdOfFieldName);
             Assert.IsTrue(artistName == "Al Held");
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1018,7 +1017,7 @@ namespace AirtableApiClient.Tests
             {
                 records[i] = new AirtableRecord();
                 records[i].Fields["Attachments"] = null;    // NOTE: The "Attachments" fields in the returned record list cannot be used in Create records?! (NN)
-        }
+            }
 
             BuildRecordListWith3RecordsForTest(records);
             records[arraySize - 1].Fields["Attachments"] = attachmentList;
@@ -1026,7 +1025,8 @@ namespace AirtableApiClient.Tests
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, records);
             var response = await task;
             Assert.IsTrue(response.Success);
-    }
+        }
+
 
         //----------------------------------------------------------------------------
         //
@@ -1055,7 +1055,7 @@ namespace AirtableApiClient.Tests
             {
                 string bankName = record.Fields["Bank Name"].ToString();
                 record.Fields["Bank Name"] = bankName + "Updated";
-        }
+            }
 
             fakeResponse.Content = new StringContent
                 ("{\"records\":[{\"id\":\"recLLKvNrSlcKQ7Jj\",\"createdTime\":\"2023-03-06T06:10:33.000Z\",\"fields\":{\"Name\":\"Ruby\",\"Attachments\":[{\"id\":\"attvDQGU6bILnhOUA\",\"width\":335,\"height\":296,\"url\":\"https://v5.airtableusercontent.com/v1/15/15/1678096800000/-v2F5YFdE1u_LEvLCtPiNA/4Xtxrr5yOeO_kVN3iHyg6mORx-DLk11Wuk9K5ZZtbaQHqek10baYb0rMEYgWOGBYkx0pHdaJ_Ec_DdFfle2boOtzZZaGWrV7uWtTS5VEqiXFXKcORJtBK3jXh4PzjFD5/Fg-X-WlKwhHzudX6tSb91pT37rj7c_irswAKwP9PQgQ\",\"filename\":\"Picasso_three_musicians_moma_2006.jpg\",\"size\":17604,\"type\":\"image/jpeg\",\"thumbnails\":{\"small\":{\"url\":\"https://v5.airtableusercontent.com/v1/15/15/1678096800000/To5bPlvPGBNdnAXlHASFPA/7HE9ZUsI9GfurokALradAWZITYrB9B3l3pMZrskITavf8KWdMUFfRzbzi53PYRVvVeilbv58Tpw0oZnF61Ms3A/4xiqcEm1Qr7TV6Z5me0FrvYPpdf8MK4gYTRxaFunoIU\",\"width\":41,\"height\":36},\"large\":{\"url\":\"https://v5.airtableusercontent.com/v1/15/15/1678096800000/s93KdCPe3G1ycE2qrm3c6Q/2B7bPu-qXZTUiu8WwxThHFQawG9lBgBt2utR8sc4kXlb3tsCk39WttvkYCiaTdTYJD4ORC0UDr5Sae75v2-Bow/9PQXjiK7WK3dM4fGQNkhDlJuxjVd2DaPyYogn7p5884\",\"width\":335,\"height\":296},\"full\":{\"url\":\"https://v5.airtableusercontent.com/v1/15/15/1678096800000/Vqqe_j-5cRZg4ePGmE6sRw/rRPmBxoGMYFXyU3JRoI66SwkcSfW9wCoJjtkUp9XRamBxECuXlW7vnrr0H4KjqTzhd_4QKbBSte43T6WXeoSKA/pcny7uMe5U2VwB12pvLJWrMxYYW6FmP7pbiLoTwJmf4\",\"width\":3000,\"height\":3000}}}],\"Bio\":\"Bio for Ruby\",\"Bank Name\":\"BOAUpdated\"}},{\"id\":\"recXCXkVOHZP7lw3u\",\"createdTime\":\"2023-03-06T06:10:33.000Z\",\"fields\":{\"Name\":\"Cassie\",\"Bio\":\"Bio for Cassie\",\"Bank Name\":\"CitiUpdated\"}},{\"id\":\"rech3uNV4AaTbYo42\",\"createdTime\":\"2023-03-06T06:10:33.000Z\",\"fields\":{\"Name\":\"Willie\",\"Bio\":\"Bio for Willie\",\"Bank Name\":\"KeyUpdated\"}}]}");
@@ -1075,8 +1075,8 @@ namespace AirtableApiClient.Tests
             {
                 Assert.IsTrue(record.Fields["Bank Name"].ToString().Contains("Updated"));
                 Assert.IsNotNull(record.Fields["Bio"]);         // Update operation should be non-destructive
+            }
         }
-    }
 
 
         //----------------------------------------------------------------------------
@@ -1104,7 +1104,7 @@ namespace AirtableApiClient.Tests
                 string bankName = record.Fields["Bank Name"].ToString();
                 record.Fields["Bank Name"] = bankName + "Replaced";
                 record.Fields.Remove("Bio");
-        }
+            }
 
             fakeResponse.Content = new StringContent
                 ("{\"records\":[{\"id\":\"recgVehpCSGFpy0mB\",\"createdTime\":\"2022-07-13T19:24:28.000Z\",\"fields\":{\"Name\":\"Willie\",\"Bank Name\":\"KeyUpdatedReplaced\"}},{\"id\":\"reclSZBWrMoWuaMeW\",\"createdTime\":\"2022-07-13T19:24:29.000Z\",\"fields\":{\"Name\":\"Ruby\",\"Bank Name\":\"BOAUpdatedReplaced\"}},{\"id\":\"recrTBCcUVt3ufXEH\",\"createdTime\":\"2022-07-13T19:24:28.000Z\",\"fields\":{\"Name\":\"Cassie\",\"Bank Name\":\"CitiUpdatedReplaced\"}}]}");
@@ -1121,8 +1121,9 @@ namespace AirtableApiClient.Tests
             {
                 Assert.IsTrue(record.Fields["Bank Name"].ToString().Contains("Replaced"));
                 Assert.IsFalse(record.Fields.ContainsKey("Bio"));            // Replace operation is destructive. We should no longer find the 'Bio' field.
+            }
         }
-    }
+
 
         //----------------------------------------------------------------------------
         //
@@ -1164,12 +1165,12 @@ namespace AirtableApiClient.Tests
                 if (name == "Pierre-Auguste Renoir")
                 {
                     renoirId = record.Id;
-            }
+                }
                 else
                 {
                     manetId = record.Id;
+                }
             }
-        }
 
             fakeResponse.Content = new StringContent
                 ("{\"records\":[{\"id\":\"reciLHL1j9iKOAmAd\",\"createdTime\":\"2023-03-06T20:26:12.000Z\",\"fields\":{\"Name\":\"Pierre-Auguste Renoir\",\"Bank Name\":\"Banque Republique de France\"}},{\"id\":\"reckuK4megeU6gVot\",\"createdTime\":\"2023-03-06T20:26:12.000Z\",\"fields\":{\"Bio\":\"He is as good as his father\",\"Name\":\"Renoir-son\"}},{\"id\":\"recGKfzWzSmSlqenh\",\"createdTime\":\"2023-03-06T21:02:48.000Z\",\"fields\":{\"Name\":\"Edgar Degas\",\"Bio\":\"He is an honest artist.\",\"On Display?\":true,\"Bank Name\":\"Chase Bank\"}}],\"updatedRecords\":[\"reciLHL1j9iKOAmAd\",\"reckuK4megeU6gVot\"],\"createdRecords\":[\"recGKfzWzSmSlqenh\"]}");
@@ -1212,7 +1213,7 @@ namespace AirtableApiClient.Tests
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
 
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1277,7 +1278,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task2 = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields, performUpsert: performUpsert);
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1334,13 +1335,13 @@ namespace AirtableApiClient.Tests
                 if (response2.AirtableApiError.ErrorMessage != null)
                 {
                     Console.WriteLine("ErrorMessage is {0}", response2.AirtableApiError.ErrorMessage);
-            }
+                }
                 if (response2.AirtableApiError.DetailedErrorMessage != null)
                 {
                     Console.WriteLine("AirtableApiError.DetailedErrorMessage is {0}", response2.AirtableApiError.DetailedErrorMessage);
+                }
             }
         }
-    }
 
 
         //----------------------------------------------------------------------------
@@ -1413,7 +1414,7 @@ namespace AirtableApiClient.Tests
             task = ListAllRecords(timeZone: "Asia/Ho_Chi_Minh", userLocale: "fr-ca", maxRecords: 3);
             response = await task;
             Assert.IsTrue(response.Success);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1445,7 +1446,7 @@ namespace AirtableApiClient.Tests
             task = ListAllRecords(cellFormat: "string", userLocale: "fr-ca");
             response = await task;
             Assert.IsFalse(response.Success);
-    }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1481,25 +1482,25 @@ namespace AirtableApiClient.Tests
             foreach (var record in response.Records)
             {
                 doubleList.Add(record);
-         }
+            }
             try
             {
                 Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task2 = airtableBase.CreateMultipleRecords(TABLE_NAME, doubleList.ToArray());
                 var response2 = await task2;
-         }
+            }
             catch (Exception e)
             {
-                errorMessage = e.Message;
-         }
+                   errorMessage = e.Message;
+            }
             if (!string.IsNullOrEmpty(errorMessage))
             {
                  Console.WriteLine(errorMessage);
-         }
+            }
             else
             {
                 Assert.IsNotNull(errorMessage);         // If not error, fail the test
-         }
-    }
+            }
+        }
 
 
         //
@@ -1574,7 +1575,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response3.Success);
             Assert.IsTrue(response3.Deleted);
             Assert.IsTrue(response3.Id == IdOfJustCreatedComment);
-     }
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1616,11 +1617,11 @@ namespace AirtableApiClient.Tests
                         Assert.IsTrue(textWithUserNames != null);
                         Console.WriteLine(textWithUserNames);
                  }
-              }
+                }
                 else
                 {
                     Console.WriteLine("No more comments.");
-              }
+                }
                 offset = response.Offset;
                 if (offset != null)
                 {
@@ -1632,9 +1633,9 @@ namespace AirtableApiClient.Tests
                             HttpMethod.Get,
                             fakeResponse,
                             null);
-             }
-         } while (offset != null);
-      }
+                }
+            } while (offset != null);
+        }
 
 
         //----------------------------------------------------------------------------
@@ -1763,22 +1764,22 @@ namespace AirtableApiClient.Tests
                             errorMessage += response.AirtableApiError.DetailedErrorMessage;
                     }
                         break;
-                  }
+                    }
                     else
                     {
                         errorMessage = "Unknown error";
                         break;
-                  }
+                    }
               } while (offset != null);
-          }
+            }
 
             catch (Exception e)
             {
                 errorMessage = e.Message;
-          }
+            }
 
             return new ListAllRecordsTestResponse(string.IsNullOrEmpty(errorMessage), errorMessage, records);
-    }
+        }
 
 
         private async Task<ListAllRecordsTestResponse<T>> ListAllRecords<T>(
@@ -1806,30 +1807,30 @@ namespace AirtableApiClient.Tests
                         {
                             errorMessage = "Record list is empty.";
                             break;
-                      }
+                        }
                         records.AddRange(response.Records.ToList());
                         offset = response.Offset;
-                  }
+                    }
                     else if (response.AirtableApiError is AirtableApiException)
                     {
                         errorMessage = response.AirtableApiError.ErrorMessage;
                         break;
-                  }
+                    }
                     else
                     {
                         errorMessage = "Unknown error";
                         break;
-                  }
-              } while (offset != null);
-          }
+                    }
+                } while (offset != null);
+            }
 
             catch (Exception e)
             {
                 errorMessage = e.Message;
-          }
+            }
 
             return new ListAllRecordsTestResponse<T>(string.IsNullOrEmpty(errorMessage), errorMessage, records);
-      }
+        }
 
 
         private void BoolTest(Object fieldStr, bool testValue)
@@ -1838,7 +1839,7 @@ namespace AirtableApiClient.Tests
             string fieldStringValue = Convert.ToString(fieldStr);
             Assert.IsTrue(Boolean.TryParse(fieldStringValue, out boolValue));
             Assert.IsTrue(testValue == boolValue);
-      }
+        }
 
 
         private void BuildRecordListWith3RecordsForTest(AirtableRecord[] records)
@@ -1859,7 +1860,7 @@ namespace AirtableApiClient.Tests
             record.Fields["Name"] = "Ruby";
             record.Fields["Bio"] = "Bio for Ruby";
             record.Fields["Bank Name"] = "BOA";
-      }
+        }
 
 
         private async Task<AirtableRecord[]> GetRecordsWithFormula()
@@ -1872,8 +1873,8 @@ namespace AirtableApiClient.Tests
             foreach (var record in response.Records)
             {
                 Assert.IsNotNull(record.GetField("Bank Name"));
-        }
+            }
             return response.Records.ToArray();
+        }
     }
-}
 }
