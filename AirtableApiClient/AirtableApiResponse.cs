@@ -23,15 +23,16 @@ namespace AirtableApiClient
 
     public class AirtableGetUserIdAndScopesResponse : AirtableApiResponse
     {
-        public AirtableGetUserIdAndScopesResponse(UserIdAndScopes userIdAndScopes) : base()
-        {
-            UserId = userIdAndScopes.Id;
-            Scopes = userIdAndScopes.Scopes;
-        }
         public AirtableGetUserIdAndScopesResponse(AirtableApiException error) : base(error)
         {
             UserId = null;
             Scopes = null;
+        }
+
+        public AirtableGetUserIdAndScopesResponse(UserIdAndScopes userIdAndScopes) : base()
+        {
+            UserId = userIdAndScopes.Id;
+            Scopes = userIdAndScopes.Scopes;
         }
         public readonly string UserId;
         public readonly ICollection<string> Scopes;

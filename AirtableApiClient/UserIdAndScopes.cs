@@ -6,9 +6,11 @@ namespace AirtableApiClient
     public class UserIdAndScopes
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        [JsonInclude]
+        public string Id { get; internal set; }
 
         [JsonPropertyName("scopes")]
-        public ICollection<string> Scopes { get; set; }
+        [JsonInclude]
+        public ICollection<string> Scopes { get; internal set; }
     }
 }

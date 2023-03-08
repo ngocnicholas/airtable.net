@@ -82,7 +82,6 @@ namespace AirtableApiClient
             string uriStr = "https://api.airtable.com/v0/meta/whoami";
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
 
-
             var response = (await httpClientWithRetries.SendAsync(request).ConfigureAwait(false));
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
@@ -150,7 +149,6 @@ namespace AirtableApiClient
             string tableIdOrName,
             string offset = null,
             IEnumerable<string> fields = null,
-            //string[] fields = null,
             string filterByFormula = null,
             int? maxRecords = null,
             int? pageSize = null,
@@ -461,7 +459,7 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableListCommentsResponse> ListComments(
-        string tableIdOrName,
+            string tableIdOrName,
             string recordId,                  // ID of record that we want to list the comments for
             string offset = null,
             int? pageSize = null)
@@ -497,7 +495,7 @@ namespace AirtableApiClient
         //
         // AirtableBase.CreateComment
         //
-        // Called to create comment(s) with info stored in commenData for the record with the provided record ID
+        // Called to create a comment with info stored in commenText for the record with the provided record ID
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableCreateUpdateCommentResponse> CreateComment(
