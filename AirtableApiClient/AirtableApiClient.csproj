@@ -27,7 +27,9 @@ Updates to existing endpoints such as ListRecords and Update/Replace Multiple Re
 Merged enhancements for parsing out fields contributed by Bracel Bradea.
 Updated System.Text.Json from 6.0.5 to 7.0.2.
 Added more test methods in AirtableApiClient.Tests.
-  </PackageReleaseNotes>
+Welcome to .NET 7.0!
+---------------------
+SDK Version: 7.0.200  </PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
