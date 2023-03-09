@@ -1,4 +1,4 @@
-# Airtable .NET API Client
+ # Airtable .NET API Client
 
 Airtable.net is the C-Sharp client of the public APIs of Airtable. It builds a Windows class library that targets .NET Standard named AirtableClientApi.dll.
 AirtableClientApi.dll facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP,
@@ -7,7 +7,7 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the latest nuget package Airtable.1.2.0.nupkg
+Install the latest nuget package Airtable.1.3.0.nupkg
 
 ## Requirements
 
@@ -24,7 +24,7 @@ Refer to this link for downloading VS 2022 Community Edition:
 https://visualstudio.microsoft.com/free-developer-offers/
 
 Refer to the link below for downloading .NET SDK for VS 2022
-https://dotnet.microsoft.com/download/visual-studio-sdks
+https://github.com/dotnet/core/blob/main/release-notes/7.0/7.0.3/7.0.3.md?WT.mc_id=dotnet-35129-website
 
 Refer to the link below to learn more about what's in .NET Standard 2.0
 https://docs.microsoft.com/en-us/dotnet/standard/net-standard
@@ -38,14 +38,16 @@ Example demonstrating usage of the API to list records:
 ```
 
 using System;
-using System.Collections.Generic;
-using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AirtableApiClient;
 
 readonly string baseId = YOUR_BASE_ID;
-readonly string appKey = YOUR_APP_KEY;
+readonly string appKey = YOUR_APP_KEY_OR_ACCESS_TOKEN;
 
 ```
 
@@ -58,7 +60,7 @@ readonly string appKey = YOUR_APP_KEY;
     string errorMessage = null;
     var records = new List<AirtableRecord>();
 
-    using (AirtableBase airtableBase = new AirtableBase(appKey, baseId))
+    using (AirtableBase airtableBase = new AirtableBase(appKeyOrAccessToken, baseId))
     {
        //
        // Use 'offset' and 'pageSize' to specify the records that you want
@@ -70,14 +72,19 @@ readonly string appKey = YOUR_APP_KEY;
        do
        {
             Task<AirtableListRecordsResponse> task = airtableBase.ListRecords(
-                   YOUR_TABLE_NAME,
+                   YOUR_TABLE_ID_OR_NAME,
                    offset,
-                   fields,
+                   fieldsArray,
                    filterByFormula,
                    maxRecords,
                    pageSize,
                    sort,
-                   view);
+                   view,
+                   cellFormat,
+                   timeZone,
+                   userLocale,
+                   returnFieldsByFieldId,
+                   includeCommentCount);
 
             AirtableListRecordsResponse response = await task;
 
