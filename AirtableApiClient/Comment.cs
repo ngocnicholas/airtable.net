@@ -34,7 +34,6 @@ namespace AirtableApiClient
         [JsonInclude]
         public DateTime? LastUpdatedTime { get; internal set; }
 
-
         //----------------------------------------------------------------------------
         //
         // Comment.GetTextWithMentionedDisplayNames
@@ -50,7 +49,7 @@ namespace AirtableApiClient
         {
            if (Mentioned != null)   // Comment has any Mentioned?
            {
-                string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
+				const string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
                 //Replace matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
                 return Regex.Replace(Text, pattern, match => FindDisplayName(match));
@@ -62,7 +61,6 @@ namespace AirtableApiClient
             }
             return Text;
         }
-
 
         //----------------------------------------------------------------------------
         //
@@ -81,9 +79,7 @@ namespace AirtableApiClient
             }
             return value;       // The match value is not usable. Return it, 
         }
-
     }   // end Comment
-
 
     public class Author
     {
@@ -99,7 +95,6 @@ namespace AirtableApiClient
         [JsonInclude]
         public string Name { get; internal set; }
     }
-
 
     public class MentionedEntity
     {
@@ -120,17 +115,14 @@ namespace AirtableApiClient
         public string Email { get; internal set; }
     }
 
-
     public class CommentList
     {
         [JsonPropertyName("comments")]
         [JsonInclude]
         public Comment[] Comments { get; internal set; }
 
-
         [JsonPropertyName("offset")]
         [JsonInclude]
         public string Offset { get; internal set; }
     }
-
 }   // end namespace

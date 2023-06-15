@@ -31,7 +31,6 @@ namespace AirtableApiClient
 
         private readonly HttpClient client;
 
-
         //----------------------------------------------------------------------------
         // 
         // HttpClientWithRetries.HttpClientWithRetries
@@ -59,28 +58,23 @@ namespace AirtableApiClient
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
+		//----------------------------------------------------------------------------
+		// 
+		// HttpClientWithRetries.Dispose
+		// 
+		//----------------------------------------------------------------------------
 
-        //----------------------------------------------------------------------------
-        // 
-        // HttpClientWithRetries.Dispose
-        // 
-        //----------------------------------------------------------------------------
+		public void Dispose() => client.Dispose();
 
-        public void Dispose()
-        {
-            client.Dispose();
-        }
+		//----------------------------------------------------------------------------
+		// 
+		// HttpClientWithRetries.SendAsync
+		//      This method has preforms retries with exponential back off if the generic 
+		// SendAsync returns a HttpStatusCode of 429 for Too Many Request.
+		// 
+		//----------------------------------------------------------------------------
 
-
-        //----------------------------------------------------------------------------
-        // 
-        // HttpClientWithRetries.SendAsync
-        //      This method has preforms retries with exponential back off if the generic 
-        // SendAsync returns a HttpStatusCode of 429 for Too Many Request.
-        // 
-        //----------------------------------------------------------------------------
-
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+		public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
         {
             string content = null;
 
@@ -111,7 +105,6 @@ namespace AirtableApiClient
             return response;
         }
 
-
         //----------------------------------------------------------------------------
         // 
         // HttpClientWithRetries.RegenerateRequest
@@ -120,7 +113,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        private HttpRequestMessage RegenerateRequest(HttpMethod method, Uri requestUri, string content)
+        private static HttpRequestMessage RegenerateRequest(HttpMethod method, Uri requestUri, string content)
         {
             var request = new HttpRequestMessage(method, requestUri);
             if (content != null)
@@ -129,6 +122,5 @@ namespace AirtableApiClient
             }
             return request;
         }
-
     }   // end class
 }   // end namespace

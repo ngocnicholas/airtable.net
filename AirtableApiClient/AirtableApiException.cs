@@ -19,14 +19,12 @@ namespace AirtableApiClient
         public string DetailedErrorMessage { get; protected set; }                 // The derived class AirtableInvalidRequestException needs to set it.
     }
 
-
     public class AirtableUnrecognizedException : AirtableApiException
     {
         public AirtableUnrecognizedException(HttpStatusCode statusCode) : base(statusCode, "Unrecognized Error", $"Airtable returned HTTP status code {statusCode}")
         {
         }
     }
-
 
     public class AirtableBadRequestException : AirtableApiException
     {
@@ -42,7 +40,6 @@ namespace AirtableApiClient
         }
     }
 
-
     public class AirtablePaymentRequiredException : AirtableApiException
     {
         public AirtablePaymentRequiredException() : base(
@@ -52,7 +49,6 @@ namespace AirtableApiClient
         {
         }
     }
-
 
     public class AirtableForbiddenException : AirtableApiException
     {
@@ -64,7 +60,6 @@ namespace AirtableApiClient
         }
     }
 
-
     public class AirtableNotFoundException : AirtableApiException
     {
         public AirtableNotFoundException() : base(
@@ -74,7 +69,6 @@ namespace AirtableApiClient
         {
         }
     }
-
 
     public class AirtableRequestEntityTooLargeException : AirtableApiException
     {
@@ -86,7 +80,6 @@ namespace AirtableApiClient
         }
     }
 
-
     public class AirtableInvalidRequestException : AirtableApiException
     {
         public AirtableInvalidRequestException(string detailedErrorMessage = null) : base(
@@ -97,7 +90,6 @@ namespace AirtableApiClient
             DetailedErrorMessage = detailedErrorMessage;
         }
     }
-
 
     public class AirtableTooManyRequestsException : AirtableApiException
     {

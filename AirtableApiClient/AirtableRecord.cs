@@ -17,7 +17,6 @@ namespace AirtableApiClient
         public AirtableRecord[] Records { get; internal set; }
     }
 
-
     public class AirtableRecord
     {
         [JsonPropertyName("id")]
@@ -137,7 +136,6 @@ namespace AirtableApiClient
             return attachments;
         }
 
-
 #nullable enable
         private static object? ParsePrimitiveValue(JsonElement element, Type type)
         {
@@ -183,7 +181,6 @@ namespace AirtableApiClient
         public AirtableRecord<T>[] Records { get; internal set; }
     }
 
-
     public class AirtableRecord<T>
     {
         [JsonPropertyName("id")]
@@ -202,7 +199,6 @@ namespace AirtableApiClient
         [JsonInclude]
         public int CommentCount { get; internal set; } 
     }
-
 
     public class AirtableUpSertRecordList : AirtableRecordList
     {

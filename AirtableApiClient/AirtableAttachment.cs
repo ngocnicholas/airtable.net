@@ -23,7 +23,6 @@ namespace AirtableApiClient
         public Thumbnails Thumbnails { get; set; }
     }
 
-
     //--------------------------------------------------------
 
     public class Thumbnails
@@ -36,7 +35,6 @@ namespace AirtableApiClient
         [JsonInclude]
         public Thumbnail Large { get; internal set; }
     }
-
 
     //--------------------------------------------------------
 
@@ -54,5 +52,4 @@ namespace AirtableApiClient
         [JsonInclude]
         public long Height { get; internal set; }
     }
-
 }

@@ -19,17 +19,13 @@ namespace AirtableApiClient
         public SortDirection Direction { get; set; }
     }
 
-
     public class Fields
     {
         [JsonPropertyName("fields")]
         public IDictionary<string, object> FieldsCollection { get; set; } = new Dictionary<string, object>();
 
-        public void AddField(string fieldName, object fieldValue)
-        {
-            FieldsCollection.Add(fieldName, fieldValue);
-        }
-    }
+		public void AddField(string fieldName, object fieldValue) => FieldsCollection.Add(fieldName, fieldValue);
+	}
 
     /// <summary>
     /// This class is used in the Update and Replace record(s) operations; Record ID + (Field ID/Field Name + Field value)
@@ -48,7 +44,6 @@ namespace AirtableApiClient
         [JsonPropertyName("id")]
         public string id { get; set; }      // Note: this is the record ID of the record containing Fields (not to be confused with the field ID)
     }
-
 
     internal class QueryParamHelper
     {
@@ -78,7 +73,6 @@ namespace AirtableApiClient
             return flattenSortParam;
         }
 
-
         static internal string
         FlattenFieldsParam(
             IEnumerable<string> fields)
@@ -92,15 +86,13 @@ namespace AirtableApiClient
                 {
                     toInsert = "&";
                 }
-                string param = "fields[]";
+				const string param = "fields[]";
                 flattenFieldsParam += $"{toInsert}{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(fieldName)}";
                 i++;
             }
             return flattenFieldsParam;
         }
-
     }   // end class
-
 
     internal class ListRecordsParameters
     {
@@ -141,7 +133,6 @@ namespace AirtableApiClient
         public bool ReturnFieldsByFieldId { get; set; }
     }
 
-
     internal class UpsertRecordsParameters
     {
         [JsonPropertyName("performUpsert")]
@@ -162,5 +153,4 @@ namespace AirtableApiClient
         [JsonPropertyName("fieldsToMergeOn")]
         public string[] FieldsToMergeOn { get; set; }
     }
-
 }   // end namespace 
