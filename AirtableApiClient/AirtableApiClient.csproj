@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0;net7.0</TargetFrameworks>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <ApplicationIcon />
     <Win32Resource />
@@ -57,8 +57,21 @@ SDK Version: 7.0.200  </PackageReleaseNotes>
     <None Remove="readme.txt" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- I'm doubtful whether this will actually restore functionality for netstandard2.0,
+       however this should be on par with how well this NuGet worked before net7.0 support was 
+       added.
+
+       If netstandard2.0 support does not work and is needed, split the following condition
+       and add appropriate versions.
+
+       (Of course, additional targets, such as net8.0 could also be added likewise.)
+
+       See: https://markheath.net/post/csproj-conditional-references
+   -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net7.0'">
+    <PackageReference Include="System.Text.Json" Version="6.0.8" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
     <PackageReference Include="System.Text.Json" Version="7.0.2" />
   </ItemGroup>
-
 </Project>
