@@ -215,5 +215,103 @@ namespace AirtableApiClient
         public readonly string Offset;
     }
 
+    public class AirtableCreateWebhookResponse : AirtableApiResponse
+    {
+        public AirtableCreateWebhookResponse(AirtableApiException error) : base(error)
+        {
+            createWebhookResponse = null;
+        }
 
+        public AirtableCreateWebhookResponse(CreateWebhookResponse createResponse) : base()
+        {
+            createWebhookResponse = createResponse;
+        }
+
+        public readonly CreateWebhookResponse createWebhookResponse;
+    }
+
+    public class AirtableListWebhooksResponse : AirtableApiResponse
+    {
+        public AirtableListWebhooksResponse(AirtableApiException error) : base(error)
+        {
+            Webhooks = null;
+        }
+
+        public AirtableListWebhooksResponse(Webhooks webhooks) : base()
+        {
+            Webhooks = webhooks;
+        }
+
+        public readonly Webhooks Webhooks;
+    }
+
+    public class AirtableListPayloadsResponse : AirtableApiResponse
+    {
+        public AirtableListPayloadsResponse(AirtableApiException error) : base(error)
+        {
+            Payloads = null;
+        }
+
+#if false
+        public AirtableListPayloadsResponse(Payload[] payloads,
+            int cursor,
+            bool mightHaveMore) : base()
+        {
+            Payload[] Payloads = payloads;
+            Cursor = cursor;
+            MighHaveMore = mightHaveMore;
+        }
+#endif
+
+        public AirtableListPayloadsResponse(PayloadList payloadList) : base()
+        {
+            Payload[] Payloads = payloadList.Payloads;
+            Cursor = payloadList.Cursor;
+            MighHaveMore = payloadList.MightHaveMore;
+        }
+
+        public readonly Payload[] Payloads;
+        public readonly int Cursor;
+        public readonly bool MighHaveMore;
+    }
+
+
+    public class AirtableDeleteWebhookResponse : AirtableApiResponse
+    {
+        public AirtableDeleteWebhookResponse(AirtableApiException error) : base(error)
+        {
+        }
+
+        public AirtableDeleteWebhookResponse() : base()
+        {
+            // The base class's ctor is protected so we need this public method here
+            // so that we can construct an tmpty AirtabeDeleteWebhookResponse in a Successful operation.
+        }
+    }
+    public class AirtabeEnableWebhookNotificationsResponse : AirtableApiResponse
+    {
+        public AirtabeEnableWebhookNotificationsResponse(AirtableApiException error) : base(error)
+        {
+        }
+
+        public AirtabeEnableWebhookNotificationsResponse() : base()
+        {
+            // The base class's ctor is protected so we need this public method here
+            // so that we can construct an tmpty AirtabeEnableWebhookNotificationsResponse in a Successful operation.
+        }
+    }
+
+    public class AirtabeRefreshWebhookResponse : AirtableApiResponse
+    {
+        public AirtabeRefreshWebhookResponse(AirtableApiException error) : base(error)
+        {
+        }
+
+        public AirtabeRefreshWebhookResponse(string expirationTime) : base()
+        {
+            ExpirationTime = expirationTime;    
+        }
+
+        public readonly string ExpirationTime;
+    }
 }
