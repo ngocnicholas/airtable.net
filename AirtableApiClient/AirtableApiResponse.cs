@@ -252,25 +252,15 @@ namespace AirtableApiClient
             Payloads = null;
         }
 
-#if false
-        public AirtableListPayloadsResponse(Payload[] payloads,
-            int cursor,
-            bool mightHaveMore) : base()
-        {
-            Payload[] Payloads = payloads;
-            Cursor = cursor;
-            MighHaveMore = mightHaveMore;
-        }
-#endif
 
         public AirtableListPayloadsResponse(PayloadList payloadList) : base()
         {
-            Payload[] Payloads = payloadList.Payloads;
+            WebhooksPayload[] Payloads = payloadList.Payloads;
             Cursor = payloadList.Cursor;
             MighHaveMore = payloadList.MightHaveMore;
         }
 
-        public readonly Payload[] Payloads;
+        public readonly WebhooksPayload[] Payloads;
         public readonly int Cursor;
         public readonly bool MighHaveMore;
     }
