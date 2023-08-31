@@ -46,7 +46,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("permissionLevel")]
         [JsonInclude]
-        public string[] PermissionLevel { get; internal set; } // "none" | "read" | "comment" | "edit" | "create"
+        public string PermissionLevel { get; internal set; } // "none" | "read" | "comment" | "edit" | "create"
 
         [JsonPropertyName("name")] // optional
         [JsonInclude]
@@ -56,64 +56,4 @@ namespace AirtableApiClient
         [JsonInclude]
         public string ProfilePicUrl { get; internal set; }
     }
-
-#if false
-    public class WebhooksAction
-    {
-        public WebhooksAction(string source)
-        {
-            Source = source;
-        }
-
-        [JsonPropertyName("source")]
-        [JsonInclude]
-        public string Source { get; internal set; }
-    }
-
-    public class WebhooksActionClient : WebhooksAction
-    {
-        public WebhooksActionClient() : base("client") { /* Empty body */  }
-
-        [JsonPropertyName("sourceMetaData")]
-        [JsonInclude]
-        public SourceMetaData SourceMetaData { get; set; }
-    }
-
-    public class WebhooksActionPublicApi : WebhooksAction
-    {
-        public WebhooksActionPublicApi() : base("publicApi") { /* Empty body */  }
-
-        [JsonPropertyName("sourceMetaData")]
-        [JsonInclude]
-        public SourceMetaData SourceMetaData { get; set; }
-    }
-
-    public class WebhooksActionFormSubmission : WebhooksAction
-    {
-        public WebhooksActionFormSubmission() : base("formSubmission") { /* Empty body */ }
-        public SourceMetaData SourceMetaData { get; set; }  // user (for client, puplicApi and formSubmission), viewId, or automationId
-    }
-
-    public class WebhooksActionautomation : WebhooksAction
-    {
-        public WebhooksActionautomation() : base("automation") { /* Empty body */ }
-        public SourceMetaData SourceMetaData { get; set; }
-    }
-
-    public class WebhooksActionSystem : WebhooksAction
-    {
-        public WebhooksActionSystem() : base("system") { /* Empty body */ }
-    }
-
-    public class WebhooksActionSync : WebhooksAction
-    {
-        public WebhooksActionSync() : base("sync") { /* Empty body */ }
-    }
-
-    public class WebhooksActionAnonymousUser : WebhooksAction
-    {
-        public WebhooksActionAnonymousUser() : base("anonymousUser") { /* Empty body */ }
-    }
-#endif
-
 }

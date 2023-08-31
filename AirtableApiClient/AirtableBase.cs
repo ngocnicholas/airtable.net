@@ -578,7 +578,7 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtabeEnableWebhookNotificationsResponse> EnableWebhookNotifications(
             string webhookId,
-            bool enabled)
+            bool enable)
         {
             if (string.IsNullOrEmpty(webhookId))
             {
@@ -586,7 +586,7 @@ namespace AirtableApiClient
             }
             string path = UrlHeadWebhooks + "/" + webhookId + "/enableNotifications";
             var request = new HttpRequestMessage(HttpMethod.Post, path);
-            var json = JsonSerializer.Serialize(new { enable = enabled }, JsonOptionIgnoreNullValues);
+            var json = JsonSerializer.Serialize(new { enable = enable }, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);

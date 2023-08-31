@@ -255,7 +255,7 @@ namespace AirtableApiClient
 
         public AirtableListPayloadsResponse(PayloadList payloadList) : base()
         {
-            WebhooksPayload[] Payloads = payloadList.Payloads;
+            Payloads = payloadList.Payloads;
             Cursor = payloadList.Cursor;
             MighHaveMore = payloadList.MightHaveMore;
         }

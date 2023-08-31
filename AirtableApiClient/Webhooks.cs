@@ -7,7 +7,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("webhooks")]
         [JsonInclude]
-        public Webhook[] Hooks { get; set; }
+        public Webhook[] Hooks { get; internal set; }
     }
     public class Webhook
     {
@@ -17,7 +17,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("areNotificationsEnabled")]
         [JsonInclude]
-        public bool AreNotificationsEnabled { get; set; }
+        public bool AreNotificationsEnabled { get; internal set; }
 
         [JsonPropertyName("cursorForNextPayload")]
         [JsonInclude]
@@ -25,7 +25,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("isHookEnabled")]
         [JsonInclude]
-        public bool IsHookEnabled { get; set; }
+        public bool IsHookEnabled { get; internal set; }
 
         [JsonPropertyName("lastSuccessfulNotificationTime")]
         [JsonInclude]
@@ -82,7 +82,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("changeTypes")]
         [JsonInclude]
-        public string[] ChangeTypes { get; } 
+        public string[] ChangeTypes { get; set; } 
 
         [JsonPropertyName("fromSources")]
         [JsonInclude]
@@ -107,7 +107,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("formSubmission")]
         [JsonInclude]
-        public FormSubmission FormSubmission;
+        public FormSubmission FormSubmission { get; set; }
     }
 
     public class FormSubmission
@@ -153,7 +153,6 @@ namespace AirtableApiClient
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
         public string ExpirationTime { get; internal set; }
-
     }
 }
  

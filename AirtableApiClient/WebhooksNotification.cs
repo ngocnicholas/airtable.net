@@ -10,15 +10,15 @@ namespace AirtableApiClient
 
         [JsonPropertyName("completionTimestamp")]
         [JsonInclude]
-        public string completionTimestamp { get; set; }
+        public string completionTimestamp { get; internal set; }
 
         [JsonPropertyName("durationMs")]
         [JsonInclude]
-        public int durationMs { get; set; }
+        public float DurationMs { get; internal set; }     // The roundtrip duration of the network call.
 
         [JsonPropertyName("retryNumber")]
         [JsonInclude]
-        public int RetryNumber { get; set; }
+        public int RetryNumber { get; internal set; }
     }
 
     public class WebhooksNotificationError : WebhooksNotification
@@ -29,7 +29,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("willBeRetried")]
         [JsonInclude]
-        public bool WillBeRetried { get; set; }
+        public bool WillBeRetried { get; internal set; }
     }
 
     public class Error

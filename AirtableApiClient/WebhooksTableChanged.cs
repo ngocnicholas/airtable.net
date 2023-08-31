@@ -25,11 +25,10 @@ namespace AirtableApiClient
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
         public Dictionary<string, Dictionary<string, CreatedRecord>> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
-                                                                                                                    // CreatedRecord is a Record?
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
-        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; internal set; }  // ChangedRecord is  RecordData?
+        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; internal set; }
 
         [JsonPropertyName("destroyedRecordIds")]
         [JsonInclude]
@@ -37,89 +36,100 @@ namespace AirtableApiClient
 
         [JsonPropertyName("changedViewsById")]
         [JsonInclude]
-        public Dictionary<string, ChangedView> ChangedViewsById { get; set; }
+        public Dictionary<string, ChangedView> ChangedViewsById { get; internal set; }
     }
 
     public class ChangedMetadata
     {
-        public Metadata Current { get; set; }
-        public Metadata Previous { get; set; }
+        [JsonPropertyName("current")]
+        [JsonInclude]
+        public Metadata Current { get; internal set; }
+
+        [JsonPropertyName("previous")]
+        [JsonInclude]
+        public Metadata Previous { get; internal set; }
 
     }
 
-    public class Metadata        // WebhooksTableCreated also uses this class. 
+    public class Metadata        // WebhooksTableCreated also uses this class.
     {
         [JsonPropertyName("name")]
         [JsonInclude]
-        public string Name;
+        public string Name { get; internal set; }
 
         [JsonPropertyName("description")]
         [JsonInclude]
-        public string Description;
+        public string Description { get; internal set; }
     }
 
     public class Field          // WebhooksTableCreated also uses this class. Note: AirtableRecord.Fields is completely different
     {
         [JsonPropertyName("name")]
         [JsonInclude]
-        public string Name { get; set; }
+        public string Name { get; internal set; }
 
         [JsonPropertyName("type")]
         [JsonInclude]
-        public string Type { get; set; }
+        public string Type { get; internal set; }
     }
 
     public class FieldChange    
     {
         [JsonPropertyName("current")]
         [JsonInclude]
-        public Field Current { get; set; }
+        public Field Current { get; internal set; }
 
         [JsonPropertyName("previous")]
         [JsonInclude]
-        public Field Previous { get; set; }
+        public Field Previous { get; internal set; }
     }
 
     public class RecordData
     {
         [JsonPropertyName("cellValuesByFieldId")]
         [JsonInclude]
-        public Dictionary<string, object> CellValuesByFieldId { get; set; } // where 'object' is Cell vakye V2 bt fieldId
+        public Dictionary<string, object> CellValuesByFieldId { get; set; } // where 'object' can be anything such as a List<object> or Cell value V2 by fieldid.
     }
 
     public class ChangedRecord
     {
         [JsonPropertyName("current")]
         [JsonInclude] 
-        public RecordData Current { get; set; }    // "fld00000000000001": "hello world"
+        public RecordData Current { get; internal set; }    // "fld00000000000001": "hello world"
 
         [JsonPropertyName("previous")]
         [JsonInclude] 
-        public RecordData Previous { get; set; }   // "fld0000000000001": "hello"
+        public RecordData Previous { get; internal set; }   // "fld0000000000001": "hello"
 
         [JsonPropertyName("unchanged")]
         [JsonInclude] 
-        public RecordData Unchanged { get; set; }  // "fld0000000000000": 1
+        public RecordData Unchanged { get; internal set; }  // "fld0000000000000": 1
     }
 
     
-    public class CreatedRecord             // used in a Dictionary
-    {
+    public class CreatedRecord {    // This class is equivalent to RecordData with a CreatedTime.
         [JsonPropertyName("cellValuesByFieldId")]
         [JsonInclude]
-        public Dictionary<string, object> CellValuesByFieldId { get; set; }    // where string is "fld0000000000000"; int is the const 0
+        public Dictionary<string, object> CellValuesByFieldId { get; internal set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public string CreatedTime;
+        public string CreatedTime {  get; internal set; }
     }
 
     public class ChangedView
     {
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; set; }
-        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; set; }
-        public string[] DestroyedRecordIds { get; set; }
+        [JsonPropertyName("createdRecordsById")]
+        [JsonInclude]
+        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }
+
+        [JsonPropertyName("changedRecordsById")]
+        [JsonInclude]
+        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; internal set; }
+
+        [JsonPropertyName("destroyedRecordIds")]
+        [JsonInclude]
+        public string[] DestroyedRecordIds { get; internal set; }
     }
 
 }
-

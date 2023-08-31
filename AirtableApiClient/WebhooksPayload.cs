@@ -20,9 +20,9 @@ namespace AirtableApiClient
 
     public class WebhooksPayload
     {
-        [JsonPropertyName("timeStamp")]
+        [JsonPropertyName("timestamp")]
         [JsonInclude]
-        public string TimeStamp { get; internal set; }
+        public string Timestamp { get; internal set; }
 
         [JsonPropertyName("baseTransactionNumber")]
         [JsonInclude]
@@ -35,9 +35,21 @@ namespace AirtableApiClient
         [JsonPropertyName("actionMetadata")]
         [JsonInclude]
         public WebhooksAction ActionMetadata { get; internal set; }
+
+        [JsonPropertyName("changedTablesById")]
+        [JsonInclude]
+        public Dictionary<string, WebhooksTableChanged> ChangedTablesById { get; internal set; }
+
+        [JsonPropertyName("createdTablesById")]
+        [JsonInclude]
+        public Dictionary<string, WebhooksTableCreated> CreatedTablesById { get; internal set; }
+
+        [JsonPropertyName("destroyedTableIds")]
+        [JsonInclude]
+        public string[] DestroyedTableIds { get; internal set; }
     }
 
-    public class ErrorPayload
+    public class ErrorPayload : WebhooksPayload
     {
         [JsonPropertyName("error")]
         [JsonInclude]
@@ -46,34 +58,6 @@ namespace AirtableApiClient
         [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR"
         [JsonInclude]
         public string[] Code { get; internal set; }
-
-        [JsonPropertyName("timeStamp")]
-        [JsonInclude]
-        public string TimeStamp { get; internal set; }
-
-        [JsonPropertyName("baseTransactionNumber")]
-        [JsonInclude]
-        public int BaseTransactionNumber { get; internal set; }
-
-        [JsonPropertyName("payloadFormat")]
-        [JsonInclude]
-        public string PayloadFormat { get; internal set; }  // Only "v0" for now
-
-        [JsonPropertyName("actionMetadata")]
-        [JsonInclude]
-        public WebhooksAction ActionMetadata { get; internal set; }
-
-        [JsonPropertyName("changedTablesById")]
-        [JsonInclude]
-        public Dictionary<string, WebhooksTableChanged> ChangedTablesById { get; set; }
-
-        [JsonPropertyName("createdTablesById")]
-        [JsonInclude]
-        public Dictionary<string, WebhooksTableCreated> CreatedTablesById { get; set; }
-
-        [JsonPropertyName("destroyedTableIds")]
-        [JsonInclude]
-        public string[] DestroyedTableIds { get; set; }
     }
 
 }
