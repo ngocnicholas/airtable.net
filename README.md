@@ -35,7 +35,7 @@ Example demonstrating usage of the API to list records:
 
 ----------------------
 
-```
+```cs
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -54,7 +54,7 @@ readonly string appKey = YOUR_APP_KEY_OR_ACCESS_TOKEN;
 ----------------------
 
 
-```
+```cs
 
     string offset = null;
     string errorMessage = null;
