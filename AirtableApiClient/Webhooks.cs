@@ -78,27 +78,27 @@ namespace AirtableApiClient
 
         [JsonPropertyName("dataTypes")]
         [JsonInclude]
-        public string[] DataTypes { get; set; }
+        public string[] DataTypes { get; set; } // array of ("tableData" | "tableFields" | "tableMetadata")
 
         [JsonPropertyName("changeTypes")]
         [JsonInclude]
-        public string[] ChangeTypes { get; set; } 
+        public string[] ChangeTypes { get; set; }   // optional<array of ("add" | "remove" | "update")>
 
         [JsonPropertyName("fromSources")]
         [JsonInclude]
-        public string[] FromSources { get; set; }
+        public string[] FromSources { get; set; }   // optional<array of ("client" | "publicApi" | "formSubmission" | "automation" | "system" | "sync" | "anonymousUser" | "unknown")>
 
         [JsonPropertyName("sourceOptions")]
         [JsonInclude]
-        public SourceOptions SourceOptions { get; set; }
+        public SourceOptions SourceOptions { get; set; }    // optional<object>
 
-        [JsonPropertyName("watchDataInFieldIds")]
+        [JsonPropertyName("watchDataInFieldIds")]   
         [JsonInclude]
-        public string[] WatchDataInFieldIds { get; set; }
+        public string[] WatchDataInFieldIds { get; set; }   // optional<array of strings>
 
         [JsonPropertyName("watchSchemasOfFieldIds")]
         [JsonInclude]
-        public string[] WatchSchemasOfFieldIds { get; set; }
+        public string[] WatchSchemasOfFieldIds { get; set; }    // optional<array of strings>
 
     }
 
@@ -127,7 +127,7 @@ namespace AirtableApiClient
         [JsonInclude]
         public bool IncludePreviousCellValues { get; set; }         // If true, include the previous cell value in the payload.
 
-        [JsonPropertyName("icludePreviousFieldDefinitions")]
+        [JsonPropertyName("includePreviousFieldDefinitions")]
         [JsonInclude]
         public bool IncludePreviousFieldDefinitions { get; set; }   // If true, include the previous field definition in the payload.
     }

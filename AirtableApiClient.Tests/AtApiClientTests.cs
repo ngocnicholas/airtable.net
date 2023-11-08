@@ -1,11 +1,12 @@
-﻿using System;
+﻿#define FEWER_ARTISTS
+using System;
+using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json.Serialization;
-
 
 namespace AirtableApiClient.Tests
 {
@@ -30,21 +31,27 @@ namespace AirtableApiClient.Tests
     [TestClass]
     public class AtApiClientTests
     {
+        static readonly string TABLE_NAME = ":/?#[]@!$&'()*+,;= Fewer Artists\\ %2F -._~";
+        readonly string AL_HELD_RECORD_ID = "rec6vpnCofe2OZiwi";
+        readonly string AL_HELD_NAME_FIELD_ID = "fldSAUw6qVy9NzXzF";
+        readonly string AL_HELD_COLLECTION_FIELD_ID = "fldE0muAk6ejOkkKa";
+        readonly string MIYA_ANDO_RECORD_ID = "recTGgsutSNKCHyUS";
+        readonly string EDVARD_MUNCH_RECORD_ID = "recaaJrI2JbRgEX5O";
+        readonly string TABLE_ID = "tblUmsH10MkIMMGYP";
+
         const string APPLICATION_ID = "app1234567890ABCD";                          // fake app id for tests
         const string API_KEY = "key1234567890ABCD";                                 // fake airtable api key for tests
-        const string TABLE_NAME = ":/?#[]@!$&'()*+,;= Fewer Artists\\ %2F -._~ ";   // fake table name for tests
         readonly string BASE_URL = $"https://api.airtable.com/v0/{APPLICATION_ID}/{Uri.EscapeDataString(TABLE_NAME)}";
 
         static private AirtableBase airtableBase;
         private FakeResponseHandler fakeResponseHandler;
         private HttpResponseMessage fakeResponse;
 
-        readonly string AL_HELD_RECORD_ID = "rec6vpnCofe2OZiwi";
-        readonly string AL_HELD_NAME_FIELD_ID = "fldSAUw6qVy9NzXzF";
-        readonly string AL_HELD_COLLECTION_FIELD_ID = "fldE0muAk6ejOkkKa";
-        readonly string MIYA_ANDO_RECORD_ID = "recTGgsutSNKCHyUS";
-        readonly string EDVARD_MUNCH_RECORD_ID = "recaaJrI2JbRgEX5O";
+        //private readonly string UrlHead = "https://api.airtable.com/v0/";
+        private readonly string UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + APPLICATION_ID + "/webhooks");
 
+        readonly string NOTIFICATION_URL = "https://httpbin.org/post";
+        //readonly string BAD_NOTIFICATION_URL = "https://httpbin.org/bad_post";
 
         [TestInitialize]
         public void TestInitialize()
@@ -1722,9 +1729,331 @@ namespace AirtableApiClient.Tests
         }
 
 
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzJAtApiClientCreateWebhook
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzJAtApiClientCreateWebhooks()
+        {
+            WebhooksSpecification spec = CreateSpecForWebhook("tableData");
+
+            fakeResponse.Content = new StringContent
+                ("{\"id\":\"achJjY64Hrd3f2rQh\",\"macSecretBase64\":\"27hPJ71G46eMwCNTLbGjwt4j5JZo/OHgj68+rb2bZ2IwV4ugSNF5BNGKEzpoCnfSBbDDepyjFqfU6AvKBak1tusFaAEcfYrEVeJiJqGZ1CpI0HMp0CnWNKdxP8XQyknpGOL1ruPrVLe2gxMXWNRUHinTz0VIGrewQxGF6lT6jIA=\",\"expirationTime\":\"2023-11-12T06:55:47.872Z\"}");
+
+            string bodyText = "{\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false}}},\"notificationUrl\":\"https://httpbin.org/post\"}";
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Post,
+                        fakeResponse,
+                        bodyText);
+
+            Task<AirtableCreateWebhookResponse> task = airtableBase.CreateWebhook(spec, NOTIFICATION_URL);
+            var response = await task;
+            Assert.IsTrue(response.Success);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzKAtApiClientEnableWebhookNotifications
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzKAtApiClientEnableWebhookNotifications()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achfus4RR3IgSeeMK\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:50.929Z\"},{\"id\":\"achGVe4kJBlLroiOS\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:51.272Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+
+            if (webhooks != null && webhooks.Hooks != null)
+            {
+                Console.WriteLine("webhooks.Hooks.Legth = {0}", webhooks.Hooks.Length);
+                if (webhooks.Hooks.Length > 0)
+                {
+                    Console.WriteLine("Enabling notifications for Webhook with ID = {0}", webhooks.Hooks[0].Id);
+
+                    fakeResponse.Content = new StringContent("\"{}\"");
+                    string bodyText = "{\"enable\":true}";
+                    string webhookId = webhooks.Hooks[0].Id;
+
+                    fakeResponseHandler.AddFakeResponse(
+                                UrlHeadWebhooks + "/" + webhookId + "/enableNotifications",
+                                HttpMethod.Post,
+                                fakeResponse,
+                                bodyText);
+
+                    Task<AirtabeEnableWebhookNotificationsResponse> task2 = airtableBase.EnableWebhookNotifications(webhookId, true);
+                    var response2 = await task2;
+                    Assert.IsTrue(response2.Success);
+                }
+                else
+                {
+                    Console.WriteLine("There is no webhook notifications to eneable/disable.");
+                }
+            }
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzLAtApiClientValidNotificationUrl
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzLAtApiClientValidNotificationUrl()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achHvwpmtKjW9gCBj\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":2,\"lastNotificationResult\":{\"success\":true,\"completionTimestamp\":\"2023-11-06T20:48:29.055Z\",\"durationMs\":183.607139,\"retryNumber\":0},\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":\"2023-11-06T20:48:29.000Z\",\"isHookEnabled\":true,\"expirationTime\":\"2023-11-13T20:48:28.406Z\"}]}");    
+                
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+
+            // ListWebhooks to see the Notification error
+            Webhooks webhooks = await ListWebhooks();
+            Assert.IsTrue(webhooks.Hooks.Length == 1);
+            Assert.IsTrue(webhooks.Hooks.First().LastNotificationResult.Success);
+            Assert.IsNull(webhooks.Hooks.First().LastNotificationResult.Error);
+            Assert.IsFalse(webhooks.Hooks.First().LastNotificationResult.WillBeRetried);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzMAtApiClientListPayloads
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzMAtApiClientListPayloads()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achHvwpmtKjW9gCBj\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":8,\"lastNotificationResult\":{\"success\":true,\"completionTimestamp\":\"2023-11-07T05:20:01.973Z\",\"durationMs\":18.574319,\"retryNumber\":0},\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":\"2023-11-07T05:20:02.000Z\",\"isHookEnabled\":true,\"expirationTime\":\"2023-11-14T05:10:48.986Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+            Assert.IsTrue(webhooks != null && webhooks.Hooks != null && webhooks.Hooks.Length > 0);
+            Console.WriteLine("List payloads for webhook with ID = {0}", webhooks.Hooks[0].Id);
+            string webhookId = webhooks.Hooks[0].Id;
+
+            fakeResponse.Content = new StringContent
+                ("{\"payloads\":[{\"timestamp\":\"2023-11-06T20:48:28.797Z\",\"baseTransactionNumber\":9730,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recmL2nzyOJVrv00D\":{\"createdTime\":\"2023-11-06T20:48:29.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-06T20:59:57.651Z\",\"baseTransactionNumber\":9731,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"recmL2nzyOJVrv00D\"]} } },{\"timestamp\":\"2023-11-07T04:49:12.530Z\",\"baseTransactionNumber\":9732,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"rec9Nb0erkoW9fsH8\":{\"createdTime\":\"2023-11-07T04:49:12.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T04:53:20.253Z\",\"baseTransactionNumber\":9733,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recDoe9ZnKJZnbXL5\":{\"createdTime\":\"2023-11-07T04:53:20.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T05:10:20.106Z\",\"baseTransactionNumber\":9734,\"actionMetadata\":{\"source\":\"client\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"rec9Nb0erkoW9fsH8\",\"recDoe9ZnKJZnbXL5\"]} } },{\"timestamp\":\"2023-11-07T05:10:46.036Z\",\"baseTransactionNumber\":9735,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recmbMlVD0uWUy3Ru\":{\"createdTime\":\"2023-11-07T05:10:46.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T05:20:01.877Z\",\"baseTransactionNumber\":9736,\"actionMetadata\":{\"source\":\"client\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"recmbMlVD0uWUy3Ru\"]} } },{\"timestamp\":\"2023-11-07T05:30:05.650Z\",\"baseTransactionNumber\":9737,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recL5S17OeXlIl53k\":{\"createdTime\":\"2023-11-07T05:30:06.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } }],\"cursor\":9,\"mightHaveMore\":false,\"payloadFormat\":\"v0\"}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        //"https://api.airtable.com/v0/bases/appvdIxcMzHRMZWUY/webhooks/achHvwpmtKjW9gCBj/payloads?cursor=1",
+                        UrlHeadWebhooks + "/" + webhookId + "/payloads?cursor=" + "1",
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Assert.IsTrue(webhooks != null && webhooks.Hooks != null && webhooks.Hooks.Length > 0);
+            Console.WriteLine("List payloads for webhook with ID = {0}", webhooks.Hooks[0].Id);
+            Task<AirtableListPayloadsResponse> task2 = airtableBase.ListPayloads(webhooks.Hooks[0].Id);
+            var response2 = await task2;
+            Assert.IsTrue(response2.Success);
+            Assert.IsNotNull(response2.Payloads);
+            Console.WriteLine("Payloads.Length = {0}", response2.Payloads.Length);
+            Assert.IsTrue(response2.Payloads.Length > 0);
+
+            PayloadsAnalyze(response2.Payloads);
+            Console.WriteLine("Done analyzing payloads.");
+            Console.WriteLine("Payloads.Cusor = {0}, Payloads.MightHaveMore = {1}", response2.Cursor, response2.MighHaveMore);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzNAtApiClientBadNotificationUrl
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzNAtApiClientBadNotificationUrl()
+        {
+
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achJei4GOSrTPhsap\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/bad_post\",\"cursorForNextPayload\":2,\"lastNotificationResult\":{\"success\":false,\"completionTimestamp\":\"2023-11-07T20:55:59.869Z\",\"durationMs\":12.422962,\"retryNumber\":2,\"error\":{\"message\":\"The HTTP request returned a 404 status code instead of 200 or 204.\"},\"willBeRetried\":true},\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-14T20:55:31.680Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            // ListWebhooks to see the Notification error
+            Webhooks webhooks = await ListWebhooks();
+            Assert.IsTrue(webhooks.Hooks.Length == 1);
+            Assert.IsFalse(webhooks.Hooks.First().LastNotificationResult.Success);
+            Assert.IsNotNull(webhooks.Hooks.First().LastNotificationResult.Error);
+            Console.WriteLine("Error message is: {0}", webhooks.Hooks.First().LastNotificationResult.Error);
+            Console.WriteLine("WillBeRetried is {0}", webhooks.Hooks.First().LastNotificationResult.WillBeRetried);
+
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzOAtApiClientDisableWebhookNotifications
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzOAtApiClientDisableWebhookNotifications()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achfus4RR3IgSeeMK\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:50.929Z\"},{\"id\":\"achGVe4kJBlLroiOS\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:51.272Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+    
+
+            if (webhooks != null && webhooks.Hooks != null)
+            {
+                Console.WriteLine("webhooks.Hooks.Legth = {0}", webhooks.Hooks.Length);
+                if (webhooks.Hooks.Length > 0)
+                {
+                    string webhookId = webhooks.Hooks[0].Id;
+                    Console.WriteLine("Disabling notifications for Webhook with ID = {0}", webhookId);
+
+                    fakeResponse.Content = new StringContent("\"{}\"");
+                    string bodyText = "{\"enable\":false}";
+
+                    fakeResponseHandler.AddFakeResponse(
+                                UrlHeadWebhooks + "/" + webhookId + "/enableNotifications",
+                                HttpMethod.Post,
+                                fakeResponse,
+                                bodyText);
+
+                    Task<AirtabeEnableWebhookNotificationsResponse> task2 = airtableBase.EnableWebhookNotifications(webhookId, false);
+                    var response2 = await task2;
+                    Assert.IsTrue(response2.Success);
+                }
+                else
+                {
+                    Console.WriteLine("There is no webhook notifications to eneable/disable.");
+                }
+            }
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzPAtApiClientRefreshWebhookNotifications
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzPAtApiClientRefreshWebhookNotifications()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achJei4GOSrTPhsap\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/bad_post\",\"cursorForNextPayload\":3,\"lastNotificationResult\":{\"success\":false,\"completionTimestamp\":\"2023-11-07T21:29:08.099Z\",\"durationMs\":15.156026,\"retryNumber\":8,\"error\":{\"message\":\"The HTTP request returned a 404 status code instead of 200 or 204.\"},\"willBeRetried\":true},\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-14T21:12:34.828Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+
+            Assert.IsTrue(webhooks != null && webhooks.Hooks != null);
+            Console.WriteLine("webhooks.Hooks.Legth = {0}", webhooks.Hooks.Length);
+            Assert.IsTrue(webhooks.Hooks.Length > 0);
+            fakeResponse.Content = new StringContent
+                ("{\"expirationTime\":\"2023-11-14T21:50:33.685Z\"}");
+
+            string webhookId = webhooks.Hooks[0].Id;
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks + "/" + webhookId + "/refresh",
+                        HttpMethod.Post,
+                        fakeResponse,
+                        null);
+                    
+            Console.WriteLine("Refreshing Webhook with ID = {0}", webhookId);
+            Task<AirtabeRefreshWebhookResponse> task2 = airtableBase.RefreshWebhook(webhookId);
+            var response2 = await task2;
+            Assert.IsTrue(response2.Success);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzQAtApiClientListWebhooks
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzQAtApiClientListWebhooks()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achfus4RR3IgSeeMK\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:50.929Z\"},{\"id\":\"achGVe4kJBlLroiOS\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:51.272Z\"}]}");
+            
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+            Console.WriteLine("Number of Webhooks is {0}", webhooks.Hooks.Length);
+        }
+
         //---------------------------------------------------------------------------------------------------------
         //------------------------------------------- Helper Functions --------------------------------------------
         //---------------------------------------------------------------------------------------------------------
+
+        private async Task<Webhooks>GenerateWebhooksToUse()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"webhooks\":[{\"id\":\"achfus4RR3IgSeeMK\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:50.929Z\"},{\"id\":\"achGVe4kJBlLroiOS\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:51.272Z\"}]}");
+
+            fakeResponseHandler.AddFakeResponse(
+                        UrlHeadWebhooks,
+                        HttpMethod.Get,
+                        fakeResponse,
+                        null);
+
+            Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            Webhooks webhooks = response.Webhooks;
+            return webhooks;
+        }
+
 
         private async Task<ListAllRecordsTestResponse> ListAllRecords(
             IEnumerable<string> fields = null,
@@ -1833,15 +2162,6 @@ namespace AirtableApiClient.Tests
         }
 
 
-        private void BoolTest(Object fieldStr, bool testValue)
-        {
-            bool boolValue;
-            string fieldStringValue = Convert.ToString(fieldStr);
-            Assert.IsTrue(Boolean.TryParse(fieldStringValue, out boolValue));
-            Assert.IsTrue(testValue == boolValue);
-        }
-
-
         private void BuildRecordListWith3RecordsForTest(AirtableRecord[] records)
         {
             Assert.IsTrue(records != null && records.Length == 3);
@@ -1875,6 +2195,217 @@ namespace AirtableApiClient.Tests
                 Assert.IsNotNull(record.GetField("Bank Name"));
             }
             return response.Records.ToArray();
+        }
+
+
+        private async Task<Webhooks> ListWebhooks()
+        {
+            Task<AirtableListWebhooksResponse> listTask = airtableBase.ListWebhooks();
+            var listResponse = await listTask;
+            Assert.IsTrue(listResponse.Success);
+            return (listResponse.Webhooks);
+        }
+
+
+        private WebhooksSpecification CreateSpecForWebhook(string dataTypes)
+        {
+            WebhooksSpecification spec = new WebhooksSpecification();
+            Options options = new Options();
+            spec.Options = options;
+            Filters filters = new Filters();
+            options.Filters = filters;
+            filters.RecordChangeScope = TABLE_ID;
+            filters.DataTypes = new string[] { "tableData" /* , "tableFields"*/ };
+            Includes includes = new Includes();
+            includes.IncludePreviousCellValues = true;
+            //includes.IncludeCellValuesInFieldIds = new string[] { "all" };
+            options.Includes = includes;
+            return spec;
+        }
+
+
+        private void PayloadsAnalyze(WebhooksPayload[] payloads)
+        {
+            foreach (var pl in payloads)
+            {
+                Console.WriteLine("Timestamp = {0}, BaseTransactionNumber = {1}, PayloadFormat= {2} ", pl.Timestamp, pl.BaseTransactionNumber, pl.PayloadFormat);
+                PrintObject(pl.ActionMetadata);
+
+                if (pl.ChangedTablesById != null)
+                {
+                    PrintChangedTable(pl.ChangedTablesById);
+                }
+
+                if (pl.CreatedTablesById != null)
+                {
+                }
+
+                if (pl.DestroyedTableIds != null)
+                {
+                }
+            }
+        }
+
+
+#if false
+        private void PrintDestroyedTable(string[] tables)
+        {
+            Console.WriteLine("Number of tables destroyed: {0}", tables.Length);
+            foreach (var tblName in tables)
+            {
+                Console.WriteLine(tblName);
+            }
+        }
+#endif
+
+        private void PrintObject(Object obj)
+        {
+            if (obj != null)
+            {
+                foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(obj))
+                {
+                    string name = descriptor.Name;
+                    object value = descriptor.GetValue(obj);
+                    Console.WriteLine("{0}={1}", name, value);
+                }
+            }
+        }
+
+
+        // There can be more than one table being changed but we will only look at the firest changed table.        
+        private void PrintChangedTable(Dictionary<string, WebhooksTableChanged> chgTable)
+        {
+            var first = chgTable.First();
+            if (first.Equals(default(KeyValuePair<string, WebhooksTableChanged>)) == false)    // first WebhooksTableChanged is not a default entry
+            {
+                Console.WriteLine("Key = {0}, Value = {1}", first.Key, first.Value);            // The key is the table ID. The value is the WebhooksTableChangd content that we care.
+
+                var createdFieldsById = first.Value.CreatedFieldsById;
+                if (createdFieldsById != null)                          // Fields created?
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Fields are created in Record.");
+                    var fieldItem = createdFieldsById.First();
+                    if (fieldItem.Equals(default(KeyValuePair<string, Field>)) == false)
+                    {
+                        foreach (var kvp in createdFieldsById)
+                        {
+                            Console.WriteLine("Field.Id = {0}, Field.Name = {1}, Field.Type = {2}", fieldItem.Key, fieldItem.Value.Name, fieldItem.Value.Type);
+                        }
+                    }
+                }
+
+                var changedFieldsById = first.Value.ChangedFieldsById;
+                if (changedFieldsById != null)                          // Fields changed?
+                {
+                    var fieldChange = changedFieldsById.First();
+                    if (fieldChange.Equals(default(KeyValuePair<string, FieldChange>)) == false)    // Dictionary not empty?
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Fields are changed in Record.");
+                        foreach (var kvp in changedFieldsById)
+                        {
+                            Console.WriteLine("FieldChange.Current.FieldId = {0}, FieldChange.Current.Name", kvp.Key, kvp.Value);
+                            Console.WriteLine("FieldChange.Previous.FieldId = {0}, FieldChange.Previous.Name", kvp.Key, kvp.Value);
+                        }
+                    }
+                }
+
+                var destroyedFieldIds = first.Value.DestroyedFieldIds;
+                if (destroyedFieldIds != null)                          // Fields destroyed?
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Fields are destroyed in Record.");
+                    foreach (string fieldId in destroyedFieldIds)
+                    {
+                        Console.WriteLine("Destroyed Field ID = {0}", fieldId);
+                    }
+                }
+
+                PrintChangedView(first.Value.CreatedRecordsById, first.Value.ChangedRecordsById, first.Value.DestroyedFieldIds);
+
+                var changedViewsById = first.Value.ChangedViewsById;
+                if (changedViewsById != null)                         // Changed Views?
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("Views are changed in table.");
+                    var chgViews = changedViewsById.First();            // We only want to look at the first ChangedViews
+                    if (chgViews.Equals(default(KeyValuePair<string, ChangedView>)) == false)
+                    {
+                        Console.WriteLine("Key = {0}, Value = {1}", chgViews.Key, chgViews.Value);   // The key is the View ID. The value is the ChangedView content that we care.
+                        PrintChangedView(chgViews.Value.CreatedRecordsById, chgViews.Value.ChangedRecordsById, chgViews.Value.DestroyedRecordIds);
+                    }
+                }
+
+            }
+        }
+
+
+        private void PrintChangedView(
+            Dictionary<string, CreatedRecord> createdRecordsById,
+            Dictionary<string, ChangedRecord> changedRecordsById,
+            string[] destroyedRecordIds)
+        {
+            if (createdRecordsById != null)                         // Reccords created?
+            {
+                Console.WriteLine();
+                Console.WriteLine("Records are created in table.");
+                var createdRcd = createdRecordsById.First();
+                if (createdRcd.Equals(default(KeyValuePair<string, CreatedRecord>)) == false)
+                {
+                    Console.WriteLine("Record ID = {0}, Created Time = {1}, ", createdRcd.Key, createdRcd.Value.CreatedTime);
+                    var cellValue = createdRcd.Value.CellValuesByFieldId.First();
+                    if (cellValue.Equals(default(KeyValuePair<string, object>)) == false)
+                    {
+                        foreach (var kvp in createdRcd.Value.CellValuesByFieldId)
+                        {
+                            Console.WriteLine("Field ID = {0}, Field Value = {1}", kvp.Key, kvp.Value);
+                        }
+                    }
+                }
+            }
+
+            if (changedRecordsById != null)                         // Records changed
+            {
+                Console.WriteLine();
+                Console.WriteLine("Records are changed in table.");
+                var chgRecord = changedRecordsById.First();         // Look at the first chagned record.
+                if (chgRecord.Equals(default(KeyValuePair<string, ChangedRecord>)) == false)
+                {
+                    Console.WriteLine("Key = {0}, Value = {1}", chgRecord.Key, chgRecord.Value);
+
+                    var rcdData = chgRecord.Value.Current.CellValuesByFieldId.First();
+                    Console.WriteLine("Key = {0}, Value = {1}", rcdData.Key, rcdData.Value);
+
+                    if (chgRecord.Value.Previous != null && chgRecord.Value.Previous.CellValuesByFieldId != null)
+                    {
+                        rcdData = chgRecord.Value.Previous.CellValuesByFieldId.First();
+                        if (rcdData.Equals(default(KeyValuePair<string, object>)) == false)
+                        {
+                            Console.WriteLine("Key = {0}, Value = {1}", rcdData.Key, rcdData.Value);
+                        }
+                    }
+
+                    if (chgRecord.Value.Unchanged != null && chgRecord.Value.Unchanged.CellValuesByFieldId != null)
+                    {
+                        var unchg = chgRecord.Value.Unchanged.CellValuesByFieldId.First();
+                        if (unchg.Equals(default(KeyValuePair<string, object>)) == false)
+                        {
+                            Console.WriteLine("Key = {0}, Value = {1}", unchg.Key, unchg.Value);
+                        }
+                    }
+                }
+            }
+
+            if (destroyedRecordIds != null)                 // Records destroyed?
+            {
+                Console.WriteLine();
+                Console.WriteLine("Records are destroyed in table.");
+                foreach (string rcd in destroyedRecordIds)
+                {
+                    Console.WriteLine("Destroyed Record ID = {0}", rcd);
+                }
+            }
         }
     }
 }

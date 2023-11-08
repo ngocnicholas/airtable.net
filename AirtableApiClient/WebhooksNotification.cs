@@ -4,6 +4,11 @@ namespace AirtableApiClient
 {
      public class WebhooksNotification
     {
+        public WebhooksNotification()
+        {
+
+        }
+
         [JsonPropertyName("success")]
         [JsonInclude]
         public bool Success { get; internal set; }
@@ -19,8 +24,19 @@ namespace AirtableApiClient
         [JsonPropertyName("retryNumber")]
         [JsonInclude]
         public int RetryNumber { get; internal set; }
+
+        [JsonPropertyName("error")]
+        [JsonInclude]
+        public Error Error { get; set; }    // This field only exist in case of error
+
+        [JsonPropertyName("willBeRetried")]
+        [JsonInclude]
+        public bool WillBeRetried { get; internal set; }    // This field only exist in case of error
+
+
     }
 
+    #if false   // Should make this a derived class: No
     public class WebhooksNotificationError : WebhooksNotification
     {
         [JsonPropertyName("error")]
@@ -31,6 +47,7 @@ namespace AirtableApiClient
         [JsonInclude]
         public bool WillBeRetried { get; internal set; }
     }
+    #endif
 
     public class Error
     {

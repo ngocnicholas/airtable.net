@@ -595,6 +595,7 @@ namespace AirtableApiClient
                 return new AirtabeEnableWebhookNotificationsResponse(error);
             }
 
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new AirtabeEnableWebhookNotificationsResponse();
         }
 

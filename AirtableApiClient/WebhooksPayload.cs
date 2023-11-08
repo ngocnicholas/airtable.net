@@ -47,10 +47,8 @@ namespace AirtableApiClient
         [JsonPropertyName("destroyedTableIds")]
         [JsonInclude]
         public string[] DestroyedTableIds { get; internal set; }
-    }
 
-    public class ErrorPayload : WebhooksPayload
-    {
+        // Only error responses have the "error" and "code" fields.
         [JsonPropertyName("error")]
         [JsonInclude]
         public bool Error { get; internal set; }

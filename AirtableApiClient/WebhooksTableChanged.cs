@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
@@ -11,20 +12,25 @@ namespace AirtableApiClient
 
         [JsonPropertyName("createdFieldsById")]
         [JsonInclude]
-        public Dictionary<string, Field> CreatedFieldsById { get; internal set; }    // NameType is a Field?
+        public Dictionary<string, Field> CreatedFieldsById { get; internal set; }
 
 
         [JsonPropertyName("changedFieldsById")]
         [JsonInclude]
-        public Dictionary<string, FieldChange> ChangedFieldsById { get; internal set; }  // // NameTypeChange is a Field?
+        public Dictionary<string, FieldChange> ChangedFieldsById { get; internal set; } 
 
         [JsonPropertyName("destroyedFieldIds")]
         [JsonInclude]
         public string[] DestroyedFieldIds { get; internal set; }
 
+
+        // optional <Webhooks Created Record> which is One or multiple records being created and reported upon via webhooks.
+        // Each record is key with a string and contains 'createdTime' and 'cellValuesByFieldId'
+
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, Dictionary<string, CreatedRecord>> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
+        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
+
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
@@ -77,11 +83,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("current")]
         [JsonInclude]
-        public Field Current { get; internal set; }
+        public Field Current { get; internal set; }     // Only has Name, no Type
 
         [JsonPropertyName("previous")]
         [JsonInclude]
-        public Field Previous { get; internal set; }
+        public Field Previous { get; internal set; }    // Only has Name, no Type
     }
 
     public class RecordData
@@ -105,23 +111,24 @@ namespace AirtableApiClient
         [JsonInclude] 
         public RecordData Unchanged { get; internal set; }  // "fld0000000000000": 1
     }
-
-    
-    public class CreatedRecord {    // This class is equivalent to RecordData with a CreatedTime.
+  
+    public class CreatedRecord      // Not to confuse with AirtableRecord. This class is equivalent to RecordData with a CreatedTime.
+    {    
         [JsonPropertyName("cellValuesByFieldId")]
         [JsonInclude]
-        public Dictionary<string, object> CellValuesByFieldId { get; internal set; }
+        public Dictionary<string, object> CellValuesByFieldId { get; internal set; }    // where 'object' can be anything such as a List<object> or Cell value V2 by fieldid. 
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public string CreatedTime {  get; internal set; }
+        public string CreatedTime { get; internal set; }
     }
 
     public class ChangedView
     {
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }
+        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
+
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
