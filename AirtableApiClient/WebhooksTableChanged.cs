@@ -23,14 +23,9 @@ namespace AirtableApiClient
         [JsonInclude]
         public string[] DestroyedFieldIds { get; internal set; }
 
-
-        // optional <Webhooks Created Record> which is One or multiple records being created and reported upon via webhooks.
-        // Each record is key with a string and contains 'createdTime' and 'cellValuesByFieldId'
-
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
-
+        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; } 
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
@@ -101,15 +96,15 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("current")]
         [JsonInclude] 
-        public RecordData Current { get; internal set; }    // "fld00000000000001": "hello world"
+        public RecordData Current { get; internal set; } 
 
         [JsonPropertyName("previous")]
         [JsonInclude] 
-        public RecordData Previous { get; internal set; }   // "fld0000000000001": "hello"
+        public RecordData Previous { get; internal set; } 
 
         [JsonPropertyName("unchanged")]
         [JsonInclude] 
-        public RecordData Unchanged { get; internal set; }  // "fld0000000000000": 1
+        public RecordData Unchanged { get; internal set; } 
     }
   
     public class CreatedRecord      // Not to confuse with AirtableRecord. This class is equivalent to RecordData with a CreatedTime.
@@ -127,7 +122,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }    // Ex: where string is "rec00000000000000"
+        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }
 
 
         [JsonPropertyName("changedRecordsById")]

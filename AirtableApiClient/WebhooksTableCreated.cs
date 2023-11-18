@@ -16,6 +16,5 @@ namespace AirtableApiClient
         [JsonPropertyName("metaData")]
         [JsonInclude]
         public Metadata Metdata { get; internal set; }
-
     }
 }

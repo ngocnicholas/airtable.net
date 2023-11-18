@@ -102,7 +102,6 @@ namespace AirtableApiClient
 
     }
 
-
     public class SourceOptions
     {
         [JsonPropertyName("formSubmission")]
