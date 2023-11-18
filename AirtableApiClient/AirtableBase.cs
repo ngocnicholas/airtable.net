@@ -114,7 +114,7 @@ namespace AirtableApiClient
             int? pageSize = null,
             IEnumerable<Sort> sort = null,
             string view = null,
-            string cellFormat = null,
+            string cellFormat = "json",
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
@@ -156,7 +156,7 @@ namespace AirtableApiClient
             int? pageSize = null,
             IEnumerable<Sort> sort = null,
             string view = null,
-            string cellFormat = null,
+            string cellFormat = "json",
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
@@ -187,7 +187,7 @@ namespace AirtableApiClient
         public async Task<AirtableRetrieveRecordResponse> RetrieveRecord(
         string tableIdOrName,
         string id,
-        string cellFormat = null,
+        string cellFormat = "json",
         string timeZone = null,
         string userLocale = null,
         bool returnFieldsByFieldId = false)
@@ -206,7 +206,7 @@ namespace AirtableApiClient
             return new AirtableRetrieveRecordResponse(airtableRecord);
         }
 
-
+        
         //----------------------------------------------------------------------------
         //
         // AirtableBase.RetrieveRecord<T>
@@ -219,7 +219,7 @@ namespace AirtableApiClient
         public async Task<AirtableRetrieveRecordResponse<T>> RetrieveRecord<T>(
             string tableIdOrName,
             string id,
-            string cellFormat = null,
+            string cellFormat = "json",
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false)
@@ -915,7 +915,8 @@ namespace AirtableApiClient
             string cellFormat,
             string timeZone,
             string userLocale,
-            bool returnFieldsByFieldId)
+            bool returnFieldsByFieldId,
+            bool? includeCommentCount)
         {
             var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName));
 
@@ -982,6 +983,11 @@ namespace AirtableApiClient
             if (returnFieldsByFieldId != false)
             {
                 AddParametersToQuery(ref uriBuilder, $"returnFieldsByFieldId={returnFieldsByFieldId}");
+            }
+
+            if (includeCommentCount.HasValue && includeCommentCount.Value)
+            {
+                AddParametersToQuery(ref uriBuilder, $"recordMetadata=commentCount");
             }
             return uriBuilder.Uri;
         }
@@ -1328,9 +1334,9 @@ namespace AirtableApiClient
             }
 
             HttpRequestMessage request = null;
-            if (cellFormat != null)     // Only this URL queury method can handle cellForm correctly for now due to a bug in Airtable server
+            if (cellFormat != null && cellFormat != "json")     // Only this URL queury method can handle cellForm correctly for now due to a bug in Airtable server
             {
-                var uri = BuildUriForListRecords(tableIdOrName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
+                var uri = BuildUriForListRecords(tableIdOrName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
                 if (uri.OriginalString.Length > MAX_LIST_RECORDS_URL_SIZE)
                 {
                     throw new AirtableRequestEntityTooLargeException();
