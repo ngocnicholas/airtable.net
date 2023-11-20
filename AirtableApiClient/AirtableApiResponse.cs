@@ -132,14 +132,20 @@ namespace AirtableApiClient
         public AirtableCreateUpdateReplaceMultipleRecordsResponse(AirtableApiException error) : base(error)
         {
             Records = null;
+            CreatedRecords = null;
+            UpdatedRecords = null;
         }
 
-        public AirtableCreateUpdateReplaceMultipleRecordsResponse(AirtableRecord[] records) : base()
+        public AirtableCreateUpdateReplaceMultipleRecordsResponse(AirtableUpSertRecordList upsertRecordList) : base()
         {
-            Records = records;
+            Records = upsertRecordList.Records;
+            CreatedRecords = upsertRecordList.CreatedRecords;
+            UpdatedRecords = upsertRecordList.UpdatedRecords;
         }
 
         public readonly AirtableRecord[] Records;
+        public readonly string[] CreatedRecords;
+        public readonly string[] UpdatedRecords;
     }
 
 

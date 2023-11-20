@@ -208,21 +208,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("createdRecords")]
         [JsonInclude]
-        public IEnumerable<string> CreatedRecords { get; internal set; }
+        public string[] CreatedRecords { get; internal set; }
 
         [JsonPropertyName("updatedRecords")]
         [JsonInclude]
-        public IEnumerable<string> UpdatedRecords { get; internal set; }
+        public string[] UpdatedRecords { get; internal set; }
     }
 
-    public class AirtableUpSertRecordList<T> : AirtableRecordList<T>
-    {
-        [JsonPropertyName("createdRecords")]
-        [JsonInclude]
-        public IEnumerable<string> CreatedRecords { get; internal set; }
-
-        [JsonPropertyName("updatedRecords")]
-        [JsonInclude]
-        public IEnumerable<string> UpdatedRecords { get; internal set; }
-    }
 }

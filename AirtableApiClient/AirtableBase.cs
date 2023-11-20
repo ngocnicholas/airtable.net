@@ -1008,9 +1008,9 @@ namespace AirtableApiClient
                 return new AirtableCreateUpdateReplaceMultipleRecordsResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var recordList = JsonSerializer.Deserialize<AirtableRecordList>(responseBody);
+            var upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList>(responseBody);
 
-            return new AirtableCreateUpdateReplaceMultipleRecordsResponse(recordList.Records);
+            return new AirtableCreateUpdateReplaceMultipleRecordsResponse(upsertRecordList);
         }
 
 
@@ -1261,27 +1261,14 @@ namespace AirtableApiClient
                 }
             }
 
-            HttpRequestMessage request = null;
-            if (cellFormat != null && cellFormat != "json")     // Only this URL queury method can handle cellForm correctly for now due to a bug in Airtable server
-            {
-                var uri = BuildUriForListRecords(tableIdOrName, offset, fields, filterByFormula, maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
-                if (uri.OriginalString.Length > MAX_LIST_RECORDS_URL_SIZE)
-                {
-                    throw new AirtableRequestEntityTooLargeException();
-                }
-                request = new HttpRequestMessage(HttpMethod.Get, uri);
-            }
-            else
-            {
-                // New method: has all the parameters in the request body.
-                string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/listRecords";
-                request = new HttpRequestMessage(HttpMethod.Post, uriStr);
-                string jsonParameters = BuildParametersForListRecords(offset, fields, filterByFormula, maxRecords, pageSize, sort, view, 
-                    cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
+            // New method: has all the parameters in the request body.
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/listRecords";
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, uriStr);
+            string jsonParameters = BuildParametersForListRecords(offset, fields, filterByFormula, maxRecords, pageSize, sort, view, 
+                cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount);
 
-                // Pass the parameters within the body of the request instead of the query parameters.
-                request.Content = new StringContent(jsonParameters, Encoding.UTF8, "application/json");
-            }
+            // Pass the parameters within the body of the request instead of the query parameters.
+            request.Content = new StringContent(jsonParameters, Encoding.UTF8, "application/json");
 
             return (await httpClientWithRetries.SendAsync(request).ConfigureAwait(false));
         }
