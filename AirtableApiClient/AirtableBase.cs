@@ -16,8 +16,8 @@ namespace AirtableApiClient
         private const int MAX_RECORD_OPERATION_SIZE = 10;
         private const int MAX_LIST_RECORDS_URL_SIZE = 16000;
 
-        private readonly string UrlHead = "https://api.airtable.com/v0/";
-        private readonly string UrlHeadWebhooks = "https://api.airtable.com/v0/";
+        private readonly string UrlHead = null;
+        private readonly string UrlHeadWebhooks = null;
         private readonly HttpClientWithRetries httpClientWithRetries;
 
         private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, };
@@ -72,9 +72,8 @@ namespace AirtableApiClient
                 throw new ArgumentException("baseId cannot be null", "baseId");
             }
 
-            //BaseId = baseId;
-            UrlHead += (baseId + "/");
-            UrlHeadWebhooks += ("bases/" + baseId + "/webhooks");
+            UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
+            UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
 
@@ -601,7 +600,7 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableListPayloadsResponse> ListPayloads(
             string webhookId,
-            int cursor = 1,
+            int? cursor = null,
             int? limit = null)
         {
             string path = UrlHeadWebhooks + "/" + webhookId + "/payloads?cursor=" + cursor.ToString();
@@ -631,7 +630,7 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableCreateWebhookResponse> CreateWebhook(
             WebhooksSpecification spec,
-            string url = null)              // optional
+            string notificationUrl = null)              // optional
 
         {
             if (spec == null)
@@ -640,7 +639,7 @@ namespace AirtableApiClient
             }
 
             var request = new HttpRequestMessage(HttpMethod.Post, UrlHeadWebhooks);
-            var urlAndSpec = new { specification = spec, notificationUrl = url };
+            var urlAndSpec = new { specification = spec, notificationUrl = notificationUrl };
             var json = JsonSerializer.Serialize(urlAndSpec, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
@@ -658,11 +657,11 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
-        // AirtableBase.EnableWebhookNotifications
+        // AirtableBase.EnableOrDisableWebhookNotifications
         //
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtabeEnableWebhookNotificationsResponse> EnableWebhookNotifications(
+        public async Task<AirtabeEnableOrDisableWebhookNotificationsResponse> EnableOrDisableWebhookNotifications(
             string webhookId,
             bool enable)
         {
@@ -678,11 +677,11 @@ namespace AirtableApiClient
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
-                return new AirtabeEnableWebhookNotificationsResponse(error);
+                return new AirtabeEnableOrDisableWebhookNotificationsResponse(error);
             }
 
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            return new AirtabeEnableWebhookNotificationsResponse();
+            return new AirtabeEnableOrDisableWebhookNotificationsResponse();
         }
 
 

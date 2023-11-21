@@ -1799,7 +1799,7 @@ namespace AirtableApiClient.Tests
                                 fakeResponse,
                                 bodyText);
 
-                    Task<AirtabeEnableWebhookNotificationsResponse> task2 = airtableBase.EnableWebhookNotifications(webhookId, true);
+                    Task<AirtabeEnableOrDisableWebhookNotificationsResponse> task2 = airtableBase.EnableOrDisableWebhookNotifications(webhookId, true);
                     var response2 = await task2;
                     Assert.IsTrue(response2.Success);
                 }
@@ -1957,7 +1957,7 @@ namespace AirtableApiClient.Tests
                                 fakeResponse,
                                 bodyText);
 
-                    Task<AirtabeEnableWebhookNotificationsResponse> task2 = airtableBase.EnableWebhookNotifications(webhookId, false);
+                    Task<AirtabeEnableOrDisableWebhookNotificationsResponse> task2 = airtableBase.EnableOrDisableWebhookNotifications(webhookId, false);
                     var response2 = await task2;
                     Assert.IsTrue(response2.Success);
                 }
@@ -2214,13 +2214,13 @@ namespace AirtableApiClient.Tests
         private WebhooksSpecification CreateSpecForWebhook(string dataTypes)
         {
             WebhooksSpecification spec = new WebhooksSpecification();
-            Options options = new Options();
+            WebhooksOptions options = new WebhooksOptions();
             spec.Options = options;
-            Filters filters = new Filters();
+            WebhooksFilters filters = new WebhooksFilters();
             options.Filters = filters;
             filters.RecordChangeScope = TABLE_ID;
             filters.DataTypes = new string[] { "tableData" /* , "tableFields"*/ };
-            Includes includes = new Includes();
+            WebhooksIncludes includes = new WebhooksIncludes();
             includes.IncludePreviousCellValues = true;
             //includes.IncludeCellValuesInFieldIds = new string[] { "all" };
             options.Includes = includes;
@@ -2290,7 +2290,7 @@ namespace AirtableApiClient.Tests
                     Console.WriteLine();
                     Console.WriteLine("Fields are created in Record.");
                     var fieldItem = createdFieldsById.First();
-                    if (fieldItem.Equals(default(KeyValuePair<string, Field>)) == false)
+                    if (fieldItem.Equals(default(KeyValuePair<string, WebhooksField>)) == false)
                     {
                         foreach (var kvp in createdFieldsById)
                         {
@@ -2303,7 +2303,7 @@ namespace AirtableApiClient.Tests
                 if (changedFieldsById != null)                          // Fields changed?
                 {
                     var fieldChange = changedFieldsById.First();
-                    if (fieldChange.Equals(default(KeyValuePair<string, FieldChange>)) == false)    // Dictionary not empty?
+                    if (fieldChange.Equals(default(KeyValuePair<string, WebhooksFieldChange>)) == false)    // Dictionary not empty?
                     {
                         Console.WriteLine();
                         Console.WriteLine("Fields are changed in Record.");
@@ -2334,7 +2334,7 @@ namespace AirtableApiClient.Tests
                     Console.WriteLine();
                     Console.WriteLine("Views are changed in table.");
                     var chgViews = changedViewsById.First();            // We only want to look at the first ChangedViews
-                    if (chgViews.Equals(default(KeyValuePair<string, ChangedView>)) == false)
+                    if (chgViews.Equals(default(KeyValuePair<string, WebhooksChangedView>)) == false)
                     {
                         Console.WriteLine("Key = {0}, Value = {1}", chgViews.Key, chgViews.Value);   // The key is the View ID. The value is the ChangedView content that we care.
                         PrintChangedView(chgViews.Value.CreatedRecordsById, chgViews.Value.ChangedRecordsById, chgViews.Value.DestroyedRecordIds);
@@ -2346,8 +2346,8 @@ namespace AirtableApiClient.Tests
 
 
         private void PrintChangedView(
-            Dictionary<string, CreatedRecord> createdRecordsById,
-            Dictionary<string, ChangedRecord> changedRecordsById,
+            Dictionary<string, WebhooksCreatedRecord> createdRecordsById,
+            Dictionary<string, WebhooksChangedRecord> changedRecordsById,
             string[] destroyedRecordIds)
         {
             if (createdRecordsById != null)                         // Reccords created?
@@ -2355,7 +2355,7 @@ namespace AirtableApiClient.Tests
                 Console.WriteLine();
                 Console.WriteLine("Records are created in table.");
                 var createdRcd = createdRecordsById.First();
-                if (createdRcd.Equals(default(KeyValuePair<string, CreatedRecord>)) == false)
+                if (createdRcd.Equals(default(KeyValuePair<string, WebhooksCreatedRecord>)) == false)
                 {
                     Console.WriteLine("Record ID = {0}, Created Time = {1}, ", createdRcd.Key, createdRcd.Value.CreatedTime);
                     var cellValue = createdRcd.Value.CellValuesByFieldId.First();
@@ -2374,7 +2374,7 @@ namespace AirtableApiClient.Tests
                 Console.WriteLine();
                 Console.WriteLine("Records are changed in table.");
                 var chgRecord = changedRecordsById.First();         // Look at the first chagned record.
-                if (chgRecord.Equals(default(KeyValuePair<string, ChangedRecord>)) == false)
+                if (chgRecord.Equals(default(KeyValuePair<string, WebhooksChangedRecord>)) == false)
                 {
                     Console.WriteLine("Key = {0}, Value = {1}", chgRecord.Key, chgRecord.Value);
 

@@ -8,16 +8,16 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("changedMetadata")]
         [JsonInclude]
-        public ChangedMetadata ChangedMetadata { get; internal set; }
+        public WebhooksChangedMetadata ChangedMetadata { get; internal set; }
 
         [JsonPropertyName("createdFieldsById")]
         [JsonInclude]
-        public Dictionary<string, Field> CreatedFieldsById { get; internal set; }
+        public Dictionary<string, WebhooksField> CreatedFieldsById { get; internal set; }
 
 
         [JsonPropertyName("changedFieldsById")]
         [JsonInclude]
-        public Dictionary<string, FieldChange> ChangedFieldsById { get; internal set; } 
+        public Dictionary<string, WebhooksFieldChange> ChangedFieldsById { get; internal set; } 
 
         [JsonPropertyName("destroyedFieldIds")]
         [JsonInclude]
@@ -25,11 +25,11 @@ namespace AirtableApiClient
 
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; } 
+        public Dictionary<string, WebhooksCreatedRecord> CreatedRecordsById { get; internal set; } 
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
-        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; internal set; }
+        public Dictionary<string, WebhooksChangedRecord> ChangedRecordsById { get; internal set; }
 
         [JsonPropertyName("destroyedRecordIds")]
         [JsonInclude]
@@ -37,22 +37,22 @@ namespace AirtableApiClient
 
         [JsonPropertyName("changedViewsById")]
         [JsonInclude]
-        public Dictionary<string, ChangedView> ChangedViewsById { get; internal set; }
+        public Dictionary<string, WebhooksChangedView> ChangedViewsById { get; internal set; }
     }
 
-    public class ChangedMetadata
+    public class WebhooksChangedMetadata
     {
         [JsonPropertyName("current")]
         [JsonInclude]
-        public Metadata Current { get; internal set; }
+        public WebhooksMetadata Current { get; internal set; }
 
         [JsonPropertyName("previous")]
         [JsonInclude]
-        public Metadata Previous { get; internal set; }
+        public WebhooksMetadata Previous { get; internal set; }
 
     }
 
-    public class Metadata        // WebhooksTableCreated also uses this class.
+    public class WebhooksMetadata        // WebhooksTableCreated also uses this class.
     {
         [JsonPropertyName("name")]
         [JsonInclude]
@@ -63,7 +63,7 @@ namespace AirtableApiClient
         public string Description { get; internal set; }
     }
 
-    public class Field          // WebhooksTableCreated also uses this class. Note: AirtableRecord.Fields is completely different
+    public class WebhooksField          // WebhooksTableCreated also uses this class. Note: AirtableRecord.Fields is completely different
     {
         [JsonPropertyName("name")]
         [JsonInclude]
@@ -74,40 +74,40 @@ namespace AirtableApiClient
         public string Type { get; internal set; }
     }
 
-    public class FieldChange    
+    public class WebhooksFieldChange
     {
         [JsonPropertyName("current")]
         [JsonInclude]
-        public Field Current { get; internal set; }     // Only has Name, no Type
+        public WebhooksField Current { get; internal set; }     // Only has Name, no Type
 
         [JsonPropertyName("previous")]
         [JsonInclude]
-        public Field Previous { get; internal set; }    // Only has Name, no Type
+        public WebhooksField Previous { get; internal set; }    // Only has Name, no Type
     }
 
-    public class RecordData
+    public class WebhooksRecordData
     {
         [JsonPropertyName("cellValuesByFieldId")]
         [JsonInclude]
         public Dictionary<string, object> CellValuesByFieldId { get; set; } // where 'object' can be anything such as a List<object> or Cell value V2 by fieldid.
     }
 
-    public class ChangedRecord
+    public class WebhooksChangedRecord
     {
         [JsonPropertyName("current")]
         [JsonInclude] 
-        public RecordData Current { get; internal set; } 
+        public WebhooksRecordData Current { get; internal set; } 
 
         [JsonPropertyName("previous")]
         [JsonInclude] 
-        public RecordData Previous { get; internal set; } 
+        public WebhooksRecordData Previous { get; internal set; } 
 
         [JsonPropertyName("unchanged")]
         [JsonInclude] 
-        public RecordData Unchanged { get; internal set; } 
+        public WebhooksRecordData Unchanged { get; internal set; } 
     }
   
-    public class CreatedRecord      // Not to confuse with AirtableRecord. This class is equivalent to RecordData with a CreatedTime.
+    public class WebhooksCreatedRecord      // Not to confuse with AirtableRecord. This class is equivalent to RecordData with a CreatedTime.
     {    
         [JsonPropertyName("cellValuesByFieldId")]
         [JsonInclude]
@@ -118,16 +118,16 @@ namespace AirtableApiClient
         public string CreatedTime { get; internal set; }
     }
 
-    public class ChangedView
+    public class WebhooksChangedView
     {
         [JsonPropertyName("createdRecordsById")]
         [JsonInclude]
-        public Dictionary<string, CreatedRecord> CreatedRecordsById { get; internal set; }
+        public Dictionary<string, WebhooksCreatedRecord> CreatedRecordsById { get; internal set; }
 
 
         [JsonPropertyName("changedRecordsById")]
         [JsonInclude]
-        public Dictionary<string, ChangedRecord> ChangedRecordsById { get; internal set; }
+        public Dictionary<string, WebhooksChangedRecord> ChangedRecordsById { get; internal set; }
 
         [JsonPropertyName("destroyedRecordIds")]
         [JsonInclude]

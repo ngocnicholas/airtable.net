@@ -284,13 +284,13 @@ namespace AirtableApiClient
             // so that we can construct an tmpty AirtabeDeleteWebhookResponse in a Successful operation.
         }
     }
-    public class AirtabeEnableWebhookNotificationsResponse : AirtableApiResponse
+    public class AirtabeEnableOrDisableWebhookNotificationsResponse : AirtableApiResponse
     {
-        public AirtabeEnableWebhookNotificationsResponse(AirtableApiException error) : base(error)
+        public AirtabeEnableOrDisableWebhookNotificationsResponse(AirtableApiException error) : base(error)
         {
         }
 
-        public AirtabeEnableWebhookNotificationsResponse() : base()
+        public AirtabeEnableOrDisableWebhookNotificationsResponse() : base()
         {
             // The base class's ctor is protected so we need this public method here
             // so that we can construct an tmpty AirtabeEnableWebhookNotificationsResponse in a Successful operation.

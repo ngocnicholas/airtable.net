@@ -53,9 +53,9 @@ namespace AirtableApiClient
         [JsonInclude]
         public bool Error { get; internal set; }
 
-        [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR"
+        [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR" or more may be introduced in the future
         [JsonInclude]
-        public string[] Code { get; internal set; }
+        public string Code { get; internal set; }
     }
 
 }

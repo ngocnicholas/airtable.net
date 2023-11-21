@@ -52,23 +52,23 @@ namespace AirtableApiClient
 	{
         [JsonPropertyName("options")]
         [JsonInclude]
-        public Options Options { get; set; }
+        public WebhooksOptions Options { get; set; }
     }
 
 
-    public class Options
+    public class WebhooksOptions
     {
         [JsonPropertyName("filters")]
         [JsonInclude]
-        public Filters Filters { get; set; }
+        public WebhooksFilters Filters { get; set; }
 
         [JsonPropertyName("includes")]
         [JsonInclude]
-        public Includes Includes { get; set; }
+        public WebhooksIncludes Includes { get; set; }
 
     }
 
-    public class Filters
+    public class WebhooksFilters
     {
         [JsonPropertyName("recordChangeScope")]
         [JsonInclude]
@@ -115,11 +115,11 @@ namespace AirtableApiClient
         public string ViewId { get; set; }
     }
 
-    public class Includes
+    public class WebhooksIncludes
     {
         [JsonPropertyName("includeCellValuesInFieldIds")]
         [JsonInclude]
-        public string[] IncludeCellValuesInFieldIds { get; set; }   // optional<array of strings | "all">
+        public object IncludeCellValuesInFieldIds { get; set; }     // optional<array of strings | "all">
 
         [JsonPropertyName("includePreviousCellValues")]
         [JsonInclude]
