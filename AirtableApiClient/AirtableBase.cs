@@ -113,7 +113,7 @@ namespace AirtableApiClient
             int? pageSize = null,
             IEnumerable<Sort> sort = null,
             string view = null,
-            string cellFormat = "json",
+            string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
@@ -155,7 +155,7 @@ namespace AirtableApiClient
             int? pageSize = null,
             IEnumerable<Sort> sort = null,
             string view = null,
-            string cellFormat = "json",
+            string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
@@ -186,7 +186,7 @@ namespace AirtableApiClient
         public async Task<AirtableRetrieveRecordResponse> RetrieveRecord(
         string tableIdOrName,
         string id,
-        string cellFormat = "json",
+        string cellFormat = null,
         string timeZone = null,
         string userLocale = null,
         bool returnFieldsByFieldId = false)
@@ -218,7 +218,7 @@ namespace AirtableApiClient
         public async Task<AirtableRetrieveRecordResponse<T>> RetrieveRecord<T>(
             string tableIdOrName,
             string id,
-            string cellFormat = "json",
+            string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false)
@@ -603,11 +603,10 @@ namespace AirtableApiClient
             int? cursor = null,
             int? limit = null)
         {
-            string path = UrlHeadWebhooks + "/" + webhookId + "/payloads?cursor=" + cursor.ToString();
-            if (limit != null)
-            {
-                path += "&limit=" + limit.ToString();
-            }
+            string path = UrlHeadWebhooks + "/" + webhookId + "/payloads?cursor=" + 
+                (cursor == null ? HttpUtility.UrlEncode("%00") : cursor.ToString()) + 
+                "&limit=" + (limit == null ? HttpUtility.UrlEncode("%00") : limit.ToString());
+
             var request = new HttpRequestMessage(HttpMethod.Get, path);
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
@@ -818,103 +817,6 @@ namespace AirtableApiClient
             };
 
             return JsonSerializer.Serialize(listRecordsParameters, options);
-        }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.BuildUriForListRecords
-        //
-        // Build URL for the List Records operation
-        //
-        //----------------------------------------------------------------------------
-        private Uri BuildUriForListRecords(
-            string tableIdOrName,
-            string offset,
-            IEnumerable<string> fields,
-            string filterByFormula,
-            int? maxRecords,
-            int? pageSize,
-            IEnumerable<Sort> sort,
-            string view,
-            string cellFormat,
-            string timeZone,
-            string userLocale,
-            bool returnFieldsByFieldId,
-            bool? includeCommentCount)
-        {
-            var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName));
-
-            if (!string.IsNullOrEmpty(offset))
-            {
-                AddParametersToQuery(ref uriBuilder, $"offset={HttpUtility.UrlEncode(offset)}");
-            }
-
-            if (fields != null)
-            {
-                string flattenFieldsParam = QueryParamHelper.FlattenFieldsParam(fields);
-                AddParametersToQuery(ref uriBuilder, flattenFieldsParam);
-            }
-
-            if (!string.IsNullOrEmpty(filterByFormula))
-            {
-                AddParametersToQuery(ref uriBuilder, $"filterByFormula={HttpUtility.UrlEncode(filterByFormula)}");
-            }
-
-            if (sort != null)
-            {
-                string flattenSortParam = QueryParamHelper.FlattenSortParam(sort);
-                AddParametersToQuery(ref uriBuilder, flattenSortParam);
-            }
-
-            if (!string.IsNullOrEmpty(view))
-            {
-                AddParametersToQuery(ref uriBuilder, $"view={HttpUtility.UrlEncode(view)}");
-            }
-
-            if (maxRecords != null)
-            {
-                if (maxRecords <= 0)
-                {
-                    throw new ArgumentException("Maximum Number of Records must be > 0", "maxRecords");
-                }
-                AddParametersToQuery(ref uriBuilder, $"maxRecords={maxRecords}");
-            }
-
-            if (pageSize != null)
-            {
-                if (pageSize <= 0 || pageSize > MAX_PAGE_SIZE)
-                {
-                    throw new ArgumentException("Page Size must be > 0 and <= 100", "pageSize");
-                }
-                AddParametersToQuery(ref uriBuilder, $"pageSize={pageSize}");
-            }
-
-            if (!string.IsNullOrEmpty(timeZone))
-            {
-                AddParametersToQuery(ref uriBuilder, $"timeZone={HttpUtility.UrlEncode(timeZone)}");
-            }
-
-            if (!string.IsNullOrEmpty(userLocale))
-            {
-                AddParametersToQuery(ref uriBuilder, $"userLocale={HttpUtility.UrlEncode(userLocale)}");
-            }
-
-            if (!string.IsNullOrEmpty(cellFormat) && !string.IsNullOrEmpty(timeZone) && !string.IsNullOrEmpty(userLocale))
-            {
-                AddParametersToQuery(ref uriBuilder, $"cellFormat={HttpUtility.UrlEncode(cellFormat)}");
-            }
-
-            if (returnFieldsByFieldId != false)
-            {
-                AddParametersToQuery(ref uriBuilder, $"returnFieldsByFieldId={returnFieldsByFieldId}");
-            }
-
-            if (includeCommentCount.HasValue && includeCommentCount.Value)
-            {
-                AddParametersToQuery(ref uriBuilder, $"recordMetadata=commentCount");
-            }
-            return uriBuilder.Uri;
         }
 
 
