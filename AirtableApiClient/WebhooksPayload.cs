@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
@@ -22,7 +23,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("timestamp")]
         [JsonInclude]
-        public string Timestamp { get; internal set; }
+        public DateTime Timestamp { get; internal set; }
 
         [JsonPropertyName("baseTransactionNumber")]
         [JsonInclude]

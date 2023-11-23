@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
@@ -28,7 +29,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("lastSuccessfulNotificationTime")]
         [JsonInclude]
-        public string LastSuccessfulNotificationTime { get; internal set; }
+        public DateTime LastSuccessfulNotificationTime { get; internal set; }
 
         [JsonPropertyName("notificationUrl")]
         [JsonInclude]
@@ -36,7 +37,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public string ExpirationTime { get; internal set; }
+        public DateTime ExpirationTime { get; internal set; }
 
         [JsonPropertyName("lastNotificationResult")]
         [JsonInclude]
@@ -142,7 +143,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public string ExpirationTime {  get; internal set; }
+        public DateTime ExpirationTime {  get; internal set; }
     }
 
 
@@ -150,7 +151,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public string ExpirationTime { get; internal set; }
+        public DateTime ExpirationTime { get; internal set; }
     }
 }
  

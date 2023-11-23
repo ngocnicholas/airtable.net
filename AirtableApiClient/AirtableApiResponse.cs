@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AirtableApiClient
 {
@@ -303,11 +304,11 @@ namespace AirtableApiClient
         {
         }
 
-        public AirtabeRefreshWebhookResponse(string expirationTime) : base()
+        public AirtabeRefreshWebhookResponse(DateTime expirationTime) : base()
         {
             ExpirationTime = expirationTime;    
         }
 
-        public readonly string ExpirationTime;
+        public readonly DateTime ExpirationTime;
     }
 }

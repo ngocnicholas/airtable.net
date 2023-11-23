@@ -115,7 +115,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public string CreatedTime { get; internal set; }
+        public DateTime CreatedTime { get; internal set; }
     }
 
     public class WebhooksChangedView

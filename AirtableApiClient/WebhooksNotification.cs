@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
@@ -10,7 +11,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("completionTimestamp")]
         [JsonInclude]
-        public string completionTimestamp { get; internal set; }
+        public DateTime completionTimestamp { get; internal set; }
 
         [JsonPropertyName("durationMs")]
         [JsonInclude]
