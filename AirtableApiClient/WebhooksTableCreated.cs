@@ -13,8 +13,8 @@ namespace AirtableApiClient
         [JsonInclude]
         public Dictionary<string, WebhooksCreatedRecord> RecordsById { get; internal set; }
 
-        [JsonPropertyName("metaData")]
+        [JsonPropertyName("metadata")]
         [JsonInclude]
-        public WebhooksMetadata Metdata { get; internal set; }
+        public WebhooksMetadata Metadata { get; internal set; }
     }
 }

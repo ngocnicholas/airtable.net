@@ -11,7 +11,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("completionTimestamp")]
         [JsonInclude]
-        public DateTime completionTimestamp { get; internal set; }
+        public DateTime completionTimestamp { get; internal set; }  // The time of the most recent notification.
 
         [JsonPropertyName("durationMs")]
         [JsonInclude]

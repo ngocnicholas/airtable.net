@@ -23,7 +23,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("timestamp")]
         [JsonInclude]
-        public DateTime Timestamp { get; internal set; }
+        public DateTime Timestamp { get; internal set; }    // The time the action occurred.
 
         [JsonPropertyName("baseTransactionNumber")]
         [JsonInclude]
@@ -52,7 +52,7 @@ namespace AirtableApiClient
         // Only error responses have the "error" and "code" fields.
         [JsonPropertyName("error")]
         [JsonInclude]
-        public bool Error { get; internal set; }
+        public bool? Error { get; internal set; }
 
         [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR" or more may be introduced in the future
         [JsonInclude]

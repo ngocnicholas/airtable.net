@@ -29,7 +29,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("lastSuccessfulNotificationTime")]
         [JsonInclude]
-        public DateTime LastSuccessfulNotificationTime { get; internal set; }
+        public DateTime? LastSuccessfulNotificationTime { get; internal set; }
 
         [JsonPropertyName("notificationUrl")]
         [JsonInclude]
@@ -37,7 +37,8 @@ namespace AirtableApiClient
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime ExpirationTime { get; internal set; }
+        public DateTime? ExpirationTime { get; internal set; }
+        //The time when the webhook expires and is disabled in the ISO format.The webhook will not expire if this is null (in the case User API keys are used)
 
         [JsonPropertyName("lastNotificationResult")]
         [JsonInclude]
@@ -131,7 +132,7 @@ namespace AirtableApiClient
         public bool IncludePreviousFieldDefinitions { get; set; }   // If true, include the previous field definition in the payload.
     }
 
-    public class CreateWebhookResponse
+    public class CreateWebhookResponse  // Used in AirtableCreaateWebhookResponse
     {
         [JsonPropertyName("id")]
         [JsonInclude]
@@ -143,15 +144,15 @@ namespace AirtableApiClient
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime ExpirationTime {  get; internal set; }
+        public DateTime? ExpirationTime {  get; internal set; }
     }
 
 
-    public class NotificationExpirationTime
+    public class NotificationExpirationTime // Used in RefreshWebhook
     {
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime ExpirationTime { get; internal set; }
+        public DateTime? ExpirationTime { get; internal set; }
     }
 }
  

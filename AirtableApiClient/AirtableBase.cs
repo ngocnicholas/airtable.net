@@ -603,11 +603,18 @@ namespace AirtableApiClient
             int? cursor = null,
             int? limit = null)
         {
-            string path = UrlHeadWebhooks + "/" + webhookId + "/payloads?cursor=" + 
-                (cursor == null ? HttpUtility.UrlEncode("%00") : cursor.ToString()) + 
-                "&limit=" + (limit == null ? HttpUtility.UrlEncode("%00") : limit.ToString());
+            var uriBuilder = new UriBuilder(UrlHeadWebhooks + "/" + webhookId + "/payloads");
+            if(cursor != null)
+            {
+                AddParametersToQuery(ref uriBuilder, $"cursor={HttpUtility.UrlEncode(cursor.ToString())}");
+            }
 
-            var request = new HttpRequestMessage(HttpMethod.Get, path);
+            if (limit != null)
+            {
+                AddParametersToQuery(ref uriBuilder, $"limit={HttpUtility.UrlEncode(limit.ToString())}");
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
             var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)

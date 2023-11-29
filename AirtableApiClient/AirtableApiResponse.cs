@@ -302,13 +302,14 @@ namespace AirtableApiClient
     {
         public AirtabeRefreshWebhookResponse(AirtableApiException error) : base(error)
         {
+            ExpirationTime = null;
         }
 
-        public AirtabeRefreshWebhookResponse(DateTime expirationTime) : base()
+        public AirtabeRefreshWebhookResponse(DateTime? expirationTime) : base()
         {
             ExpirationTime = expirationTime;    
         }
 
-        public readonly DateTime ExpirationTime;
+        public readonly DateTime? ExpirationTime;
     }
 }

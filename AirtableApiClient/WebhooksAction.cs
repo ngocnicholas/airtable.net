@@ -16,10 +16,10 @@ namespace AirtableApiClient
 
         [JsonPropertyName("sourceMetadata")]
         [JsonInclude]
-        public SourceMetaData SourceMetadata { get; internal set; }
+        public SourceMetadata SourceMetadata { get; internal set; }
     }
 
-    public class SourceMetaData     // Look into using an Abstract class?
+    public class SourceMetadata     // Look into using an Abstract class?
     {
         [JsonPropertyName("user")]
         [JsonInclude]
