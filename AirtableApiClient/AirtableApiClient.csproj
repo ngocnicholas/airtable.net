@@ -22,14 +22,14 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>Added support for new Authentication methods, Comments API, Get User ID and Scopes, cellFormat, timeZone, and userLocale used in List Records operations.
-Updates to existing endpoints such as ListRecords and Update/Replace Multiple Records.
-Merged enhancements for parsing out fields contributed by Bracel Bradea.
-Updated System.Text.Json from 6.0.5 to 7.0.2.
+  <PackageReleaseNotes>PR#76: Added support for Webhooks
+Fixed PR#79: Include CreatedRecords and UpdatedRecords when performing an upsert
+    Added 2 more properties in AirtableCreateUpdateReplaceMultipleRecordsResponse: 
+        string[] UpdatedRecords and string[] CreatedRecords.
+Fixed PR#71 and PR#77: support for returnFieldsByFieldId is added in RetrieveRecord(). 
+Merged enhancements in the README.MD file  by NiJeTi.
 Added more test methods in AirtableApiClient.Tests.
-Welcome to .NET 7.0!
----------------------
-SDK Version: 7.0.200  </PackageReleaseNotes>
+</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
@@ -43,9 +43,10 @@ SDK Version: 7.0.200  </PackageReleaseNotes>
       <PackageLicenseFile>LICENSE</PackageLicenseFile>
       <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
       <Version>$(Version)</Version>
-      <AssemblyVersion>1.3.0</AssemblyVersion>
-      <FileVersion>1.3.0</FileVersion>
+      <AssemblyVersion>1.4.0</AssemblyVersion>
+      <FileVersion>1.4.0</FileVersion>
       <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
