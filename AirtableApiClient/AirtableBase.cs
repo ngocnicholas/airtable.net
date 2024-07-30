@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
@@ -12,6 +13,8 @@ namespace AirtableApiClient
 {
     public class AirtableBase : IDisposable
     {
+        private CancellationTokenSource CancellationTokenSrc = new CancellationTokenSource();
+
         private const int MAX_PAGE_SIZE = 100;
         private const int MAX_RECORD_OPERATION_SIZE = 10;
         private const int MAX_LIST_RECORDS_URL_SIZE = 16000;
@@ -39,7 +42,7 @@ namespace AirtableApiClient
         //
         // AirtableBase.AirtableBase
         //    constructor -- for creating an instance of AirtableBase using the default
-        //                   delegating handler.
+        //                   HttpClient.
         //
         //----------------------------------------------------------------------------
 
@@ -74,10 +77,63 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
-            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
+            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken, CancellationTokenSrc, null);
         }
 
 
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.AirtableBase
+        //    constructor -- for users who want to provide their own HttpClient.
+        //                   The users will own this HttpClient and Airtable won't dispose it.
+        //
+        //----------------------------------------------------------------------------
+
+        public AirtableBase(
+            HttpClient client,
+            string apiKeyOrAccessToken,
+            string baseId)
+        { 
+            if (client == null)
+            {
+                throw new ArgumentException("HttpClient cannot be null.");
+            }
+            if (String.IsNullOrEmpty(apiKeyOrAccessToken))
+            {
+                throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
+            }
+
+            if (String.IsNullOrEmpty(baseId))
+            {
+                throw new ArgumentException("baseId cannot be null", "baseId");
+            }
+
+            UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
+            UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, CancellationTokenSrc, client);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CancelAsyncOperation
+        //    The going async operation will be cancelled.
+        //
+        //----------------------------------------------------------------------------
+
+        public void CancelAsyncOperation()
+        {
+            CancellationTokenSrc.Cancel();
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.GetUserIdAndScopes
+        //
+        // Get User ID and scopes 
+        //
+        //----------------------------------------------------------------------------
         public async Task<AirtableGetUserIdAndScopesResponse> GetUserIdAndScopes()
         {
             string uriStr = "https://api.airtable.com/v0/meta/whoami";

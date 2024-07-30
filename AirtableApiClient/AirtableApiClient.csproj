@@ -24,9 +24,9 @@
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
   <PackageReleaseNotes>PR#76: Added support for Webhooks
 Fixed PR#79: Include CreatedRecords and UpdatedRecords when performing an upsert
-    Added 2 more properties in AirtableCreateUpdateReplaceMultipleRecordsResponse: 
+    Added 2 more properties in AirtableCreateUpdateReplaceMultipleRecordsResponse:
         string[] UpdatedRecords and string[] CreatedRecords.
-Fixed PR#71 and PR#77: support for returnFieldsByFieldId is added in RetrieveRecord(). 
+Fixed PR#71 and PR#77: support for returnFieldsByFieldId is added in RetrieveRecord().
 Merged enhancements in the README.MD file  by NiJeTi.
 Added more test methods in AirtableApiClient.Tests.
 </PackageReleaseNotes>
@@ -59,7 +59,7 @@ Added more test methods in AirtableApiClient.Tests.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
 </Project>

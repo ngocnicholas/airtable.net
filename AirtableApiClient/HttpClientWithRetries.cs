@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -29,7 +30,13 @@ namespace AirtableApiClient
             }
         }
 
+        private bool DisposeClient = true;
+
         private readonly HttpClient client;
+        public CancellationTokenSource CancellationTokenSrc
+        {
+            get; set;
+        }
 
 
         //----------------------------------------------------------------------------
@@ -39,7 +46,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public HttpClientWithRetries(DelegatingHandler delegatingHandler, string apiKey)
+        public HttpClientWithRetries(DelegatingHandler delegatingHandler, string apiKey, CancellationTokenSource cancellationTokenSrc, HttpClient providedClient)
         {
             // Allow retries by default.
             ShouldNotRetryIfRateLimited = false;
@@ -47,16 +54,25 @@ namespace AirtableApiClient
             // Start with the minimum delay then increase exponentially with a base of 2.
             RetryDelayMillisecondsIfRateLimited = MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED;
 
-            if (delegatingHandler == null)
-            {
-                client = new HttpClient();                      // for communicating with Airtable
+            if (providedClient == null)
+            { 
+                if (delegatingHandler == null)
+                {
+                    client = new HttpClient();                      // for communicating with Airtable
+                }
+                else
+                {
+                    client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
+                }
             }
             else
             {
-                client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
+                client = providedClient;
+                DisposeClient = false;                              // client is provided by user and owned by user
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+            CancellationTokenSrc = cancellationTokenSrc;            // To be used in SendAsync().
         }
 
 
@@ -68,14 +84,18 @@ namespace AirtableApiClient
 
         public void Dispose()
         {
-            client.Dispose();
+            if (DisposeClient)
+            { 
+                client.Dispose();
+            }
         }
 
 
         //----------------------------------------------------------------------------
         // 
         // HttpClientWithRetries.SendAsync
-        //      This method has preforms retries with exponential back off if the generic 
+        //      This method has preforms retries with exponential back off if the generic
+        //      This async method is cancellable.
         // SendAsync returns a HttpStatusCode of 429 for Too Many Request.
         // 
         //----------------------------------------------------------------------------
@@ -95,7 +115,7 @@ namespace AirtableApiClient
             int dueTimeDelay = RetryDelayMillisecondsIfRateLimited;
             int retries = 0;
 
-            HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+            HttpResponseMessage response = await client.SendAsync(request, CancellationTokenSrc.Token).ConfigureAwait(false);
 
             while (response.StatusCode == (HttpStatusCode)429 &&
                 retries < MAX_RETRIES &&
@@ -103,7 +123,7 @@ namespace AirtableApiClient
             {
                 await Task.Delay(dueTimeDelay).ConfigureAwait(false);
                 var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri, content);
-                response = await client.SendAsync(requestRegenerated).ConfigureAwait(false);
+                response = await client.SendAsync(requestRegenerated, CancellationTokenSrc.Token).ConfigureAwait(false);
                 retries++;
                 dueTimeDelay *= 2;
             }
