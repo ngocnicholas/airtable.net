@@ -131,7 +131,7 @@ namespace AirtableApiClient
             {
                 return new AirtableGetUserIdAndScopesResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             UserIdAndScopes userIdAndScopes = JsonSerializer.Deserialize<UserIdAndScopes>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableGetUserIdAndScopesResponse(userIdAndScopes);
         }
@@ -168,13 +168,14 @@ namespace AirtableApiClient
                 returnFieldsByFieldId, includeCommentCount,
                 token
                 ).ConfigureAwait(false);
+
             AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
             }
 
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             AirtableRecordList recordList = JsonSerializer.Deserialize<AirtableRecordList>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableListRecordsResponse(recordList);
         }
@@ -213,7 +214,7 @@ namespace AirtableApiClient
                 return new AirtableListRecordsResponse<T>(error);
             }
 
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             AirtableRecordList<T> recordList = JsonSerializer.Deserialize<AirtableRecordList<T>>(responseBody);
             return new AirtableListRecordsResponse<T>(recordList);
         }
@@ -244,7 +245,7 @@ namespace AirtableApiClient
             {
                 return new AirtableRetrieveRecordResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var airtableRecord = JsonSerializer.Deserialize<AirtableRecord>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableRetrieveRecordResponse(airtableRecord);
@@ -279,7 +280,7 @@ namespace AirtableApiClient
             {
                 return new AirtableRetrieveRecordResponse<T>(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             AirtableRecord<T> airtableRecord = JsonSerializer.Deserialize<AirtableRecord<T>>(responseBody);
 
             return new AirtableRetrieveRecordResponse<T>(airtableRecord);
@@ -362,7 +363,7 @@ namespace AirtableApiClient
             {
                 return new AirtableDeleteRecordResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deletedRecord = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
             return new AirtableDeleteRecordResponse(deletedRecord.Deleted, deletedRecord.Id);
         }
@@ -546,7 +547,7 @@ namespace AirtableApiClient
             {
                 return new AirtableListCommentsResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var commentList = JsonSerializer.Deserialize<CommentList>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableListCommentsResponse(commentList);
         }
@@ -619,7 +620,7 @@ namespace AirtableApiClient
             {
                 return new AirtableDeleteCommentResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var deletedComment = JsonSerializer.Deserialize<AirtableDeletedRecord>(responseBody);
             return new AirtableDeleteCommentResponse(deletedComment.Deleted, deletedComment.Id);
         }
@@ -641,7 +642,7 @@ namespace AirtableApiClient
             {
                 return new AirtableListWebhooksResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var webhooks = JsonSerializer.Deserialize<Webhooks>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableListWebhooksResponse(webhooks);
@@ -678,7 +679,7 @@ namespace AirtableApiClient
             {
                 return new AirtableListPayloadsResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var payloadList = JsonSerializer.Deserialize<PayloadList>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableListPayloadsResponse(payloadList);
@@ -712,7 +713,7 @@ namespace AirtableApiClient
             {
                 return new AirtableCreateWebhookResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var createWebhookResponse = JsonSerializer.Deserialize<CreateWebhookResponse>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableCreateWebhookResponse(createWebhookResponse);
@@ -745,7 +746,7 @@ namespace AirtableApiClient
                 return new AirtabeEnableOrDisableWebhookNotificationsResponse(error);
             }
 
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return new AirtabeEnableOrDisableWebhookNotificationsResponse();
         }
 
@@ -771,7 +772,7 @@ namespace AirtableApiClient
             {
                 return new AirtabeRefreshWebhookResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             NotificationExpirationTime exp = JsonSerializer.Deserialize<NotificationExpirationTime>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtabeRefreshWebhookResponse(exp.ExpirationTime);
         }
@@ -945,7 +946,7 @@ namespace AirtableApiClient
             {
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var airtableRecord = JsonSerializer.Deserialize<AirtableRecord>(responseBody);
 
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
@@ -1183,7 +1184,7 @@ namespace AirtableApiClient
         private static async Task<string> ReadResponseErrorMessage(HttpResponseMessage response,
             CancellationToken token)
         {
-            var content = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(content))
             {
@@ -1196,26 +1197,6 @@ namespace AirtableApiClient
                 return json.MessagePart.Message;
             }
             return null;
-        }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.CancellableReadAsStringAsync
-        //
-        // This method is needed only because Http.Content.ReadAsStringAsync() does not take any arguments in the version of .Net 5.0
-        // used in this project.
-        //
-        //----------------------------------------------------------------------------
-        private static async Task<string> CancellableReadAsStringAsync(HttpResponseMessage response, CancellationToken token)
-        {
-            if (token != default(CancellationToken))
-            {
-                // If a cancellation is request then the underlying stream will be closed by registering the Dispose() call below.
-                // when a cancellation was requested.
-                token.Register(() => response.Content.Dispose());
-            }
-            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
 
@@ -1305,7 +1286,7 @@ namespace AirtableApiClient
             {
                 return new AirtableCreateUpdateCommentResponse(error);
             }
-            var responseBody = await CancellableReadAsStringAsync(response, token).ConfigureAwait(false);
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var comment = JsonSerializer.Deserialize<Comment>(responseBody, JsonOptionIgnoreNullValues);
 
             return new AirtableCreateUpdateCommentResponse(comment);
