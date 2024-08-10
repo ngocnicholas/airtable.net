@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Web;
@@ -78,12 +79,52 @@ namespace AirtableApiClient
         }
 
 
-        public async Task<AirtableGetUserIdAndScopesResponse> GetUserIdAndScopes()
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.AirtableBase
+        //    constructor -- for users who want to provide their own HttpClient.
+        //                   The users will own this HttpClient and Airtable won't dispose it.
+        //
+        //----------------------------------------------------------------------------
+
+        public AirtableBase(
+            HttpClient client,
+            string apiKeyOrAccessToken,
+            string baseId)
+        {
+            if (client == null)
+            {
+                throw new ArgumentException("HttpClient cannot be null.");
+            }
+            if (String.IsNullOrEmpty(apiKeyOrAccessToken))
+            {
+                throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
+            }
+
+            if (String.IsNullOrEmpty(baseId))
+            {
+                throw new ArgumentException("baseId cannot be null", "baseId");
+            }
+
+            UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
+            UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, null);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.GetUserIdAndScopes
+        //
+        // Get User ID and scopes 
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableGetUserIdAndScopesResponse> GetUserIdAndScopes(CancellationToken token = default(CancellationToken))
         {
             string uriStr = "https://api.airtable.com/v0/meta/whoami";
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
 
-            var response = (await httpClientWithRetries.SendAsync(request).ConfigureAwait(false));
+            var response = (await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false));
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
@@ -117,14 +158,17 @@ namespace AirtableApiClient
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
-            bool? includeCommentCount = null
+            bool? includeCommentCount = null,
+            CancellationToken token = default(CancellationToken)
             )
         {
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view,
                 cellFormat, timeZone, userLocale,
-                returnFieldsByFieldId, includeCommentCount
+                returnFieldsByFieldId, includeCommentCount,
+                token
                 ).ConfigureAwait(false);
+
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -159,10 +203,11 @@ namespace AirtableApiClient
             string timeZone = null,
             string userLocale = null,
             bool returnFieldsByFieldId = false,
-            bool? includeCommentCount = null)
+            bool? includeCommentCount = null,
+            CancellationToken token = default(CancellationToken))
         {
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
-                maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount).ConfigureAwait(false);
+                maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -189,11 +234,12 @@ namespace AirtableApiClient
         string cellFormat = null,
         string timeZone = null,
         string userLocale = null,
-        bool returnFieldsByFieldId = false)
+        bool returnFieldsByFieldId = false,
+        CancellationToken token = default(CancellationToken))
         {
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -221,13 +267,14 @@ namespace AirtableApiClient
             string cellFormat = null,
             string timeZone = null,
             string userLocale = null,
-            bool returnFieldsByFieldId = false)
+            bool returnFieldsByFieldId = false,
+            CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
 
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -303,13 +350,14 @@ namespace AirtableApiClient
 
         public async Task<AirtableDeleteRecordResponse> DeleteRecord(
             string tableIdOrName,
-            string id)
+            string id,
+            CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
 
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -332,14 +380,15 @@ namespace AirtableApiClient
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
             string tableIdOrName,
             Fields[] fields,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
             if (fields == null || fields.Length == 0 || fields.Length > MAX_RECORD_OPERATION_SIZE)
             {
                 throw new ArgumentException(String.Format("Number of records to be created must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
             }
             var json = JsonSerializer.Serialize(new { records = fields, typecast = typecast }, JsonOptionIgnoreNullValues);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Post, json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Post, json, token)).ConfigureAwait(false);
         }
 
 
@@ -353,7 +402,8 @@ namespace AirtableApiClient
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
             string tableIdOrName,
             AirtableRecord[] records,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
             if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
             {
@@ -372,7 +422,7 @@ namespace AirtableApiClient
                 if (index == (records.Length - 1))              // Done filling fieldsList?
                 {
                     json = JsonSerializer.Serialize(new { records = fieldsList.ToArray(), typecast = typecast }, JsonOptionIgnoreNullValues);
-                    response = await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Post, json)).ConfigureAwait(false);
+                    response = await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Post, json, token)).ConfigureAwait(false);
                     break;
                 }
             }
@@ -392,10 +442,11 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false,
             bool returnFieldsByFieldId = false,
-            PerformUpsert performUpsert = null)
+            PerformUpsert performUpsert = null,
+            CancellationToken token = default(CancellationToken))
         {
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json, token)).ConfigureAwait(false);
         }
 
 
@@ -411,11 +462,12 @@ namespace AirtableApiClient
             AirtableRecord[] records,
             bool typecast = false,
             bool returnFieldsByFieldId = false,
-            PerformUpsert performUpsert = null)
+            PerformUpsert performUpsert = null,
+            CancellationToken token = default(CancellationToken))
         {
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json, token)).ConfigureAwait(false);
         }
 
 
@@ -431,10 +483,11 @@ namespace AirtableApiClient
             IdFields[] idFields,
             bool typecast = false,
             bool returnFieldsByFieldId = false,
-            PerformUpsert performUpsert = null)
+            PerformUpsert performUpsert = null,
+            CancellationToken token = default(CancellationToken))
         {
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
         }
 
 
@@ -450,11 +503,12 @@ namespace AirtableApiClient
             AirtableRecord[] records,
             bool typecast = false,
             bool returnFieldsByFieldId = false,
-            PerformUpsert performUpsert = null)
+            PerformUpsert performUpsert = null,
+            CancellationToken token = default(CancellationToken))
         {
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
-            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
         }
 
 
@@ -469,7 +523,8 @@ namespace AirtableApiClient
             string tableIdOrName,
             string recordId,                  // ID of record that we want to list the comments for
             string offset = null,
-            int? pageSize = null)
+            int? pageSize = null,
+            CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
             var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + recordId + "/comments");
@@ -486,7 +541,7 @@ namespace AirtableApiClient
                 AddParametersToQuery(ref uriBuilder, $"pageSize={pageSize}");
             }
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -547,7 +602,8 @@ namespace AirtableApiClient
         public async Task<AirtableDeleteCommentResponse> DeleteComment(
         string tableIdOrName,
             string recordId,
-            string rowCommentId)
+            string rowCommentId,
+            CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
             if (string.IsNullOrEmpty(rowCommentId))
@@ -557,7 +613,7 @@ namespace AirtableApiClient
 
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + recordId + "/comments" + "/" + rowCommentId;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
@@ -576,10 +632,11 @@ namespace AirtableApiClient
         //
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableListWebhooksResponse> ListWebhooks()
+        public async Task<AirtableListWebhooksResponse> ListWebhooks(
+            CancellationToken token = default(CancellationToken))
         {
             var request = new HttpRequestMessage(HttpMethod.Get, UrlHeadWebhooks);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -601,7 +658,8 @@ namespace AirtableApiClient
         public async Task<AirtableListPayloadsResponse> ListPayloads(
             string webhookId,
             int? cursor = null,
-            int? limit = null)
+            int? limit = null,
+            CancellationToken token = default(CancellationToken))
         {
             var uriBuilder = new UriBuilder(UrlHeadWebhooks + "/" + webhookId + "/payloads");
             if(cursor != null)
@@ -615,7 +673,7 @@ namespace AirtableApiClient
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -636,7 +694,8 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableCreateWebhookResponse> CreateWebhook(
             WebhooksSpecification spec,
-            string notificationUrl = null)              // optional
+            string notificationUrl = null,
+            CancellationToken token = default(CancellationToken))              // optional
 
         {
             if (spec == null)
@@ -648,7 +707,7 @@ namespace AirtableApiClient
             var urlAndSpec = new { specification = spec, notificationUrl = notificationUrl };
             var json = JsonSerializer.Serialize(urlAndSpec, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -669,7 +728,8 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtabeEnableOrDisableWebhookNotificationsResponse> EnableOrDisableWebhookNotifications(
             string webhookId,
-            bool enable)
+            bool enable,
+            CancellationToken token = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(webhookId))
             {
@@ -679,7 +739,7 @@ namespace AirtableApiClient
             var request = new HttpRequestMessage(HttpMethod.Post, path);
             var json = JsonSerializer.Serialize(new { enable = enable }, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -697,7 +757,8 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
         public async Task<AirtabeRefreshWebhookResponse> RefreshWebhook(
-            string webhookId)
+            string webhookId,
+            CancellationToken token = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(webhookId))
             {
@@ -705,7 +766,7 @@ namespace AirtableApiClient
             }
             string path = UrlHeadWebhooks + "/" + webhookId + "/refresh";
             var request = new HttpRequestMessage(HttpMethod.Post, path);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -724,14 +785,15 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableDeleteWebhookResponse> DeleteWebhook(
-            string webhookId)
+            string webhookId,
+            CancellationToken token = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(webhookId))
             {
                 throw new ArgumentException("Webhook ID cannot be null.");
             }
             var request = new HttpRequestMessage(HttpMethod.Delete, UrlHeadWebhooks + "/" + webhookId);
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
@@ -859,7 +921,8 @@ namespace AirtableApiClient
             Fields fields,
             HttpMethod httpMethod,
             string recordId = null,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(tableIdOrName))
             {
@@ -876,7 +939,7 @@ namespace AirtableApiClient
             var json = JsonSerializer.Serialize(fieldsAndTypecast, JsonOptionIgnoreNullValues);
             var request = new HttpRequestMessage(httpMethod, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
@@ -898,7 +961,8 @@ namespace AirtableApiClient
         // in one operation
         //
         //----------------------------------------------------------------------------
-        private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(string tableIdOrName, HttpMethod method, string json)
+        private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(string tableIdOrName, HttpMethod method, string json,
+            CancellationToken token)
         {
             if (string.IsNullOrEmpty(tableIdOrName))
             {
@@ -908,7 +972,7 @@ namespace AirtableApiClient
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
             var request = new HttpRequestMessage(method, uriStr);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
@@ -1118,7 +1182,6 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         private static async Task<string> ReadResponseErrorMessage(HttpResponseMessage response)
         {
-
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(content))
@@ -1154,7 +1217,8 @@ namespace AirtableApiClient
             string timeZone,
             string userLocale,
             bool returnFieldsByFieldId,
-            bool? includeCommentCount
+            bool? includeCommentCount,
+            CancellationToken token
             )
         {
             if (string.IsNullOrEmpty(tableIdOrName))
@@ -1178,7 +1242,7 @@ namespace AirtableApiClient
             // Pass the parameters within the body of the request instead of the query parameters.
             request.Content = new StringContent(jsonParameters, Encoding.UTF8, "application/json");
 
-            return (await httpClientWithRetries.SendAsync(request).ConfigureAwait(false));
+            return (await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false));
         }
 
 
@@ -1193,7 +1257,8 @@ namespace AirtableApiClient
         string tableIdOrName,
            string id,
            string commentText,
-           string rowCommentId = null)      // == null if we are doing Create Comment Otherwise we are doing Update Comment
+           string rowCommentId = null,      // == null if we are doing Create Comment Otherwise we are doing Update Comment
+           CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
 
@@ -1212,7 +1277,7 @@ namespace AirtableApiClient
             var request = new HttpRequestMessage(httpMethod, uriStr);
             var json = JsonSerializer.Serialize(new { text = commentText }, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json"); ;
-            var response = await httpClientWithRetries.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
             AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)

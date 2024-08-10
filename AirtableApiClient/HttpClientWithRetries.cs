@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -29,6 +30,8 @@ namespace AirtableApiClient
             }
         }
 
+        private bool DisposeClient = true;
+
         private readonly HttpClient client;
 
 
@@ -39,7 +42,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public HttpClientWithRetries(DelegatingHandler delegatingHandler, string apiKey)
+        public HttpClientWithRetries(DelegatingHandler delegatingHandler, string apiKey, HttpClient providedClient = null)
         {
             // Allow retries by default.
             ShouldNotRetryIfRateLimited = false;
@@ -47,13 +50,21 @@ namespace AirtableApiClient
             // Start with the minimum delay then increase exponentially with a base of 2.
             RetryDelayMillisecondsIfRateLimited = MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED;
 
-            if (delegatingHandler == null)
+            if (providedClient == null)
             {
-                client = new HttpClient();                      // for communicating with Airtable
+                if (delegatingHandler == null)
+                {
+                    client = new HttpClient();                      // for communicating with Airtable
+                }
+                else
+                {
+                    client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
+                }
             }
             else
             {
-                client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
+                client = providedClient;
+                DisposeClient = false;                              // client is provided by user and owned by user
             }
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
@@ -68,7 +79,10 @@ namespace AirtableApiClient
 
         public void Dispose()
         {
-            client.Dispose();
+            if (DisposeClient)
+            {
+                client.Dispose();
+            }
         }
 
 
@@ -80,7 +94,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             string content = null;
 
@@ -95,7 +109,7 @@ namespace AirtableApiClient
             int dueTimeDelay = RetryDelayMillisecondsIfRateLimited;
             int retries = 0;
 
-            HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
+            HttpResponseMessage response = await client.SendAsync(request, token).ConfigureAwait(false);
 
             while (response.StatusCode == (HttpStatusCode)429 &&
                 retries < MAX_RETRIES &&
@@ -103,7 +117,7 @@ namespace AirtableApiClient
             {
                 await Task.Delay(dueTimeDelay).ConfigureAwait(false);
                 var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri, content);
-                response = await client.SendAsync(requestRegenerated).ConfigureAwait(false);
+                response = await client.SendAsync(requestRegenerated, token).ConfigureAwait(false);
                 retries++;
                 dueTimeDelay *= 2;
             }
