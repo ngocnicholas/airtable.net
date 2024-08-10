@@ -126,7 +126,7 @@ namespace AirtableApiClient
 
             var response = (await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false));
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableGetUserIdAndScopesResponse(error);
@@ -169,7 +169,7 @@ namespace AirtableApiClient
                 token
                 ).ConfigureAwait(false);
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListRecordsResponse(error);
@@ -208,7 +208,7 @@ namespace AirtableApiClient
         {
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListRecordsResponse<T>(error);
@@ -240,7 +240,7 @@ namespace AirtableApiClient
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse(error);
@@ -275,7 +275,7 @@ namespace AirtableApiClient
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableRetrieveRecordResponse<T>(error);
@@ -358,7 +358,7 @@ namespace AirtableApiClient
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + id;
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableDeleteRecordResponse(error);
@@ -542,7 +542,7 @@ namespace AirtableApiClient
             }
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListCommentsResponse(error);
@@ -615,7 +615,7 @@ namespace AirtableApiClient
             var request = new HttpRequestMessage(HttpMethod.Delete, uriStr);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableDeleteCommentResponse(error);
@@ -637,7 +637,7 @@ namespace AirtableApiClient
         {
             var request = new HttpRequestMessage(HttpMethod.Get, UrlHeadWebhooks);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListWebhooksResponse(error);
@@ -674,7 +674,7 @@ namespace AirtableApiClient
 
             var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableListPayloadsResponse(error);
@@ -708,7 +708,7 @@ namespace AirtableApiClient
             var json = JsonSerializer.Serialize(urlAndSpec, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableCreateWebhookResponse(error);
@@ -740,7 +740,7 @@ namespace AirtableApiClient
             var json = JsonSerializer.Serialize(new { enable = enable }, JsonOptionIgnoreNullValues);
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtabeEnableOrDisableWebhookNotificationsResponse(error);
@@ -767,7 +767,7 @@ namespace AirtableApiClient
             string path = UrlHeadWebhooks + "/" + webhookId + "/refresh";
             var request = new HttpRequestMessage(HttpMethod.Post, path);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtabeRefreshWebhookResponse(error);
@@ -794,7 +794,7 @@ namespace AirtableApiClient
             }
             var request = new HttpRequestMessage(HttpMethod.Delete, UrlHeadWebhooks + "/" + webhookId);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableDeleteWebhookResponse(error);
@@ -941,7 +941,7 @@ namespace AirtableApiClient
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableCreateUpdateReplaceRecordResponse(error);
@@ -974,7 +974,7 @@ namespace AirtableApiClient
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableCreateUpdateReplaceMultipleRecordsResponse(error);
@@ -1054,8 +1054,7 @@ namespace AirtableApiClient
         // construct and return the appropriate exception based on the specified message response
         //
         //----------------------------------------------------------------------------
-        private async Task<AirtableApiException> CheckForAirtableException(HttpResponseMessage response,
-            CancellationToken token)
+        private async Task<AirtableApiException> CheckForAirtableException(HttpResponseMessage response)
         {
             switch (response.StatusCode)
             {
@@ -1081,7 +1080,7 @@ namespace AirtableApiClient
                     return (new AirtableRequestEntityTooLargeException());
 
                 case (System.Net.HttpStatusCode)422:    // There is no HttpStatusCode.InvalidRequest defined in HttpStatusCode Enumeration.
-                    var detailedErrorMessage = await ReadResponseErrorMessage(response, token).ConfigureAwait(false);
+                    var detailedErrorMessage = await ReadResponseErrorMessage(response).ConfigureAwait(false);
                     return (new AirtableInvalidRequestException(detailedErrorMessage));
 
                 case (System.Net.HttpStatusCode)429:    // There is no HttpStatusCode.TooManyRequests defined in HttpStatusCode Enumeration.
@@ -1181,8 +1180,7 @@ namespace AirtableApiClient
         // attempts to read the error message in the response body.
         //
         //----------------------------------------------------------------------------
-        private static async Task<string> ReadResponseErrorMessage(HttpResponseMessage response,
-            CancellationToken token)
+        private static async Task<string> ReadResponseErrorMessage(HttpResponseMessage response)
         {
             var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
@@ -1281,7 +1279,7 @@ namespace AirtableApiClient
             request.Content = new StringContent(json, Encoding.UTF8, "application/json"); ;
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
 
-            AirtableApiException error = await CheckForAirtableException(response, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
             if (error != null)
             {
                 return new AirtableCreateUpdateCommentResponse(error);
