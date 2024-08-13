@@ -83,7 +83,7 @@ namespace AirtableApiClient
         //
         // AirtableBase.AirtableBase
         //    constructor -- for users who want to provide their own HttpClient.
-        //                   The users will own this HttpClient and Airtable won't dispose it.
+        //                   The users owns this HttpClient and Airtable won't dispose it.
         //
         //----------------------------------------------------------------------------
 
@@ -695,7 +695,7 @@ namespace AirtableApiClient
         public async Task<AirtableCreateWebhookResponse> CreateWebhook(
             WebhooksSpecification spec,
             string notificationUrl = null,
-            CancellationToken token = default(CancellationToken))              // optional
+            CancellationToken token = default(CancellationToken))
 
         {
             if (spec == null)

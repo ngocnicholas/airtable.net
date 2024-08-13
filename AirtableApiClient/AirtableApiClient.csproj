@@ -22,14 +22,10 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>PR#76: Added support for Webhooks
-Fixed PR#79: Include CreatedRecords and UpdatedRecords when performing an upsert
-    Added 2 more properties in AirtableCreateUpdateReplaceMultipleRecordsResponse: 
-        string[] UpdatedRecords and string[] CreatedRecords.
-Fixed PR#71 and PR#77: support for returnFieldsByFieldId is added in RetrieveRecord(). 
-Merged enhancements in the README.MD file  by NiJeTi.
-Added more test methods in AirtableApiClient.Tests.
-</PackageReleaseNotes>
+  <PackageReleaseNotes>[feat] HttpClient IOC #83
+- Added an overload Airtablebse ctor where users can specify a HttpClient
+[feat] CancellationToken #84
+- Added ancellationToken support</PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
@@ -43,8 +39,8 @@ Added more test methods in AirtableApiClient.Tests.
       <PackageLicenseFile>LICENSE</PackageLicenseFile>
       <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
       <Version>$(Version)</Version>
-      <AssemblyVersion>1.4.0</AssemblyVersion>
-      <FileVersion>1.4.0</FileVersion>
+      <AssemblyVersion>1.5.0</AssemblyVersion>
+      <FileVersion>1.5.0</FileVersion>
       <PackageReadmeFile>README.md</PackageReadmeFile>
       <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
   </PropertyGroup>
