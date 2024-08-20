@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -19,7 +20,7 @@ namespace AirtableApiClient.Tests
 
         internal void AddFakeResponse(string uri, HttpMethod method, HttpResponseMessage response, string bodyText=null)
         {
-            if (_FakeResponses.ContainsKey(uri))        // This is obsolete. Remove it, so that we can add the new one with the same key but different value.
+            if (_FakeResponses.ContainsKey(uri))        // Uri is obsolete --> Remove it, so that we can add the new one with the same key but different value.
             {
                 _FakeResponses.Remove(uri);
             }
@@ -32,6 +33,10 @@ namespace AirtableApiClient.Tests
             {
                 if (_FakeResponses[request.RequestUri.AbsoluteUri].Method == request.Method)
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException("A task was canceled.");
+                    }                    
                     string bodyText = null;
                     string dictBodyText = _FakeResponses[request.RequestUri.AbsoluteUri].BodyText;
                     if (dictBodyText != null)
@@ -39,9 +44,10 @@ namespace AirtableApiClient.Tests
                         bodyText = await request.Content.ReadAsStringAsync();
                     }
 
+
                     if (dictBodyText == null || bodyText == dictBodyText)
                     {
-                            return _FakeResponses[request.RequestUri.AbsoluteUri].Response;
+                        return _FakeResponses[request.RequestUri.AbsoluteUri].Response;
                     }
                 }
             }
