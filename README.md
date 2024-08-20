@@ -38,8 +38,8 @@ Example demonstrating usage of the API to list records:
 ```cs
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -84,7 +84,8 @@ readonly string appKey = YOUR_APP_KEY_OR_ACCESS_TOKEN;
                    timeZone,
                    userLocale,
                    returnFieldsByFieldId,
-                   includeCommentCount);
+                   includeCommentCount,
+                   cancellationToken);
 
             AirtableListRecordsResponse response = await task;
 
