@@ -7,46 +7,46 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("webhooks")]
         [JsonInclude]
-        public Webhook[] Hooks { get; internal set; }
+        public Webhook[] Hooks { get; set; }
     }
     public class Webhook
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("areNotificationsEnabled")]
         [JsonInclude]
-        public bool AreNotificationsEnabled { get; internal set; }
+        public bool AreNotificationsEnabled { get; set; }
 
         [JsonPropertyName("cursorForNextPayload")]
         [JsonInclude]
-        public int CursorForNextPayload { get; internal set; }
+        public int CursorForNextPayload { get; set; }
 
         [JsonPropertyName("isHookEnabled")]
         [JsonInclude]
-        public bool IsHookEnabled { get; internal set; }
+        public bool IsHookEnabled { get; set; }
 
         [JsonPropertyName("lastSuccessfulNotificationTime")]
         [JsonInclude]
-        public DateTime? LastSuccessfulNotificationTime { get; internal set; }
+        public DateTime? LastSuccessfulNotificationTime { get; set; }
 
         [JsonPropertyName("notificationUrl")]
         [JsonInclude]
-        public string NotificationUrl { get; internal set; }
+        public string NotificationUrl { get; set; }
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime? ExpirationTime { get; internal set; }
+        public DateTime? ExpirationTime { get; set; }
         //The time when the webhook expires and is disabled in the ISO format.The webhook will not expire if this is null (in the case User API keys are used)
 
         [JsonPropertyName("lastNotificationResult")]
         [JsonInclude]
-        public WebhooksNotification LastNotificationResult { get; internal set; }
+        public WebhooksNotification LastNotificationResult { get; set; }
 
         [JsonPropertyName("specification")]
         [JsonInclude]
-        public WebhooksSpecification Specification { get; internal set; }
+        public WebhooksSpecification Specification { get; set; }
     }
 
     //-------------------------------- Webhooks Specification ----------------------------------------
@@ -136,15 +136,15 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("macSecretBase64")]
         [JsonInclude] 
-        public string MacSecretBase64 {  get; internal set;} 
+        public string MacSecretBase64 {  get; set;} 
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime? ExpirationTime {  get; internal set; }
+        public DateTime? ExpirationTime {  get; set; }
     }
 
 
@@ -152,7 +152,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
-        public DateTime? ExpirationTime { get; internal set; }
+        public DateTime? ExpirationTime { get; set; }
     }
 }
  

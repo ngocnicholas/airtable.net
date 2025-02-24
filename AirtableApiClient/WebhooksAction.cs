@@ -12,48 +12,48 @@ namespace AirtableApiClient
 
         [JsonPropertyName("source")]
         [JsonInclude]
-        public string Source { get; internal set; }
+        public string Source { get; set; }
 
         [JsonPropertyName("sourceMetadata")]
         [JsonInclude]
-        public SourceMetadata SourceMetadata { get; internal set; }
+        public SourceMetadata SourceMetadata { get; set; }
     }
 
     public class SourceMetadata     // Look into using an Abstract class?
     {
         [JsonPropertyName("user")]
         [JsonInclude]
-        public WebhooksUser User { get; internal set; }
+        public WebhooksUser User { get; set; }
 
         [JsonPropertyName("viewId")]
         [JsonInclude]
-        public string ViewId { get; internal set; }
+        public string ViewId { get; set; }
 
         [JsonPropertyName("automationId")]
         [JsonInclude]
-        public string AutomationId { get; internal set; }
+        public string AutomationId { get; set; }
     }
 
     public class WebhooksUser
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("email")]
         [JsonInclude]
-        public string Email { get; internal set; }
+        public string Email { get; set; }
 
         [JsonPropertyName("permissionLevel")]
         [JsonInclude]
-        public string PermissionLevel { get; internal set; } // "none" | "read" | "comment" | "edit" | "create"
+        public string PermissionLevel { get; set; } // "none" | "read" | "comment" | "edit" | "create"
 
         [JsonPropertyName("name")] // optional
         [JsonInclude]
-        public string Name { get; internal set; }
+        public string Name { get; set; }
 
         [JsonPropertyName("profilePicUrl")] // optional
         [JsonInclude]
-        public string ProfilePicUrl { get; internal set; }
+        public string ProfilePicUrl { get; set; }
     }
 }

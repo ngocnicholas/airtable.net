@@ -96,6 +96,12 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AirtableApiClient\AirtableApiClient.csproj">
+      <Project>{9a0f05cf-701e-4558-956a-c095faac2c91}</Project>
+      <Name>AirtableApiClient</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
