@@ -19,6 +19,7 @@ namespace AirtableApiClient
 
         private readonly string UrlHead = null;
         private readonly string UrlHeadWebhooks = null;
+        private readonly string UrlHeadBaseSchema = null;
         private readonly HttpClientWithRetries httpClientWithRetries;
 
         private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, };
@@ -75,6 +76,7 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            UrlHeadBaseSchema = "https://api.airtable.com/v0/meta/" + ("bases/" + baseId + "/tables");
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
 
@@ -108,6 +110,7 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            UrlHeadBaseSchema = "https://api.airtable.com/v0/meta/" + ("bases/" + baseId + "/tables");
             httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, null);
         }
 
@@ -135,8 +138,34 @@ namespace AirtableApiClient
             UserIdAndScopes userIdAndScopes = JsonSerializer.Deserialize<UserIdAndScopes>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableGetUserIdAndScopesResponse(userIdAndScopes);
         }
-        
-        
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.GetBaseSchema
+        //
+        // Called to get the schema for all tables in the base.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(bool? includeVisibleFieldIds = null, CancellationToken token = default(CancellationToken))
+        {
+            var uriBuilder = new UriBuilder(UrlHeadBaseSchema);
+            if (includeVisibleFieldIds.HasValue && includeVisibleFieldIds.Value)
+            {
+                AddParametersToQuery(ref uriBuilder, $"include=visibleFieldIds");
+            }
+            var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableGetBaseSchemaResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, JsonOptionIgnoreNullValues);
+            return new AirtableGetBaseSchemaResponse(tableModelList);
+        }
+
+
         //----------------------------------------------------------------------------
         //
         // AirtableBase.ListRecords

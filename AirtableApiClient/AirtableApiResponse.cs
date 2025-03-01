@@ -40,6 +40,22 @@ namespace AirtableApiClient
     }
 
 
+    public class AirtableGetBaseSchemaResponse : AirtableApiResponse
+    {
+        public AirtableGetBaseSchemaResponse(AirtableApiException error) : base(error)
+        {
+            Tables = null;
+        }
+
+        public AirtableGetBaseSchemaResponse(TableModelList tables) : base()
+        {
+            Tables = tables.Tables;
+        }
+
+        public readonly IEnumerable<TableModel> Tables;
+    }
+
+
     public class AirtableListRecordsResponse : AirtableApiResponse
     {
         public AirtableListRecordsResponse(AirtableApiException error) : base(error)
