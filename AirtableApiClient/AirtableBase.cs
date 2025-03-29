@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -304,6 +305,43 @@ namespace AirtableApiClient
         }
 
 
+
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateRecord<T>
+        //
+        // Called to create a record of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceRecordResponse<T>> CreateRecord<T>(
+            T record,
+            string tableIdOrName,
+            bool typecast = false)
+        {
+            return await (CreateReplaceRecord<T>(record, tableIdOrName, HttpMethod.Post, typecast: typecast).ConfigureAwait(false));
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateMultipleRecords<T>
+        //
+        // Called to create multiple records of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> CreateMultipleRecords<T>(
+            T[] records,
+            string tableIdOrName,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            CancellationToken token = default(CancellationToken))
+        {
+             return await (CreateReplaceMultipleRecords<T>(records, tableIdOrName, HttpMethod.Post, null, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
+        }
+
+
         //----------------------------------------------------------------------------
         //
         // AirtableBase.UpdateRecord
@@ -337,6 +375,42 @@ namespace AirtableApiClient
             bool typeCast = false)
         {
             return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ReplaceRecord<T>
+        //
+        // Called to create a record of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceRecordResponse<T>> ReplaceRecord<T>(
+            T record,
+            string tableIdOrName,
+            string recordId,
+            bool typecast = false)
+        {
+            return await (CreateReplaceRecord<T>(record, tableIdOrName, HttpMethod.Put, recordId, typecast: typecast)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ReplaceMultipleRecords<T>
+        //
+        // Called to create multiple records of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> ReplaceMultipleRecords<T>(
+            T[] records,
+            string[] ids,
+            string tableIdOrName,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await (CreateReplaceMultipleRecords<T>(records, tableIdOrName, HttpMethod.Put, ids, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
         }
 
 
@@ -503,13 +577,14 @@ namespace AirtableApiClient
             AirtableRecord[] records,
             bool typecast = false,
             bool returnFieldsByFieldId = false,
-            PerformUpsert performUpsert = null,
+            PerformUpsert performUpsert = null,         // used only by Update
             CancellationToken token = default(CancellationToken))
         {
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
         }
+
 
 
         //----------------------------------------------------------------------------
@@ -948,7 +1023,6 @@ namespace AirtableApiClient
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var airtableRecord = JsonSerializer.Deserialize<AirtableRecord>(responseBody);
-
             return new AirtableCreateUpdateReplaceRecordResponse(airtableRecord);
         }
 
@@ -983,6 +1057,206 @@ namespace AirtableApiClient
             var upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList>(responseBody);
 
             return new AirtableCreateUpdateReplaceMultipleRecordsResponse(upsertRecordList);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateReplaceRecord<T>
+        //
+        // worker function which does the real work for creating, updating, or replacing a record using a template.
+        //
+        //----------------------------------------------------------------------------
+        private async Task<AirtableCreateReplaceRecordResponse<T>> CreateReplaceRecord<T>(
+            T record,
+            string tableIdOrName,
+            HttpMethod httpMethod,
+            string recordId = null, // only used by Replace
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            if (string.IsNullOrEmpty(tableIdOrName))
+            {
+                throw new ArgumentException("Table ID or Name cannot be null", "tableIdOrName");
+            }
+
+            Fields fields = new Fields();
+            fields.FieldsCollection = ToDictionary(record);
+
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
+            if (httpMethod != HttpMethod.Post)  // Create uses Post, Update uses Patch, Replace uses Put
+            {
+                uriStr += recordId + "/";
+            }
+
+            var fieldsAndTypecast = new { fields = fields.FieldsCollection, typecast = typecast };
+            var json = JsonSerializer.Serialize(fieldsAndTypecast, JsonOptionIgnoreNullValues);
+            var request = new HttpRequestMessage(httpMethod, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableCreateReplaceRecordResponse<T>(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            AirtableRecord<T> airtableRecord = JsonSerializer.Deserialize<AirtableRecord<T>>(responseBody);
+            return new AirtableCreateReplaceRecordResponse<T>(airtableRecord);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateUpdateReplaceMultipleRecords<T>
+        //
+        // worker function which does the real work for creating, updating or replacing multiple records
+        // using a template in one operation
+        //
+        //----------------------------------------------------------------------------
+        private async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> CreateReplaceMultipleRecords<T>(
+            T[] records, 
+            string tableIdOrName, 
+            HttpMethod method,
+            string[] ids,
+            bool typecast, 
+            bool returnFieldsByFieldId,
+            CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(tableIdOrName))
+            {
+                throw new ArgumentException("Table ID or Name cannot be null", "tableIdOrName");
+            }
+
+            if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records to be created must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
+
+            if (method == HttpMethod.Put)
+            {
+                if (ids == null || ids.Length == 0 || ids.Length > MAX_RECORD_OPERATION_SIZE || records.Length != ids.Length)
+                {
+                    throw new ArgumentException(String.Format("Number of records to be replaced must be >0 && <= {0} and equal to the number of IDs", MAX_RECORD_OPERATION_SIZE));
+                }   
+            }
+
+            
+            string json = null;
+            if (method == HttpMethod.Put)   // Replacing records? Airtable requires an IdFields[]
+            {
+                IdFields[] idFieldsArray = new IdFields[records.Length];
+                for (int ind = 0; ind < ids.Length; ind++)
+                {
+                    if (string.IsNullOrEmpty(ids[ind]))
+                    {
+                        throw new ArgumentException("Record IDs are required in REPLACE operations.");
+                    }
+                    idFieldsArray[ind] = new IdFields(ids[ind]);
+                    idFieldsArray[ind].FieldsCollection = ToDictionary(records[ind]);
+                }
+                json = JsonSerializer.Serialize(new { records = idFieldsArray, typecast = typecast, returnFieldsByFieldId = returnFieldsByFieldId }, JsonOptionIgnoreNullValues);
+            }
+            else   // Creating records
+            { 
+                // Airtable requires a Fields[] for creating multiple records
+                int index = 0;
+                Fields[] fieldsArr = new Fields[records.Length];
+                foreach (var record in records)
+                {
+                    fieldsArr[index] = new Fields();
+                    fieldsArr[index++].FieldsCollection = ToDictionary(record);
+                }
+                // Convert the array of Fields (in Dictionary format) to json
+                json = JsonSerializer.Serialize(new { records = fieldsArr, typecast = typecast, returnFieldsByFieldId = returnFieldsByFieldId }, JsonOptionIgnoreNullValues);
+            }
+
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
+            var request = new HttpRequestMessage(method, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableCreateReplaceMultipleRecordsResponse<T>(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            AirtableUpSertRecordList<T> upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList<T>>(responseBody);
+
+            return new AirtableCreateReplaceMultipleRecordsResponse<T>(upsertRecordList);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ToDictionary
+        //
+        // worker function which convert an object to an Dictionry.
+        // This method uses Reflection and runs recursively for IEnumerable and nested objects.
+        //
+        //----------------------------------------------------------------------------
+        private Dictionary<string, object> ToDictionary(object obj)
+        {
+            var dictionary = new Dictionary<string, object>();
+
+            if (obj == null)
+                return dictionary;
+
+            foreach (PropertyInfo property in obj.GetType().GetProperties())
+            {
+                var value = property.GetValue(obj);
+
+                if (value == null)
+                    continue;
+
+                // Use JsonPropertyName if available, otherwise fallback to property name
+                var jsonPropertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
+
+                //var type = value.GetType();
+                var type = property.PropertyType;  // Use PropertyType to detect nullable bool
+
+                // Nullable<bool> handling
+                if (Nullable.GetUnderlyingType(type) == typeof(bool))
+                {
+                    dictionary[jsonPropertyName] = value;
+                }
+
+                // Reflection-based collection handling (avoiding IEnumerator, and some incorrect compilation errors)
+                else if (type.GetInterface("IEnumerable") != null && !(value is string))
+                {
+                    var list = new List<object>();
+                    var enumerator = type.GetMethod("GetEnumerator")?.Invoke(value, null);
+
+                    var moveNextMethod = enumerator?.GetType().GetMethod("MoveNext");
+                    var currentProperty = enumerator?.GetType().GetProperty("Current");
+
+                    if (enumerator != null && moveNextMethod != null && currentProperty != null)
+                    {
+                        while ((bool)moveNextMethod.Invoke(enumerator, null)!)
+                        {
+                            var item = currentProperty.GetValue(enumerator);
+                            list.Add(item.GetType().IsPrimitive || item is string
+                                ? item
+                                : ToDictionary(item));
+                        }
+                    }
+
+                    dictionary[jsonPropertyName] = list;
+                }
+                // Handle nested objects
+                else if (!property.PropertyType.IsPrimitive && property.PropertyType != typeof(string))
+                {
+                    dictionary[jsonPropertyName] = ToDictionary(value);
+                }
+                // Handle primitive types
+                else
+                {
+                    dictionary[jsonPropertyName] = value;
+                }
+            }
+
+            return dictionary;
         }
 
 
