@@ -77,28 +77,6 @@ namespace AirtableApiClient
             }
             return flattenSortParam;
         }
-
-
-        static internal string
-        FlattenFieldsParam(
-            IEnumerable<string> fields)
-        {
-            int i = 0;
-            string flattenFieldsParam = string.Empty;
-            string toInsert = string.Empty;
-            foreach (var fieldName in fields)
-            {
-                if (string.IsNullOrEmpty(toInsert) && i > 0)
-                {
-                    toInsert = "&";
-                }
-                string param = "fields[]";
-                flattenFieldsParam += $"{toInsert}{HttpUtility.UrlEncode(param)}={HttpUtility.UrlEncode(fieldName)}";
-                i++;
-            }
-            return flattenFieldsParam;
-        }
-
     }   // end class
 
 

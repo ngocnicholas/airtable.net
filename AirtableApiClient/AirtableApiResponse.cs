@@ -349,4 +349,55 @@ public class AirtableCreateUpdateReplaceMultipleRecordsResponse : AirtableApiRes
 
         public readonly DateTime? ExpirationTime;
     }
+
+    public class AirtableGetBaseSchemaResponse : AirtableApiResponse
+    {
+        public AirtableGetBaseSchemaResponse(AirtableApiException error) : base(error)
+        {
+            Tables = null;
+        }
+
+        public AirtableGetBaseSchemaResponse(TableModelList tables) : base()
+        {
+            Tables = tables.Tables;
+        }
+
+        public readonly IEnumerable<TableModel> Tables;
+    }
+
+    public class AirtableCreateBaseResponse : AirtableApiResponse
+    {
+        public AirtableCreateBaseResponse (AirtableApiException error) : base(error)
+        {
+            Tables = null;
+        }
+
+        public AirtableCreateBaseResponse(CreatedBase createdBase) : base()
+        {
+            Id = createdBase.Id;
+            Tables = createdBase.Tables; ;
+        }
+
+        public readonly IEnumerable<TableConfig> Tables;
+        public readonly string Id;
+    }
+
+    public class AirtableListBasesResponse : AirtableApiResponse
+    {
+        public AirtableListBasesResponse(AirtableApiException error) : base(error)
+        {
+            Offset = null;
+            Bases = null;
+        }
+
+        public AirtableListBasesResponse(BaseList baseList) : base()
+        {
+            Offset = baseList.Offset;
+            Bases = baseList.Bases ;
+        }
+
+        public readonly IEnumerable<MetaBase> Bases;
+        public readonly string Offset;
+    }
 }
+
