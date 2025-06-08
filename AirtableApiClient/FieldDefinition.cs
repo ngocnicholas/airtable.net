@@ -7,7 +7,7 @@ namespace AirtableApiClient
 {
     public enum FieldTypeEnum
     {
-        singleLineText, email, url, multilineText, number, 
+        singleLineText = 0, email, url, multilineText, number, 
         percent, currency, singleSelect, multipleSelects, singleCollaborator, 
         multipleCollaborators, multipleRecordLinks, date, dateTime, phoneNumber, 
         multipleAttachments, checkbox, formula, createdTime, rollup, 
@@ -16,7 +16,7 @@ namespace AirtableApiClient
         createdBy, lastModifiedBy, externalSyncSource, aiText
     }
 
-    public class FieldModel
+    public class FieldDefinition
     {
         [JsonPropertyName("id")]
         [JsonInclude]
@@ -40,7 +40,9 @@ namespace AirtableApiClient
         public object? Options { get; set; }    // Don't make this property virtual because System.Text.Json does not handle serialization well for polymorphism
 
     }
-    public abstract class FieldModelOptions<TOptions> : FieldModel
+
+    // This class is needed for making FieldDefintion json friendly
+    public abstract class FieldDefinitionOptions<TOptions> : FieldDefinition
     {
         [JsonIgnore] // Always ignore during serialization
         public TOptions TypedOptions
@@ -55,39 +57,39 @@ namespace AirtableApiClient
                     };
                     Options = jsonElement.Deserialize<TOptions>(jsonOptions);
                 }
-                return (TOptions)Options!;
+                return (TOptions)Options!;          // cast the value stored in the base class before returning it 
             }
-            set => Options = value!;
+            set => Options = value!;                // set/store the value in the base class 
         }
     }
 
 //------------------------------------------------------------
 
-    public class FieldModelJsonConverter : JsonConverter<FieldModel>
+    public class FieldDefinitionJsonConverter : JsonConverter<FieldDefinition>    // Custrom Json converter for FieldDefinition due to System.Text.Json's de/serilization not able to handle polymorhism correctly
     {
         private static readonly Dictionary<string, Type> TypeMap = new()
         {
-            ["aiText"] = typeof(AiTextFieldModel),                      // R,   options
-            ["multipleAttachments"] = typeof(AttachmentFieldModel),     // RW,  R options only
-            ["autoNumber"] = typeof(AutoNumberFieldModel),              // R,   No
+            ["aiText"] = typeof(AiTextFieldDefinition),                      // R,   options
+            ["multipleAttachments"] = typeof(AttachmentFieldDefinition),     // RW,  R options only
+            ["autoNumber"] = typeof(AutoNumberFieldDefinition),              // R,   No
             ["barcode"] = typeof(BarcodeField),                         // RW,  No
-            ["button"] = typeof(ButtonFieldModel),                      // R,   No
+            ["button"] = typeof(ButtonFieldDefinition),                      // R,   No
             ["checkbox"] = typeof(CheckboxField),                       // RW, same options
             ["singleCollaborator"] = typeof(CollaboratorField),         // RW, same options
-            ["count"] = typeof(CountFieldModel),                        // R,   options
-            ["createdBy"] = typeof(CreateByFieldModel),                 // R,   No
-            ["createdTime"] = typeof(CreatedTimeFieldModel),            // R,   options
+            ["count"] = typeof(CountFieldDefinition),                        // R,   options
+            ["createdBy"] = typeof(CreateByFieldDefinition),                 // R,   No
+            ["createdTime"] = typeof(CreatedTimeFieldDefinition),            // R,   options
             ["currency"] = typeof(CurrencyField),                       // RW, same options
             ["date"] = typeof(DateField),                               // RW,  same options, but Format is optional in Write
             ["dateTime"] = typeof(DateTimeField),                       // RW,  same options, but Format is optional in Write
             ["duration"] = typeof(DurationField),                       // RW, same options
             ["email"] = typeof(EmailField),                             // RW,  No
-            ["formula"] = typeof(FormulaFieldModel),                    // R,   options
-            ["lastModifiedBy"] = typeof(LastModifiedByFieldModel),      // R,   No
-            ["lastModifiedTim"] = typeof(LastModifiedTimeFieldModel),   // R,   options
-            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordFieldModel),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
+            ["formula"] = typeof(FormulaFieldDefinition),                    // R,   options
+            ["lastModifiedBy"] = typeof(LastModifiedByFieldDefinition),      // R,   No
+            ["lastModifiedTim"] = typeof(LastModifiedTimeFieldDefinition),   // R,   options
+            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordFieldDefinition),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
             ["multilineText"] = typeof(LongTextField),                  // RW,  No
-            ["multipleLookupValues"] = typeof(LookupFieldModel),        // R,   options
+            ["multipleLookupValues"] = typeof(LookupFieldDefinition),        // R,   options
             ["multiCollaborators"] = typeof(MultipleCollaboratorField), // RW,  same options
             ["multipleSelects"] = typeof(MultipleSelectField),          // RW,  same options, but Id is optional in Write
             ["number"] = typeof(NumberField),                           // RW,  same options
@@ -95,14 +97,14 @@ namespace AirtableApiClient
             ["phoneNumber"] = typeof(PhoneField),                       // RW,  No
             ["rating"] = typeof(RatingField),                           // RW,  same options 
             ["richText"] = typeof(RichTextField),                       // RW,  No
-            ["rollup"] = typeof(RollupFieldModel),                      // R,   options
+            ["rollup"] = typeof(RollupFieldDefinition),                      // R,   options
             ["singleLineText"] = typeof(SingleLineTextField),           // RW,  No
             ["singleSelect"] = typeof(SingleSelectField),               // RW,  Same options, but Id is optinal in Write
             ["externSyncSource"] = typeof(SyncSourceField),             // RW,  same options
             ["url"] = typeof(UrlField),                                 // RW,  No
         };
 
-        public override FieldModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override FieldDefinition Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)   // for overriding base class JsonConveer<FieldDmode>.Read
         {
             using var jsonDoc = JsonDocument.ParseValue(ref reader);
             var root = jsonDoc.RootElement;
@@ -116,28 +118,28 @@ namespace AirtableApiClient
 
             //var deserialized = JsonSerializer.Deserialize(root.GetRawText(), targetType, options);
             // This is the key fix ↓
-            var deserialized = (FieldModel?)JsonSerializer.Deserialize(root, targetType, options);
+            var deserialized = (FieldDefinition?)JsonSerializer.Deserialize(root, targetType, options);
 
-            if (deserialized is not FieldModel typedField)
+            if (deserialized is not FieldDefinition typedField)      // The value of deserialed is stored in FieldDefinition typedField here.
             {
-                throw new JsonException($"Deserialized object is not a FieldModel: {deserialized?.GetType()}");
+                throw new JsonException($"Deserialized object is not a FieldDefinition: {deserialized?.GetType()}");
             }
 
-            return typedField; // NOTE: typedField is the same object as deserialized, just with a base class type.
+            return typedField; // NOTE: typedField is the same object as deserialized, just with a base class type. deserialized is of the derived type.
         }
 
-        public override void Write(Utf8JsonWriter writer, FieldModel value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, FieldDefinition value, JsonSerializerOptions options)
         {
-            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);  // The Json output stream will go into the HTTP request body of CreateBase
         }
 
     }   
 
-    //-------------------------end FieldModelJsonConverter-----------------------------------------------
+    //-------------------------end FieldDefinitionJsonConverter-----------------------------------------------
 
-    public class AiTextFieldModel : FieldModelOptions<AiTextOptions>
+    public class AiTextFieldDefinition : FieldDefinitionOptions<AiTextOptions>
     {
-        public AiTextFieldModel()
+        public AiTextFieldDefinition()
         {
             Type = "aiText";
         }
@@ -180,9 +182,9 @@ namespace AirtableApiClient
         public string FieldId { get; set; }
     }
 
-    public class PromptItemConverter : JsonConverter<List<PromptItem>>
+    public class PromptItemConverter : JsonConverter<List<PromptItem>>  // Custom Jsonconverter needed because PromptItem is a heterogeneous object
     {
-        public override List<PromptItem> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override List<PromptItem> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) // for overriding base class <List<PromptItem>.Read
         {
             var list = new List<PromptItem>();
 
@@ -191,7 +193,7 @@ namespace AirtableApiClient
 
             reader.Read();  // Read the 1st item
 
-            while (reader.TokenType != JsonTokenType.EndArray)
+            while (reader.TokenType != JsonTokenType.EndArray)          // Need to walk through each item in the List to see which type it is: Text or FieldId
             {
                 if (reader.TokenType == JsonTokenType.String)
                 {
@@ -227,16 +229,15 @@ namespace AirtableApiClient
 
         public override void Write(Utf8JsonWriter writer, List<PromptItem> value, JsonSerializerOptions options)
         {
-            // Attachement is READ only
-            throw new NotImplementedException();
+            throw new NotImplementedException();            // AiTextField is a Read only field
         }
     }
 
     //-------------------------- end of AiTextField
 
-    public class AttachmentFieldModel : FieldModelOptions<AttachementReadOptions>
+    public class AttachmentFieldDefinition : FieldDefinitionOptions<AttachementReadOptions>
     {
-        public AttachmentFieldModel()
+        public AttachmentFieldDefinition()
         {
             Type = "multipleAttachments";
         }
@@ -251,9 +252,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Auto number field
     /// </summary>
-    public class AutoNumberFieldModel : FieldModel 
+    public class AutoNumberFieldDefinition : FieldDefinition 
     {
-        public AutoNumberFieldModel()
+        public AutoNumberFieldDefinition()
         {
             Type = "autoNumber";
         }
@@ -263,7 +264,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Barcode field
     /// </summary>
-    public class BarcodeField : FieldModel
+    public class BarcodeField : FieldDefinition
     {
         public BarcodeField()
         {
@@ -275,9 +276,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Button field
     /// </summary>
-    public class ButtonFieldModel : FieldModel
+    public class ButtonFieldDefinition : FieldDefinition
     {
-        public ButtonFieldModel()
+        public ButtonFieldDefinition()
         {
             Type = "button";
         }
@@ -286,7 +287,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Checkbox field
     /// </summary>
-    public class CheckboxField : FieldModelOptions<CheckboxOptions>
+    public class CheckboxField : FieldDefinitionOptions<CheckboxOptions>
     {
         public CheckboxField()
         {
@@ -306,7 +307,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Collaborator field
     /// </summary>
-    public class CollaboratorField : FieldModel  
+    public class CollaboratorField : FieldDefinition  
     {
         public CollaboratorField()
         {
@@ -317,9 +318,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Count field
     /// </summary>
-    public class CountFieldModel : FieldModelOptions<CountOptions>
+    public class CountFieldDefinition : FieldDefinitionOptions<CountOptions>
     {
-        public CountFieldModel()
+        public CountFieldDefinition()
         {
             Type = "count";
         }
@@ -337,9 +338,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Created By field
     /// </summary>
-    public class CreateByFieldModel : FieldModel
+    public class CreateByFieldDefinition : FieldDefinition
     {
-        public CreateByFieldModel()
+        public CreateByFieldDefinition()
         {
             Type = "createdBy";
         }
@@ -348,9 +349,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Created time field
     /// </summary>
-    public class CreatedTimeFieldModel : FieldModelOptions<CreatedTimeOptions>
+    public class CreatedTimeFieldDefinition : FieldDefinitionOptions<CreatedTimeOptions>
     {
-        public CreatedTimeFieldModel()
+        public CreatedTimeFieldDefinition()
         {
             Type = "createdTime";
         }
@@ -376,7 +377,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Currency field
     /// </summary>
-    public class CurrencyField : FieldModelOptions<CurrencyOptions>  
+    public class CurrencyField : FieldDefinitionOptions<CurrencyOptions>  
     {
         public CurrencyField()
         {
@@ -397,7 +398,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Date field
     /// </summary>
-    public class DateField : FieldModelOptions<DateOptions> 
+    public class DateField : FieldDefinitionOptions<DateOptions> 
     {
         public DateField()
         {
@@ -429,7 +430,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Date and time field
     /// </summary>
-    public class DateTimeField : FieldModelOptions<DateTimeOptions>          // for Read and for Write 
+    public class DateTimeField : FieldDefinitionOptions<DateTimeOptions>          // for Read and for Write 
     {
         public DateTimeField()
         {
@@ -462,7 +463,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Duration field
     /// </summary>
-    public class DurationField : FieldModelOptions<DurationOptions>  
+    public class DurationField : FieldDefinitionOptions<DurationOptions>  
     {
         public DurationField()
         {
@@ -479,7 +480,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Email field
     /// </summary>
-    public class EmailField : FieldModel 
+    public class EmailField : FieldDefinition 
     {
         public EmailField()
         {
@@ -490,9 +491,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Formula field
     /// </summary>
-    public class FormulaFieldModel : FieldModelOptions<FormulaOptions>
+    public class FormulaFieldDefinition : FieldDefinitionOptions<FormulaOptions>
     {
-        public FormulaFieldModel()
+        public FormulaFieldDefinition()
         {
             Type = "formula";
         }
@@ -514,15 +515,15 @@ namespace AirtableApiClient
 
         [JsonPropertyName("result")]
         // public object Result { get; set; }                      // Field type and options | null if invalid. See https://airtable.com/developers/web/api/field-model
-        public FieldModel Result { get; set; }                 // Question: should the type be FieldModel or object???
+        public FieldDefinition Result { get; set; }                 // Question: should the type be FieldDefinition or object???
     }
 
     /// <summary>
     /// Represents information about who last modified the record.
     /// </summary>
-    public class LastModifiedByFieldModel : FieldModel
+    public class LastModifiedByFieldDefinition : FieldDefinition
     {
-        public LastModifiedByFieldModel()
+        public LastModifiedByFieldDefinition()
         {
             Type = "lastModifiedBy";
         }
@@ -532,9 +533,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Last modified time field
     /// </summary>
-    public class LastModifiedTimeFieldModel : FieldModelOptions<LastModifiedTimeOptions>
+    public class LastModifiedTimeFieldDefinition : FieldDefinitionOptions<LastModifiedTimeOptions>
     {
-        public LastModifiedTimeFieldModel()
+        public LastModifiedTimeFieldDefinition()
         {
             Type = "lastModifiedTime";
         }
@@ -570,17 +571,17 @@ namespace AirtableApiClient
     /// <summary>
     /// Link to another record field
     /// </summary>
-    public class LinkToAnotherRecordFieldModel : FieldModelOptions<LinkToAnotherRecordFieldModelOptions>
+    public class LinkToAnotherRecordFieldDefinition : FieldDefinitionOptions<LinkToAnotherRecordFieldDefinitionOptions>
     {
         // Creating "multipleRecordLinks" fields is supported but updating options for existing "multipleRecordLinks" fields is not supported.
-        public LinkToAnotherRecordFieldModel()
+        public LinkToAnotherRecordFieldDefinition()
         {
             Type = "multipleRecordLinks";
         }
     }
 
 
-    public class LinkToAnotherRecordFieldModelOptions
+    public class LinkToAnotherRecordFieldDefinitionOptions
     {
         // Note: All properties are in the READ situations
         [JsonPropertyName("isReversed")]
@@ -605,7 +606,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Long text field (multi-line)
     /// </summary>    
-    public class LongTextField : FieldModel
+    public class LongTextField : FieldDefinition
     {
         public LongTextField()
         {
@@ -617,9 +618,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Lookup field
     /// </summary>
-    public class LookupFieldModel : FieldModelOptions<LookupOptions>
+    public class LookupFieldDefinition : FieldDefinitionOptions<LookupOptions>
     {
-        public LookupFieldModel()
+        public LookupFieldDefinition()
         {
             Type = "multipleLookupValues";
         }
@@ -642,7 +643,7 @@ namespace AirtableApiClient
 
 //-------------------------------------------------------------------------
 
-    public class MultipleCollaboratorField : FieldModel 
+    public class MultipleCollaboratorField : FieldDefinition 
     {
         public MultipleCollaboratorField()
         {
@@ -655,7 +656,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Multi-select field
     /// </summary>
-    public class MultipleSelectField : FieldModelOptions<ChoiceOptions>
+    public class MultipleSelectField : FieldDefinitionOptions<ChoiceOptions>
     {
         public MultipleSelectField()
         {
@@ -690,7 +691,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Number field
     /// </summary>
-    public class NumberField : FieldModelOptions<PrecisionOptions> 
+    public class NumberField : FieldDefinitionOptions<PrecisionOptions> 
     {
         public NumberField()
         {
@@ -708,7 +709,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Percent field
     /// </summary>
-    public class PercentField : FieldModelOptions<PrecisionOptions> 
+    public class PercentField : FieldDefinitionOptions<PrecisionOptions> 
     {
         public PercentField()
         {
@@ -721,7 +722,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Phone number field
     /// </summary>
-    public class PhoneField : FieldModel 
+    public class PhoneField : FieldDefinition 
     {
         public PhoneField()
         {
@@ -734,7 +735,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Rating field
     /// </summary>
-    public class RatingField : FieldModelOptions<RatingOptions> 
+    public class RatingField : FieldDefinitionOptions<RatingOptions> 
     {
         public RatingField()
         {
@@ -760,7 +761,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Rich text field with formatting
     /// </summary>
-    public class RichTextField : FieldModel 
+    public class RichTextField : FieldDefinition 
     {
         public RichTextField()
         {
@@ -773,9 +774,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Rollup field
     /// </summary>
-    public class RollupFieldModel : FieldModelOptions<RollupOptions>           // NEED EMMETT"S HELP in TESTING this field
+    public class RollupFieldDefinition : FieldDefinitionOptions<RollupOptions>           // NEED EMMETT"S HELP in TESTING this field
     {
-        public RollupFieldModel()
+        public RollupFieldDefinition()
         {
             Type = "rollup";
         }
@@ -803,7 +804,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Single line text field
     /// </summary>
-    public class SingleLineTextField : FieldModel 
+    public class SingleLineTextField : FieldDefinition 
     {
         public SingleLineTextField()
         {
@@ -815,7 +816,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Single select field
     /// </summary>
-    public class SingleSelectField : FieldModelOptions<ChoiceOptions>
+    public class SingleSelectField : FieldDefinitionOptions<ChoiceOptions>
     { 
         public SingleSelectField()
         {
@@ -824,7 +825,7 @@ namespace AirtableApiClient
     }
 
     //---------------------------------------
-    public class SyncSourceField: FieldModelOptions<ChoiceOptions>
+    public class SyncSourceField: FieldDefinitionOptions<ChoiceOptions>
     {
         public SyncSourceField()
         {
@@ -836,9 +837,9 @@ namespace AirtableApiClient
     /// <summary>
     /// Sync Source field
     /// </summary>   
-    public class SyncSourceFieldModel : FieldModelOptions<SyncSourceOptions>
+    public class SyncSourceFieldDefinition : FieldDefinitionOptions<SyncSourceOptions>
     {
-        public SyncSourceFieldModel()
+        public SyncSourceFieldDefinition()
         {
             Type = "externalSyncSource";
         }
@@ -855,7 +856,7 @@ namespace AirtableApiClient
     /// <summary>
     /// URL field
     /// </summary>
-    public class UrlField : FieldModel 
+    public class UrlField : FieldDefinition 
     {
         public UrlField()
         {

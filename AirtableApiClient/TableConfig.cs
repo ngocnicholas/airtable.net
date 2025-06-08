@@ -14,6 +14,6 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public FieldModel[] Fields { get; set; }
+        public FieldDefinition[] Fields { get; set; }
     }
 }

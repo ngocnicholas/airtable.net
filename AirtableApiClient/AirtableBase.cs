@@ -175,7 +175,7 @@ namespace AirtableApiClient
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNameCaseInsensitive = true,
-                Converters = { new FieldModelJsonConverter() }
+                Converters = { new FieldDefinitionJsonConverter() }
             };
 
             var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
