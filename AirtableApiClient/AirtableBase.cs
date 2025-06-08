@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,7 +21,6 @@ namespace AirtableApiClient
         private readonly string UrlHead = null;
         private readonly string UrlHeadWebhooks = null;
         private readonly string UrlHeadMetaBases = null;
-       // private readonly string UrlHeadBaseSchema = null;
         private string UrlHeadBaseSchema = null;
         private readonly HttpClientWithRetries httpClientWithRetries;
 
@@ -1628,127 +1625,3 @@ namespace AirtableApiClient
 
 }   // end namespace
 
-#if false
-        private string GenerateCombinedJson<T>(T record, bool typecast)
-        { 
-            // Serialize record to UTF-8 bytes and remove all the properties with null value
-            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(record, JsonOptionIgnoreNullValues);
-
-            // Parse them into JsonDocument for use as JsonElement
-            using var doc = JsonDocument.Parse(bytes);
-
-            // Clone the root elements
-            JsonElement elem = doc.RootElement.Clone();
-
-            // Combine into a Dictionary<string, JsonElement>
-            var combined = new Dictionary<string, JsonElement>
-            {
-                ["fields"] = elem,
-                ["typecast"] = ToJsonElement(typecast)
-            };
-
-            return JsonSerializer.Serialize(combined, JsonOptionIgnoreNullValues);
-        }
-
-        private JsonElement ToJsonElement<T>(T value)
-        {
-            using var doc = JsonDocument.Parse(JsonSerializer.SerializeToUtf8Bytes(value));
-            return doc.RootElement.Clone();
-        }
-
-        private string CombineJsonAsProperties(string json1, string propername1, string json2)
-        {
-            using var doc1 = JsonDocument.Parse(json1); // parses json1 and returns a JsonDocment, a structured, read-only view of the JSON — like a tree of elements.
-            using var doc2 = JsonDocument.Parse(json2);
-
-            using var stream = new MemoryStream();
-            using (var writer = new Utf8JsonWriter(stream))
-            {
-                writer.WriteStartObject();                  // "{"
-
-                writer.WritePropertyName(propername1);
-                doc1.RootElement.WriteTo(writer);           // Write all jsonelement, meaning all properties, under root of doc1
-
-                // Merge properties from json2 into root
-                foreach (var property in doc2.RootElement.EnumerateObject())
-                {
-                    property.WriteTo(writer);
-                }
-
-                writer.WriteEndObject();                    // "}"
-            }
-
-            return System.Text.Encoding.UTF8.GetString(stream.ToArray());   // Turn the memoryStream into a byte[] and then encode it into a human readable string.
-        }
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.ToDictionary
-        //
-        // worker function which convert an object to an Dictionry.
-        // This method uses Reflection and runs recursively for IEnumerable and nested objects.
-        //
-        //----------------------------------------------------------------------------
-        private Dictionary<string, object> ToDictionary(object obj)
-        {
-            var dictionary = new Dictionary<string, object>();
-
-            if (obj == null)
-                return dictionary;
-
-            foreach (PropertyInfo property in obj.GetType().GetProperties())
-            {
-                var value = property.GetValue(obj);
-
-                if (value == null)
-                    continue;
-
-                // Use JsonPropertyName if available, otherwise fallback to property name
-                var jsonPropertyName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
-
-                //var type = value.GetType();
-                var type = property.PropertyType;  // Use PropertyType to detect nullable bool
-
-                // Nullable<bool> handling
-                if (Nullable.GetUnderlyingType(type) == typeof(bool))
-                {
-                    dictionary[jsonPropertyName] = value;
-                }
-
-                // Reflection-based collection handling (avoiding IEnumerator, and some incorrect compilation errors)
-                else if (type.GetInterface("IEnumerable") != null && !(value is string))
-                {
-                    var list = new List<object>();
-                    var enumerator = type.GetMethod("GetEnumerator")?.Invoke(value, null);
-
-                    var moveNextMethod = enumerator?.GetType().GetMethod("MoveNext");
-                    var currentProperty = enumerator?.GetType().GetProperty("Current");
-
-                    if (enumerator != null && moveNextMethod != null && currentProperty != null)
-                    {
-                        while ((bool)moveNextMethod.Invoke(enumerator, null)!)
-                        {
-                            var item = currentProperty.GetValue(enumerator);
-                            list.Add(item.GetType().IsPrimitive || item is string
-                                ? item
-                                : ToDictionary(item));
-                        }
-                    }
-
-                    dictionary[jsonPropertyName] = list;
-                }
-                // Handle nested objects
-                else if (!property.PropertyType.IsPrimitive && property.PropertyType != typeof(string))
-                {
-                    dictionary[jsonPropertyName] = ToDictionary(value);
-                }
-                // Handle primitive types
-                else
-                {
-                    dictionary[jsonPropertyName] = value;
-                }
-            }
-
-            return dictionary;
-        }
-#endif
