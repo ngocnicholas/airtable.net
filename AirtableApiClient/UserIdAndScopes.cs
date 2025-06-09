@@ -7,10 +7,10 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("scopes")]
         [JsonInclude]
-        public ICollection<string> Scopes { get; internal set; }
+        public ICollection<string> Scopes { get; set; }
     }
 }
