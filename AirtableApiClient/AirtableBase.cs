@@ -21,7 +21,6 @@ namespace AirtableApiClient
         private readonly string UrlHead = null;
         private readonly string UrlHeadWebhooks = null;
         private readonly string UrlHeadMetaBases = null;
-        private string UrlHeadBaseSchema = null;
         private readonly HttpClientWithRetries httpClientWithRetries;
 
         private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, };
@@ -78,8 +77,7 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
-            UrlHeadMetaBases = "https://api.airtable.com/v0/meta/bases";
-            UrlHeadBaseSchema = UrlHeadMetaBases + "/" + baseId + "/tables";
+            //UrlHeadMetaBases = "https://api.airtable.com/v0/meta/bases";
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
 
@@ -113,7 +111,6 @@ namespace AirtableApiClient
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
             UrlHeadMetaBases = "https://api.airtable.com/v0/meta/bases";
-            UrlHeadBaseSchema = UrlHeadMetaBases + "/" + baseId + "/tables";
             httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, null);
         }
 
@@ -140,108 +137,6 @@ namespace AirtableApiClient
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             UserIdAndScopes userIdAndScopes = JsonSerializer.Deserialize<UserIdAndScopes>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableGetUserIdAndScopesResponse(userIdAndScopes);
-        }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.GetBaseSchema
-        // Called to get the schema for all tables in the base.
-        //
-        //----------------------------------------------------------------------------
-        public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(BaseSchemaInclude[] baseSchemaInclude = null, string baseId = null, CancellationToken token = default(CancellationToken))
-        { 
-            string urlHeadBaseSchema = UrlHeadBaseSchema;
-            string uriStr = UrlHeadBaseSchema;
-            if (baseId != null)
-            {
-                urlHeadBaseSchema = UrlHeadMetaBases + "/" + baseId + "/tables"; ;
-            }
-
-            if (baseSchemaInclude != null)
-            {
-                var queryParams = string.Join("&", baseSchemaInclude.Select(i => $"include={Uri.EscapeDataString(i.ToString())}"));
-                uriStr = $"{urlHeadBaseSchema}?{queryParams}";
-            }
-            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
-            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
-            if (error != null)
-            {
-                return new AirtableGetBaseSchemaResponse(error);
-            }
-            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var options = new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNameCaseInsensitive = true,
-                Converters = { new FieldDefinitionJsonConverter() }
-            };
-
-            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
-            return new AirtableGetBaseSchemaResponse(tableModelList);
-        }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.CreateBase
-        //
-        // Note : The input arg TableConfig tables must be a list of JSON objects representing the tables that will be created along with the base.
-        //
-        //----------------------------------------------------------------------------
-        public async Task<AirtableCreateBaseResponse> CreateBase(string nameOfBaseToCreate, string workspaceIdofBase, TableConfig[] tablesToCreate, CancellationToken token = default(CancellationToken))
-        {
-            if (tablesToCreate == null)
-            {
-                throw new ArgumentException("tablesToCreate cannot be null.");
-            }
-            if (String.IsNullOrEmpty(nameOfBaseToCreate))
-            {
-                throw new ArgumentException("nameOfBaseToCreate cannot be empty or null");
-            }
-            if (String.IsNullOrEmpty(workspaceIdofBase))
-            {
-                throw new ArgumentException("workspaceIdofBase cannot be empty or null");
-            }
-
-            var uriBuilder = new UriBuilder(UrlHeadMetaBases);
-
-            string json = JsonSerializer.Serialize(new { name= nameOfBaseToCreate, workspaceId=workspaceIdofBase, tables=tablesToCreate }, JsonOptionIgnoreNullValues);
-
-            var (responseBody, error) = await SendRequest(HttpMethod.Post, UrlHeadMetaBases, json, token).ConfigureAwait(false);
-            if (error != null)
-            {
-                return new AirtableCreateBaseResponse(error);
-            }
-            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, JsonOptionIgnoreNullValues);
-            return new AirtableCreateBaseResponse(createdBase);
-        }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.ListBases
-        //
-        //----------------------------------------------------------------------------
-        public async Task<AirtableListBasesResponse> ListBases(string offset=null, CancellationToken token = default(CancellationToken))
-        {
-            var uriBuilder = new UriBuilder(UrlHeadMetaBases);
-            if (offset != null)
-            { 
-                AddParametersToQuery(ref uriBuilder, $"offset={offset}");
-            }
-            var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
-            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
-            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
-            if (error != null)
-            {
-                return new AirtableListBasesResponse(error);
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var baseList = JsonSerializer.Deserialize<BaseList>(responseBody, JsonOptionIgnoreNullValues);
-            return new AirtableListBasesResponse(baseList);
         }
 
 
