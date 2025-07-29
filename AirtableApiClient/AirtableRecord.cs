@@ -10,11 +10,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get; internal set; }
+        public string Offset { get; set; }
 
         [JsonPropertyName("records")]
         [JsonInclude]
-        public AirtableRecord[] Records { get; internal set; }
+        public AirtableRecord[] Records { get; set; }
     }
 
 
@@ -22,21 +22,21 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public DateTime CreatedTime { get; internal set; }
+        public DateTime CreatedTime { get; set; }
 
         [JsonPropertyName("fields")]
         [JsonInclude]
         // <string, object> where string is the Field ID/Field Name (different than the record ID) and object is one Field value
-        //public IDictionary<string, object> Fields { get; internal set; } = new Dictionary<string, object>();
+        //public IDictionary<string, object> Fields { get; set; } = new Dictionary<string, object>();
         public IDictionary<string, object> Fields { get; set; } = new Dictionary<string, object>(); // Make set public for upSert operations 01/30/2023
 
         [JsonPropertyName("commentCount")]
         [JsonInclude]
-        public int? CommentCount { get; internal set; }
+        public int? CommentCount { get; set; }
 
 #nullable enable
         public object? GetField(string fieldName)
@@ -176,11 +176,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get; internal set; }
+        public string Offset { get; set; }
 
         [JsonPropertyName("records")]
         [JsonInclude]
-        public AirtableRecord<T>[] Records { get; internal set; }
+        public AirtableRecord<T>[] Records { get; set; }
     }
 
 
@@ -188,19 +188,19 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public DateTime CreatedTime { get; internal set; }
+        public DateTime CreatedTime { get; set; }
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public T Fields { get; internal set; }
+        public T Fields { get; set; }
 
         [JsonPropertyName("commentCount")]
         [JsonInclude]
-        public int CommentCount { get; internal set; } 
+        public int CommentCount { get; set; } 
     }
 
 
@@ -208,11 +208,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("createdRecords")]
         [JsonInclude]
-        public string[] CreatedRecords { get; internal set; }
+        public string[] CreatedRecords { get; set; }
 
         [JsonPropertyName("updatedRecords")]
         [JsonInclude]
-        public string[] UpdatedRecords { get; internal set; }
+        public string[] UpdatedRecords { get; set; }
     }
 
 }
