@@ -127,6 +127,21 @@ namespace AirtableApiClient
         public readonly AirtableRecord Record;
     }
 
+    public class AirtableCreateReplaceRecordResponse<T> : AirtableApiResponse
+    {
+        public AirtableCreateReplaceRecordResponse(AirtableApiException error) : base(error)
+        {
+            Record = null;
+        }
+
+        public AirtableCreateReplaceRecordResponse(AirtableRecord<T> record) : base()
+        {
+            Record = record;
+        }
+
+        public readonly AirtableRecord<T> Record;
+    }
+
 
     public class AirtableCreateUpdateReplaceMultipleRecordsResponse : AirtableApiResponse
     {
@@ -145,6 +160,28 @@ namespace AirtableApiClient
         }
 
         public readonly AirtableRecord[] Records;
+        public readonly string[] CreatedRecords;
+        public readonly string[] UpdatedRecords;
+    }
+
+
+    public class AirtableCreateReplaceMultipleRecordsResponse<T> : AirtableApiResponse
+    {
+        public AirtableCreateReplaceMultipleRecordsResponse(AirtableApiException error) : base(error)
+        {
+            Records = null;
+            CreatedRecords = null;
+            UpdatedRecords = null;
+        }
+
+        public AirtableCreateReplaceMultipleRecordsResponse(AirtableUpSertRecordList<T> upsertRecordList) : base()
+        {
+            Records = upsertRecordList.Records;
+            CreatedRecords = upsertRecordList.CreatedRecords;
+            UpdatedRecords = upsertRecordList.UpdatedRecords;
+        }
+
+        public readonly AirtableRecord<T>[] Records;
         public readonly string[] CreatedRecords;
         public readonly string[] UpdatedRecords;
     }

@@ -215,4 +215,15 @@ namespace AirtableApiClient
         public string[] UpdatedRecords { get; set; }
     }
 
+
+    public class AirtableUpSertRecordList<T> : AirtableRecordList<T>
+    {
+        [JsonPropertyName("createdRecords")]
+        [JsonInclude]
+        public string[] CreatedRecords { get; set; }
+
+        [JsonPropertyName("updatedRecords")]
+        [JsonInclude]
+        public string[] UpdatedRecords { get; set; }
+    }
 }
