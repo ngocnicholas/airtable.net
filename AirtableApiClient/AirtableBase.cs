@@ -44,7 +44,6 @@ namespace AirtableApiClient
         //                   delegating handler.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(string apiKeyOrAccessToken, string baseId) : this(apiKeyOrAccessToken, baseId, null)
         {
             // No delegating handler is given; a normal HttpClient will be constructed
@@ -58,7 +57,6 @@ namespace AirtableApiClient
         //    constructor -- for Unit tests and for users who want to pass in their own handler.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(
             string apiKeyOrAccessToken,
             string baseId,
@@ -87,7 +85,6 @@ namespace AirtableApiClient
         //                   The users owns this HttpClient and Airtable won't dispose it.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(
             HttpClient client,
             string apiKeyOrAccessToken,
@@ -149,7 +146,6 @@ namespace AirtableApiClient
             string tableIdOrName,
             string offset = null,
             IEnumerable<string> fields = null,
-            //string[] fields = null,
             string filterByFormula = null,
             int? maxRecords = null,
             int? pageSize = null,
@@ -190,7 +186,6 @@ namespace AirtableApiClient
         // The fields of each record are deserialized to type <T>.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
             string tableIdOrName,
             string offset = null,
@@ -228,7 +223,6 @@ namespace AirtableApiClient
         // Called to retrieve a record with the specified id from the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableRetrieveRecordResponse> RetrieveRecord(
         string tableIdOrName,
         string id,
@@ -261,7 +255,6 @@ namespace AirtableApiClient
         // The fields of the retrieved record are deserialized to type <T>.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableRetrieveRecordResponse<T>> RetrieveRecord<T>(
             string tableIdOrName,
             string id,
@@ -295,13 +288,13 @@ namespace AirtableApiClient
         // Called to create a record in the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> CreateRecord(
             string tableIdOrName,
             Fields fields,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Post, typecast: typecast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Post, typecast: typecast, token: token)).ConfigureAwait(false);
         }
 
 
@@ -315,9 +308,10 @@ namespace AirtableApiClient
         public async Task<AirtableCreateReplaceRecordResponse<T>> CreateRecordGeneric<T>(
             string tableIdOrName,
             T record,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Post, typecast: typecast).ConfigureAwait(false));
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Post, typecast: typecast, token: token).ConfigureAwait(false));
         }
 
 
@@ -328,14 +322,14 @@ namespace AirtableApiClient
         // Called to update a record with the specified ID in the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> UpdateRecord(
             string tableIdOrName,
             Fields fields,
             string id,
-            bool typeCast = false)
+            bool typeCast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, new HttpMethod("PATCH"), id, typeCast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, new HttpMethod("PATCH"), id, typeCast, token)).ConfigureAwait(false);
         }
 
 
@@ -346,14 +340,14 @@ namespace AirtableApiClient
         // Called to replace a record with the specified ID in the specified table using jsoncnotent .
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> ReplaceRecord(
             string tableIdOrName,
             Fields fields,
             string id,
-            bool typeCast = false)
+            bool typeCast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast, token)).ConfigureAwait(false);
         }
 
 
@@ -361,16 +355,17 @@ namespace AirtableApiClient
         //
         // AirtableBase.ReplaceRecordGeneric<T>
         //
-        // Called to create a record of type T in the specified table.
+        // Called to replace a record with the specified ID and of type T in the specified table.
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableCreateReplaceRecordResponse<T>> ReplaceRecordGeneric<T>(
             string tableIdOrName,
             T record,
             string recordId,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast: typecast)).ConfigureAwait(false);
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast, token)).ConfigureAwait(false);
         }
 
 
@@ -381,7 +376,6 @@ namespace AirtableApiClient
         // Called to delete a record with the specified ID in the specified table
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableDeleteRecordResponse> DeleteRecord(
             string tableIdOrName,
             string id,
@@ -410,7 +404,6 @@ namespace AirtableApiClient
         // Called to create multiple records in the specified table in one single operation.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
             string tableIdOrName,
             Fields[] fields,
@@ -700,7 +693,6 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         //
         // AirtableBase.ListWebhooks
-        //
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableListWebhooksResponse> ListWebhooks(
@@ -1088,7 +1080,7 @@ namespace AirtableApiClient
             }
 
             var (responseBody, error) = await SendRequest(httpMethod, uriStr, json, token).ConfigureAwait(false);
-            var request = new HttpRequestMessage(httpMethod, uriStr);
+            //var request = new HttpRequestMessage(httpMethod, uriStr);
             if (error != null)
             {
                 return new AirtableCreateReplaceRecordResponse<T>(error);
