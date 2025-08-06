@@ -1067,7 +1067,7 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
-            TableIdOrNameChk(tableIdOrName);
+            TableIdOrNameCheck(tableIdOrName);
 
             string json = JsonSerializer.Serialize(record, JsonOptionIgnoreNullValues);
             var fields = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
@@ -1166,7 +1166,7 @@ namespace AirtableApiClient
         }
 
 
-        private void TableIdOrNameChk(string tableIdOrName)
+        private void TableIdOrNameCheck(string tableIdOrName)
         {
             if (string.IsNullOrEmpty(tableIdOrName))
             {
@@ -1177,7 +1177,7 @@ namespace AirtableApiClient
 
         private void ArgsCheck<T>(string tableIdOrName, T[] records, HttpMethod method, string[] ids = null)
         {
-            TableIdOrNameChk(tableIdOrName);
+            TableIdOrNameCheck(tableIdOrName);
 
             if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
             {
