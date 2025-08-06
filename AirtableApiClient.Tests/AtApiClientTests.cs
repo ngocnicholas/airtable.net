@@ -1,12 +1,6 @@
 ﻿#define FEWER_ARTISTS
-using System;
 using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.Json.Serialization;
 
 

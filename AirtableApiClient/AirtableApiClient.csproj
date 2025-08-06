@@ -22,10 +22,14 @@
   <PackageIcon>airtable_64x64.png</PackageIcon>
   <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
-  <PackageReleaseNotes>[feat] HttpClient IOC #83
-- Added an overload Airtablebse ctor where users can specify a HttpClient
-[feat] CancellationToken #84
-- Added ancellationToken support</PackageReleaseNotes>
+  <PackageReleaseNotes>
+[docs] Upsert #85
+- Update Airtable wiki documents
+[feat] Unable to create mock tests due to internal sets #90
+- all internal sets have been changed to public
+[feat] Allow serializing T to create/update/replace record #92
+- This feature is added for Create or Replace record(s) but not for Update record(s).
+  </PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
   <RepositoryType>git</RepositoryType>
@@ -39,8 +43,8 @@
       <PackageLicenseFile>LICENSE</PackageLicenseFile>
       <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
       <Version>$(Version)</Version>
-      <AssemblyVersion>1.5.0</AssemblyVersion>
-      <FileVersion>1.5.0</FileVersion>
+      <AssemblyVersion>1.6.0</AssemblyVersion>
+      <FileVersion>1.6.0</FileVersion>
       <PackageReadmeFile>README.md</PackageReadmeFile>
       <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
   </PropertyGroup>
