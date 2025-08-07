@@ -23,40 +23,40 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("timestamp")]
         [JsonInclude]
-        public DateTime Timestamp { get; internal set; }    // The time the action occurred.
+        public DateTime Timestamp { get; set; }    // The time the action occurred.
 
         [JsonPropertyName("baseTransactionNumber")]
         [JsonInclude]
-        public int BaseTransactionNumber { get; internal set; }
+        public int BaseTransactionNumber { get; set; }
 
         [JsonPropertyName("payloadFormat")]
         [JsonInclude]
-        public string PayloadFormat { get; internal set; }
+        public string PayloadFormat { get; set; }
 
         [JsonPropertyName("actionMetadata")]
         [JsonInclude]
-        public WebhooksAction ActionMetadata { get; internal set; }
+        public WebhooksAction ActionMetadata { get; set; }
 
         [JsonPropertyName("changedTablesById")]
         [JsonInclude]
-        public Dictionary<string, WebhooksTableChanged> ChangedTablesById { get; internal set; }
+        public Dictionary<string, WebhooksTableChanged> ChangedTablesById { get; set; }
 
         [JsonPropertyName("createdTablesById")]
         [JsonInclude]
-        public Dictionary<string, WebhooksTableCreated> CreatedTablesById { get; internal set; }
+        public Dictionary<string, WebhooksTableCreated> CreatedTablesById { get; set; }
 
         [JsonPropertyName("destroyedTableIds")]
         [JsonInclude]
-        public string[] DestroyedTableIds { get; internal set; }
+        public string[] DestroyedTableIds { get; set; }
 
         // Only error responses have the "error" and "code" fields.
         [JsonPropertyName("error")]
         [JsonInclude]
-        public bool? Error { get; internal set; }
+        public bool? Error { get; set; }
 
         [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR" or more may be introduced in the future
         [JsonInclude]
-        public string Code { get; internal set; }
+        public string Code { get; set; }
     }
 
 }

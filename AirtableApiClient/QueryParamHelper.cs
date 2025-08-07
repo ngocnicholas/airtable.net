@@ -154,7 +154,7 @@ namespace AirtableApiClient
         public bool Typecast { get; set; }
 
         [JsonPropertyName("records")]
-        public IdFields[] Records { get; internal set; }
+        public IdFields[] Records { get; set; }
     }
 
     public class PerformUpsert

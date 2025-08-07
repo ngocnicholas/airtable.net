@@ -6,7 +6,7 @@ namespace AirtableApiClient.Tests
 {
     public class ListAllRecordsTestResponse
     {
-        public ListAllRecordsTestResponse(bool success, string errorMessage, List<AirtableRecord> records)
+        public ListAllRecordsTestResponse(bool success, string? errorMessage, List<AirtableRecord> records)
         {
             Success = success;
             ErrorMessage = errorMessage;
@@ -14,14 +14,14 @@ namespace AirtableApiClient.Tests
         }
 
         public bool Success { get; set; }
-        public String ErrorMessage { get; set; }
-        public List<AirtableRecord> Records { get; set; }
+        public String? ErrorMessage { get; set; }
+        public List<AirtableRecord>? Records { get; set; }
     }
 
 
     public class ListAllRecordsTestResponse<T>
     {
-        public ListAllRecordsTestResponse(bool success, string errorMessage, List<AirtableRecord<T>> records)
+        public ListAllRecordsTestResponse(bool success, string? errorMessage, List<AirtableRecord<T>> records)
         {
             Success = success;
             ErrorMessage = errorMessage;
@@ -29,7 +29,7 @@ namespace AirtableApiClient.Tests
         }
 
         public bool Success { get; set; }
-        public String ErrorMessage { get; set; }
+        public String? ErrorMessage { get; set; }
         public List<AirtableRecord<T>> Records { get; set; }
     }
 }

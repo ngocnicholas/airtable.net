@@ -13,12 +13,12 @@ namespace AirtableApiClient.Tests
 
         internal class MethodAndResponse
         {
-            public HttpMethod Method { get; set; }
-            public HttpResponseMessage Response { get; set; }
-            public string BodyText {  get; set; }
+            public HttpMethod Method { get; set; } = HttpMethod.Get;
+            public HttpResponseMessage? Response { get; set; }
+            public string? BodyText { get; set; }
         }
 
-        internal void AddFakeResponse(string uri, HttpMethod method, HttpResponseMessage response, string bodyText=null)
+        internal void AddFakeResponse(string uri, HttpMethod method, HttpResponseMessage response, string? bodyText=null)
         {
             if (_FakeResponses.ContainsKey(uri))        // Uri is obsolete --> Remove it, so that we can add the new one with the same key but different value.
             {
@@ -37,8 +37,8 @@ namespace AirtableApiClient.Tests
                     {
                         throw new TaskCanceledException("A task was canceled.");
                     }                    
-                    string bodyText = null;
-                    string dictBodyText = _FakeResponses[request.RequestUri.AbsoluteUri].BodyText;
+                    string? bodyText = null;
+                    string? dictBodyText = _FakeResponses[request.RequestUri.AbsoluteUri].BodyText;
                     if (dictBodyText != null)
                     { 
                         bodyText = await request.Content.ReadAsStringAsync();
@@ -47,7 +47,12 @@ namespace AirtableApiClient.Tests
 
                     if (dictBodyText == null || bodyText == dictBodyText)
                     {
-                        return _FakeResponses[request.RequestUri.AbsoluteUri].Response;
+                        var response = _FakeResponses[request.RequestUri.AbsoluteUri].Response;
+                        if (response == null)
+                        {
+                            throw new InvalidOperationException("Response cannot be null.");
+                        }
+                        return response;
                     }
                 }
             }

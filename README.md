@@ -7,7 +7,7 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the latest nuget package Airtable.1.5.0.nupkg
+Install the latest nuget package Airtable.1.6.0.nupkg
 
 ## Requirements
 
@@ -38,11 +38,13 @@ Example demonstrating usage of the API to list records:
 ```cs
 
 using System;
+using System.ComponentModel;
+using System.Net.Http;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using AirtableApiClient;
 

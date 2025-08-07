@@ -9,11 +9,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get;set; }
 
         [JsonPropertyName("author")]
         [JsonInclude]
-        public Author Author { get; internal set; }
+        public Author Author { get;set; }
 
         [JsonPropertyName("mentioned")] // mentioned may contain one or more multiple. Each user is a key value pair of UserMentioned in the dictionary.
         [JsonInclude]
@@ -23,15 +23,15 @@ namespace AirtableApiClient
 
         [JsonPropertyName("text")]
         [JsonInclude]
-        public string Text { get; internal set; }
+        public string Text { get;set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
-        public DateTime CreatedTime { get; internal set; }
+        public DateTime CreatedTime { get;set; }
 
         [JsonPropertyName("lastUpdatedTime")]
         [JsonInclude]
-        public DateTime? LastUpdatedTime { get; internal set; }
+        public DateTime? LastUpdatedTime { get;set; }
 
 
         //----------------------------------------------------------------------------
@@ -88,15 +88,15 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get;set; }
 
         [JsonPropertyName("email")]
         [JsonInclude]
-        public string Email { get; internal set; }
+        public string Email { get;set; }
 
         [JsonPropertyName("name")]
         [JsonInclude]
-        public string Name { get; internal set; }
+        public string Name { get;set; }
     }
 
 
@@ -104,19 +104,19 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("type")]
         [JsonInclude]
-        public string Type { get; internal set; }
+        public string Type { get;set; }
 
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; internal set; }
+        public string Id { get;set; }
 
         [JsonPropertyName("displayName")]
         [JsonInclude]
-        public string DisplayName { get; internal set; }
+        public string DisplayName { get;set; }
 
         [JsonPropertyName("email")]
         [JsonInclude]
-        public string Email { get; internal set; }
+        public string Email { get;set; }
     }
 
 
@@ -124,12 +124,12 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("comments")]
         [JsonInclude]
-        public Comment[] Comments { get; internal set; }
+        public Comment[] Comments { get;set; }
 
 
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get; internal set; }
+        public string Offset { get;set; }
     }
 
 }   // end namespace

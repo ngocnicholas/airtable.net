@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
 using System.Web;
 
 
@@ -43,7 +44,6 @@ namespace AirtableApiClient
         //                   delegating handler.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(string apiKeyOrAccessToken, string baseId) : this(apiKeyOrAccessToken, baseId, null)
         {
             // No delegating handler is given; a normal HttpClient will be constructed
@@ -57,7 +57,6 @@ namespace AirtableApiClient
         //    constructor -- for Unit tests and for users who want to pass in their own handler.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(
             string apiKeyOrAccessToken,
             string baseId,
@@ -86,7 +85,6 @@ namespace AirtableApiClient
         //                   The users owns this HttpClient and Airtable won't dispose it.
         //
         //----------------------------------------------------------------------------
-
         public AirtableBase(
             HttpClient client,
             string apiKeyOrAccessToken,
@@ -148,7 +146,6 @@ namespace AirtableApiClient
             string tableIdOrName,
             string offset = null,
             IEnumerable<string> fields = null,
-            //string[] fields = null,
             string filterByFormula = null,
             int? maxRecords = null,
             int? pageSize = null,
@@ -189,7 +186,6 @@ namespace AirtableApiClient
         // The fields of each record are deserialized to type <T>.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableListRecordsResponse<T>> ListRecords<T>(
             string tableIdOrName,
             string offset = null,
@@ -227,7 +223,6 @@ namespace AirtableApiClient
         // Called to retrieve a record with the specified id from the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableRetrieveRecordResponse> RetrieveRecord(
         string tableIdOrName,
         string id,
@@ -260,7 +255,6 @@ namespace AirtableApiClient
         // The fields of the retrieved record are deserialized to type <T>.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableRetrieveRecordResponse<T>> RetrieveRecord<T>(
             string tableIdOrName,
             string id,
@@ -294,13 +288,30 @@ namespace AirtableApiClient
         // Called to create a record in the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> CreateRecord(
             string tableIdOrName,
             Fields fields,
-            bool typecast = false)
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Post, typecast: typecast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Post, typecast: typecast, token: token)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateReplaceRecordGeneric<T>
+        //
+        // Called to create a record of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceRecordGenericResponse<T>> CreateRecordGeneric<T>(
+            string tableIdOrName,
+            T record,
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Post, typecast: typecast, token: token).ConfigureAwait(false));
         }
 
 
@@ -311,14 +322,14 @@ namespace AirtableApiClient
         // Called to update a record with the specified ID in the specified table.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> UpdateRecord(
             string tableIdOrName,
             Fields fields,
             string id,
-            bool typeCast = false)
+            bool typeCast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, new HttpMethod("PATCH"), id, typeCast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, new HttpMethod("PATCH"), id, typeCast, token)).ConfigureAwait(false);
         }
 
 
@@ -329,14 +340,32 @@ namespace AirtableApiClient
         // Called to replace a record with the specified ID in the specified table using jsoncnotent .
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceRecordResponse> ReplaceRecord(
             string tableIdOrName,
             Fields fields,
             string id,
-            bool typeCast = false)
+            bool typeCast = false,
+            CancellationToken token = default(CancellationToken))
         {
-            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast)).ConfigureAwait(false);
+            return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast, token)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ReplaceRecordGeneric<T>
+        //
+        // Called to replace a record with the specified ID and of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceRecordGenericResponse<T>> ReplaceRecordGeneric<T>(
+            string tableIdOrName,
+            T record,
+            string recordId,
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast, token)).ConfigureAwait(false);
         }
 
 
@@ -347,7 +376,6 @@ namespace AirtableApiClient
         // Called to delete a record with the specified ID in the specified table
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableDeleteRecordResponse> DeleteRecord(
             string tableIdOrName,
             string id,
@@ -376,7 +404,6 @@ namespace AirtableApiClient
         // Called to create multiple records in the specified table in one single operation.
         //
         //----------------------------------------------------------------------------
-
         public async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateMultipleRecords(
             string tableIdOrName,
             Fields[] fields,
@@ -427,6 +454,24 @@ namespace AirtableApiClient
                 }
             }
             return response;
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateMultipleRecordsGeneric<T>
+        //
+        // Called to create multiple records of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> CreateMultipleRecordsGeneric<T>(
+            string tableIdOrName,
+            T[] records,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await (CreateReplaceMultipleRecordsGeneric<T>(tableIdOrName, records, HttpMethod.Post, null, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
         }
 
 
@@ -509,6 +554,25 @@ namespace AirtableApiClient
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ReplaceMultipleRecordsGeneric<T>
+        //
+        // Called to create multiple records of type T in the specified table.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> ReplaceMultipleRecordsGeneric<T>(
+            string tableIdOrName,
+            T[] records,
+            string[] ids,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            return await (CreateReplaceMultipleRecordsGeneric<T>(tableIdOrName, records, HttpMethod.Put, ids, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
         }
 
 
@@ -629,7 +693,6 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         //
         // AirtableBase.ListWebhooks
-        //
         //
         //----------------------------------------------------------------------------
         public async Task<AirtableListWebhooksResponse> ListWebhooks(
@@ -961,7 +1024,10 @@ namespace AirtableApiClient
         // in one operation
         //
         //----------------------------------------------------------------------------
-        private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(string tableIdOrName, HttpMethod method, string json,
+        private async Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> CreateUpdateReplaceMultipleRecords(
+            string tableIdOrName, 
+            HttpMethod method, 
+            string json,
             CancellationToken token)
         {
             if (string.IsNullOrEmpty(tableIdOrName))
@@ -983,6 +1049,148 @@ namespace AirtableApiClient
             var upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList>(responseBody);
 
             return new AirtableCreateUpdateReplaceMultipleRecordsResponse(upsertRecordList);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateReplaceRecord<T>
+        //
+        // worker function which does the real work for creating, updating, or replacing a record using a template.
+        //
+        //----------------------------------------------------------------------------
+        private async Task<AirtableCreateReplaceRecordGenericResponse<T>> CreateReplaceRecordGeneric<T>(
+            string tableIdOrName,
+            T record,
+            HttpMethod httpMethod,
+            string recordId = null, // only used by Replace
+            bool typecast = false,
+            CancellationToken token = default(CancellationToken))
+        {
+            TableIdOrNameCheck(tableIdOrName);
+
+            string json = JsonSerializer.Serialize(record, JsonOptionIgnoreNullValues);
+            var fields = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            json = JsonSerializer.Serialize(new { fields = fields, typecast = typecast }, JsonOptionIgnoreNullValues);
+
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
+            if (httpMethod != HttpMethod.Post)  // Create uses Post, Update uses Patch, Replace uses Put
+            {
+                uriStr += recordId + "/";
+            }
+
+            var (responseBody, error) = await SendRequest(httpMethod, uriStr, json, token).ConfigureAwait(false);
+            //var request = new HttpRequestMessage(httpMethod, uriStr);
+            if (error != null)
+            {
+                return new AirtableCreateReplaceRecordGenericResponse<T>(error);
+            }
+            AirtableRecord<T> airtableRecord = JsonSerializer.Deserialize<AirtableRecord<T>>(responseBody);
+            return new AirtableCreateReplaceRecordGenericResponse<T>(airtableRecord);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.AirtableCreateReplaceMultipleRecordsGenericResponse<T>
+        //
+        // worker function which does the real work for creating, or replacing multiple records
+        // using a template in one operation
+        //
+        //----------------------------------------------------------------------------
+        private async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> CreateReplaceMultipleRecordsGeneric<T>(
+            string tableIdOrName,
+            T[] records,
+            HttpMethod method,
+            string[] ids,
+            bool typecast,
+            bool returnFieldsByFieldId,
+            CancellationToken token)
+        {
+            ArgsCheck(tableIdOrName, records, method, ids);
+
+            // Convert records into a list of Dicionaries
+            string json = JsonSerializer.Serialize(records, JsonOptionIgnoreNullValues);
+            var fields = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(json);
+
+            if (method == HttpMethod.Put)   // Replacing multiple records? Airtable requires an IdFields[]
+            {
+                // Combine the 2 arrays ids and fields into one IdFields[].
+                IdFields[] idFields = ids.Zip(fields, (id, fields) => new IdFields
+                {
+                    id = id,
+                    FieldsCollection = fields
+                }).ToArray();
+                json = JsonSerializer.Serialize(new { records = idFields, typecast = typecast, returnFieldsByFieldId = returnFieldsByFieldId }, JsonOptionIgnoreNullValues);
+            }
+            else   // Creating records
+            {
+                Fields[] fieldsArr = new Fields[records.Length];
+                for (int i = 0; i < records.Length; i++)
+                {
+                    fieldsArr[i] = new Fields { FieldsCollection = fields[i] };
+                }
+                json = JsonSerializer.Serialize(new { records = fieldsArr, typecast = typecast, returnFieldsByFieldId = returnFieldsByFieldId }, JsonOptionIgnoreNullValues);
+            }
+            string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
+            var (responseBody, error) = await SendRequest(method, uriStr, json, token).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableCreateReplaceMultipleRecordsGenericResponse<T>(error);
+            }
+            AirtableUpSertRecordList<T> upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList<T>>(responseBody);
+
+            return new AirtableCreateReplaceMultipleRecordsGenericResponse<T>(upsertRecordList);
+        }
+
+        private async Task<(string responseBody, AirtableApiException error)> SendRequest(
+            HttpMethod method,
+            string uriStr,
+            string json,
+            CancellationToken token)
+        {
+            var request = new HttpRequestMessage(method, uriStr);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+
+            AirtableApiException error = await CheckForAirtableException(response).ConfigureAwait(false);
+            string responseBody = null;
+
+            if (error == null)
+            {
+                responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            }
+
+            return (responseBody, error);
+        }
+
+
+        private void TableIdOrNameCheck(string tableIdOrName)
+        {
+            if (string.IsNullOrEmpty(tableIdOrName))
+            {
+                throw new ArgumentException("Table ID or Name cannot be null", "tableIdOrName");
+            }
+        }
+
+
+        private void ArgsCheck<T>(string tableIdOrName, T[] records, HttpMethod method, string[] ids = null)
+        {
+            TableIdOrNameCheck(tableIdOrName);
+
+            if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
+            {
+                throw new ArgumentException(String.Format("Number of records must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
+            }
+
+            if (method == HttpMethod.Put)   // For Replace operations
+            {
+                if (ids == null || records.Length != ids.Length)
+                {
+                    throw new ArgumentException(String.Format("Number of records to be replaced must be >0 && <= {0} and equal to the number of IDs", MAX_RECORD_OPERATION_SIZE));
+                }
+            }
         }
 
 

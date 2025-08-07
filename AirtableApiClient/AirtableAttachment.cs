@@ -30,11 +30,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("small")]
         [JsonInclude]
-        public Thumbnail Small { get; internal set; }
+        public Thumbnail Small { get; set; }
 
         [JsonPropertyName("large")]
         [JsonInclude]
-        public Thumbnail Large { get; internal set; }
+        public Thumbnail Large { get; set; }
     }
 
 
@@ -44,15 +44,15 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("url")]
         [JsonInclude]
-        public string Url { get; internal set; }
+        public string Url { get; set; }
 
         [JsonPropertyName("width")]
         [JsonInclude]
-        public long Width { get; internal set; }
+        public long Width { get; set; }
 
         [JsonPropertyName("height")]
         [JsonInclude]
-        public long Height { get; internal set; }
+        public long Height { get; set; }
     }
 
 }
