@@ -305,7 +305,7 @@ namespace AirtableApiClient
         // Called to create a record of type T in the specified table.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateReplaceRecordResponse<T>> CreateRecordGeneric<T>(
+        public async Task<AirtableCreateReplaceRecordGenericResponse<T>> CreateRecordGeneric<T>(
             string tableIdOrName,
             T record,
             bool typecast = false,
@@ -358,7 +358,7 @@ namespace AirtableApiClient
         // Called to replace a record with the specified ID and of type T in the specified table.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateReplaceRecordResponse<T>> ReplaceRecordGeneric<T>(
+        public async Task<AirtableCreateReplaceRecordGenericResponse<T>> ReplaceRecordGeneric<T>(
             string tableIdOrName,
             T record,
             string recordId,
@@ -464,7 +464,7 @@ namespace AirtableApiClient
         // Called to create multiple records of type T in the specified table.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> CreateMultipleRecordsGeneric<T>(
+        public async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> CreateMultipleRecordsGeneric<T>(
             string tableIdOrName,
             T[] records,
             bool typecast = false,
@@ -564,7 +564,7 @@ namespace AirtableApiClient
         // Called to create multiple records of type T in the specified table.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> ReplaceMultipleRecordsGeneric<T>(
+        public async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> ReplaceMultipleRecordsGeneric<T>(
             string tableIdOrName,
             T[] records,
             string[] ids,
@@ -1059,7 +1059,7 @@ namespace AirtableApiClient
         // worker function which does the real work for creating, updating, or replacing a record using a template.
         //
         //----------------------------------------------------------------------------
-        private async Task<AirtableCreateReplaceRecordResponse<T>> CreateReplaceRecordGeneric<T>(
+        private async Task<AirtableCreateReplaceRecordGenericResponse<T>> CreateReplaceRecordGeneric<T>(
             string tableIdOrName,
             T record,
             HttpMethod httpMethod,
@@ -1083,22 +1083,22 @@ namespace AirtableApiClient
             //var request = new HttpRequestMessage(httpMethod, uriStr);
             if (error != null)
             {
-                return new AirtableCreateReplaceRecordResponse<T>(error);
+                return new AirtableCreateReplaceRecordGenericResponse<T>(error);
             }
             AirtableRecord<T> airtableRecord = JsonSerializer.Deserialize<AirtableRecord<T>>(responseBody);
-            return new AirtableCreateReplaceRecordResponse<T>(airtableRecord);
+            return new AirtableCreateReplaceRecordGenericResponse<T>(airtableRecord);
         }
 
 
         //----------------------------------------------------------------------------
         //
-        // AirtableBase.CreateUpdateReplaceMultipleRecords<T>
+        // AirtableBase.AirtableCreateReplaceMultipleRecordsGenericResponse<T>
         //
         // worker function which does the real work for creating, or replacing multiple records
         // using a template in one operation
         //
         //----------------------------------------------------------------------------
-        private async Task<AirtableCreateReplaceMultipleRecordsResponse<T>> CreateReplaceMultipleRecordsGeneric<T>(
+        private async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> CreateReplaceMultipleRecordsGeneric<T>(
             string tableIdOrName,
             T[] records,
             HttpMethod method,
@@ -1136,11 +1136,11 @@ namespace AirtableApiClient
             var (responseBody, error) = await SendRequest(method, uriStr, json, token).ConfigureAwait(false);
             if (error != null)
             {
-                return new AirtableCreateReplaceMultipleRecordsResponse<T>(error);
+                return new AirtableCreateReplaceMultipleRecordsGenericResponse<T>(error);
             }
             AirtableUpSertRecordList<T> upsertRecordList = JsonSerializer.Deserialize<AirtableUpSertRecordList<T>>(responseBody);
 
-            return new AirtableCreateReplaceMultipleRecordsResponse<T>(upsertRecordList);
+            return new AirtableCreateReplaceMultipleRecordsGenericResponse<T>(upsertRecordList);
         }
 
         private async Task<(string responseBody, AirtableApiException error)> SendRequest(

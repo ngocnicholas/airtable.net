@@ -2169,7 +2169,7 @@ namespace AirtableApiClient.Tests
             Jony.Genre = new List<string> { "Symbolism", "Art Nouveau" };
             Jony.OnDisplay = true;
 
-            Task<AirtableCreateReplaceRecordResponse<Artist>> task = airtableBase.CreateRecordGeneric<Artist>(TABLE_NAME, Jony, true);
+            Task<AirtableCreateReplaceRecordGenericResponse<Artist>> task = airtableBase.CreateRecordGeneric<Artist>(TABLE_NAME, Jony, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -2216,7 +2216,7 @@ namespace AirtableApiClient.Tests
             jony.Name = "Jony Replaced";
             jony.Bio = "Jony Replaced was born last year.";
 
-            Task<AirtableCreateReplaceRecordResponse<Artist>> task = airtableBase.ReplaceRecordGeneric<Artist>(TABLE_NAME, jony, jonyRecordId, true);
+            Task<AirtableCreateReplaceRecordGenericResponse<Artist>> task = airtableBase.ReplaceRecordGeneric<Artist>(TABLE_NAME, jony, jonyRecordId, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -2256,7 +2256,7 @@ namespace AirtableApiClient.Tests
             artists[1].Bio = "Jony3 was born last year.";
             artists[1].Attachments = attachmentList;
 
-            Task<AirtableCreateReplaceMultipleRecordsResponse<Artist>> task = airtableBase.CreateMultipleRecordsGeneric<Artist>(TABLE_NAME, artists, true);
+            Task<AirtableCreateReplaceMultipleRecordsGenericResponse<Artist>> task = airtableBase.CreateMultipleRecordsGeneric<Artist>(TABLE_NAME, artists, true);
             var response = await task;
 
             Assert.IsTrue(response.Success);
@@ -2309,7 +2309,7 @@ namespace AirtableApiClient.Tests
                 artists[1] = jony3;
                 jony3.Name = "Jony3 Again";
 
-                Task<AirtableCreateReplaceMultipleRecordsResponse<Artist>> task = airtableBase.ReplaceMultipleRecordsGeneric<Artist>(TABLE_NAME, artists, ids);
+                Task<AirtableCreateReplaceMultipleRecordsGenericResponse<Artist>> task = airtableBase.ReplaceMultipleRecordsGeneric<Artist>(TABLE_NAME, artists, ids);
 
                 var response = await task;
 
