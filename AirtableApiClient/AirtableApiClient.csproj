@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <ApplicationIcon />
     <Win32Resource />
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  <!--AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath -->
   <PackageId>Airtable</PackageId>
   <Title>Airtable Api Client</Title>
   <Authors>Ngoc Nicholas</Authors>
@@ -58,8 +58,13 @@
     <None Remove="readme.txt" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- For netstandard2.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" Version="7.0.2" />
   </ItemGroup>
 
+  <!-- For .NET 6.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+  </ItemGroup>
 </Project>

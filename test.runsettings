@@ -1,0 +1,18 @@
+<RunSettings>
+  <RunConfiguration>
+    <!-- Force 64-bit test host -->
+    <TargetPlatform>x64</TargetPlatform>
+
+    <!-- Avoid AppDomain issues when mixing .NET Framework & .NET Core -->
+    <DisableAppDomain>true</DisableAppDomain>
+
+    <!-- Only used by .NET Core tests; points directly to .NET 6 runtime -->
+    <TestHostPath>C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.36</TestHostPath>
+  </RunConfiguration>
+
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" enabled="false" />
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
