@@ -58,13 +58,15 @@
     <None Remove="readme.txt" />
   </ItemGroup>
 
-  <!-- For netstandard2.0 -->
+  <!-- netstandard2.0: PIN EXACT versions -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+    <PackageReference Include="System.Text.Json" Version="[6.0.10]" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="[6.0.0]" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[6.0.0]" />
   </ItemGroup>
 
-  <!-- For .NET 6.0 -->
+  <!-- net6.0: leave empty (Json is inbox) -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <!-- intentionally empty -->
   </ItemGroup>
 </Project>
