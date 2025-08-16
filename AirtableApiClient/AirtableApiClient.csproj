@@ -23,12 +23,9 @@
   <!-- <PackageLicenseFile>LICENSE</PackageLicenseFile> -->
   <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
   <PackageReleaseNotes>
-[docs] Upsert #85
-- Update Airtable wiki documents
-[feat] Unable to create mock tests due to internal sets #90
-- all internal sets have been changed to public
-[feat] Allow serializing T to create/update/replace record #92
-- This feature is added for Create or Replace record(s) but not for Update record(s).
+      System.Text.Json 7.0.2 has been downgraded to 6.0.10 fo fix the 2 problems below:
+      - System.Text.Json 7.0 causes problems for .net 6.0 consumers (#73)
+      - Security vulnarability in System.Text.Json 7.0.2
   </PackageReleaseNotes>
   <Description>AirtableApiClient is the C-Sharp client of the public APIs of Airtable. It facilitates the usage of Airtable APIs without having to worry about interfacing with raw HTTP.</Description>
   <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
@@ -43,8 +40,8 @@
       <PackageLicenseFile>LICENSE</PackageLicenseFile>
       <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
       <Version>$(Version)</Version>
-      <AssemblyVersion>1.6.0</AssemblyVersion>
-      <FileVersion>1.6.0</FileVersion>
+      <AssemblyVersion>1.7.0</AssemblyVersion>
+      <FileVersion>1.7.0</FileVersion>
       <PackageReadmeFile>README.md</PackageReadmeFile>
       <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
   </PropertyGroup>
