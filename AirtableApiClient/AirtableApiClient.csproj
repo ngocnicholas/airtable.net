@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <ApplicationIcon />
     <Win32Resource />
@@ -49,21 +49,14 @@
   <ItemGroup>
       <None Include="..\LICENSE" Pack="true" PackagePath="" />
       <None Include="..\README.md" Pack="true" PackagePath="" />
+      <None Remove="readme.txt" />
   </ItemGroup>
 
+  <!-- PIN EXACT versions -->
   <ItemGroup>
-    <None Remove="readme.txt" />
-  </ItemGroup>
-
-  <!-- netstandard2.0: PIN EXACT versions -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Text.Json" Version="[6.0.10]" />
     <PackageReference Include="System.Text.Encodings.Web" Version="[6.0.0]" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[6.0.0]" />
   </ItemGroup>
 
-  <!-- net6.0: leave empty (Json is inbox) -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <!-- intentionally empty -->
-  </ItemGroup>
 </Project>

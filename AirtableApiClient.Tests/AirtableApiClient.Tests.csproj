@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <TargetFramework>net472</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -10,15 +10,10 @@
     <NoWarn>CS8602</NoWarn>
   </PropertyGroup>
 
-  <!-- netstandard2.0: PIN EXACT versions -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+  <!-- net472: PIN EXACT versions -->
+  <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="[6.0.10]" />
     <Reference Include="System.Net.Http" Version="4.3.4"/>
-  </ItemGroup>
-
-  <!-- net6.0: leave empty (Json is inbox) -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-      <!-- intentionally empty -->
   </ItemGroup>
 
   <ItemGroup>
