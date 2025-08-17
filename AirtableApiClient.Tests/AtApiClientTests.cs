@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.Json.Serialization;
+using System.Net.Http;
 
 
 namespace AirtableApiClient.Tests
@@ -12,15 +13,15 @@ namespace AirtableApiClient.Tests
     // annotation; see JsonProperty("On Display?")] below as an example.
     public class Artist
     {
-        public string Name { get; set;}
-        public List<AirtableAttachment> Attachments { get; set;}
-        public string Bio { get; set;}
+        public string Name { get; set; } = string.Empty;
+        public List<AirtableAttachment>? Attachments { get; set; }
+        public string? Bio { get; set;}
 
         [JsonPropertyName("On Display?")]
         public bool OnDisplay { get; set;}
 
-        public List<string> Collection { get; set;}
-        public List<string> Genre { get; set;}
+        public List<string>? Collection { get; set;}
+        public List<string>? Genre { get; set;}
     }
 
 
@@ -39,9 +40,9 @@ namespace AirtableApiClient.Tests
         const string API_KEY = "key1234567890ABCD";                                 // fake airtable api key for tests
         readonly string BASE_URL = $"https://api.airtable.com/v0/{APPLICATION_ID}/{Uri.EscapeDataString(TABLE_NAME)}";
 
-        static private AirtableBase airtableBase;
-        private FakeResponseHandler fakeResponseHandler;
-        private HttpResponseMessage fakeResponse;
+        static private AirtableBase? airtableBase;
+        private FakeResponseHandler? fakeResponseHandler;
+        private HttpResponseMessage? fakeResponse;
 
         //private readonly string UrlHead = "https://api.airtable.com/v0/";
         private readonly string UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + APPLICATION_ID + "/webhooks");
@@ -405,9 +406,9 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Record.Id == MIYA_ANDO_RECORD_ID);
             Assert.IsTrue(response.Record.GetField<string>("fldSAUw6qVy9NzXzF") == "Miya Ando");
 
-            object collectionObject = response.Record.GetField("fldE0muAk6ejOkkKa");
-
-            string collectionString = collectionObject.ToString();
+            object? collectionObject = response.Record.GetField("fldE0muAk6ejOkkKa");
+            Assert.IsNotNull(collectionObject);
+            string? collectionString = collectionObject.ToString();
             Console.WriteLine(collectionString);
             Assert.IsTrue(collectionString == "Post-minimalism, Color Field");
         }
@@ -765,13 +766,13 @@ namespace AirtableApiClient.Tests
                     fakeResponse,
                     bodyText);
 
-            string errorMessage = null;
+            string? errorMessage = null;
             IdFields[] idFields = new IdFields[1];
             idFields[0] = new IdFields("reczQzLFP6t6HWMs0");
             idFields[0].AddField("On Display?", true);
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.UpdateMultipleRecords(TABLE_NAME, idFields);
             var response = await task;
-            AirtableRecord[] records = null;
+            AirtableRecord[]? records = null;
             if (!response.Success)
             {
                 if (response.AirtableApiError is AirtableApiException)
@@ -822,13 +823,13 @@ namespace AirtableApiClient.Tests
                 fakeResponse,
                 bodyText);
 
-            string errorMessage = null;
+            string? errorMessage = null;
             IdFields[] idFields = new IdFields[1];
             idFields[0] = new IdFields("reczQzLFP6t6HWMs0");
             idFields[0].AddField("Name", "Auguste Rodin");
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.ReplaceMultipleRecords(TABLE_NAME, idFields);
             var response = await task;
-            AirtableRecord[] records = null;
+            AirtableRecord[]? records = null;
             if (!response.Success)
             {
                 if (response.AirtableApiError is AirtableApiException)
@@ -969,7 +970,7 @@ namespace AirtableApiClient.Tests
                 fakeResponse,
                 bodyText);
 
-            string errorMessage = null;
+            string? errorMessage = null;
 
             IdFields[] idFields = new IdFields[2];
             idFields[0] = new IdFields(idMonet);
@@ -979,7 +980,7 @@ namespace AirtableApiClient.Tests
             idFields[1] = new IdFields(idVanGogh);
             idFields[1].AddField("Name", "Vincent VanGogh replaced");
 
-            AirtableRecord[] records = null;
+            AirtableRecord[]? records = null;
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.ReplaceMultipleRecords(TABLE_NAME, idFields);
             var response = await task;
 
@@ -1046,7 +1047,8 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Records.Count > 0);
             var record = response.Records[0];                // We knew this is the record for "Al Held"
             string fieldIdOfFieldName = "fldSAUw6qVy9NzXzF";    // We also knew this is the field ID for "Al Held"
-            string artistName = record.GetField<string>(fieldIdOfFieldName);
+            string? artistName = record.GetField<string>(fieldIdOfFieldName);
+            Assert.IsNotNull(artistName);
             Assert.IsTrue(artistName == "Al Held");
         }
 
@@ -1120,7 +1122,8 @@ namespace AirtableApiClient.Tests
             Assert.IsNotNull(records);
             foreach (var record in records)
             {
-                string bankName = record.Fields["Bank Name"].ToString();
+                string? bankName = record.Fields["Bank Name"].ToString();
+                Assert.IsNotNull(bankName);
                 record.Fields["Bank Name"] = bankName + "Updated";
             }
 
@@ -1168,7 +1171,8 @@ namespace AirtableApiClient.Tests
             Assert.IsNotNull(records);
             foreach (var record in records)
             {
-                string bankName = record.Fields["Bank Name"].ToString();
+                string? bankName = record.Fields["Bank Name"].ToString();
+                Assert.IsNotNull(bankName);
                 record.Fields["Bank Name"] = bankName + "Replaced";
                 record.Fields.Remove("Bio");
             }
@@ -1224,11 +1228,12 @@ namespace AirtableApiClient.Tests
 
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task = airtableBase.CreateMultipleRecords(TABLE_NAME, fields, true);
             var response = await task;
-            string renoirId = null;
-            string manetId = null;
+            string? renoirId = null;
+            string ?manetId = null;
             foreach (var record in response.Records)
             {
-                string name = record.GetField<string>("Name");
+                string? name = record.GetField<string>("Name");
+                Assert.IsNotNull(name);
                 if (name == "Pierre-Auguste Renoir")
                 {
                     renoirId = record.Id;
@@ -1539,7 +1544,7 @@ namespace AirtableApiClient.Tests
                     fakeResponse,
                     bodyText);
 
-            string errorMessage = null;
+            string? errorMessage = null;
             var records = new List<AirtableRecord>();
 
             Task<ListAllRecordsTestResponse> task = ListAllRecords();
@@ -1656,9 +1661,9 @@ namespace AirtableApiClient.Tests
         [TestMethod]
         public async Task TzGAtApiClientListCommentsTest()
         {
-            string offset = null;
+            string? offset = null;
             Task<AirtableListCommentsResponse> task;
-            AirtableListCommentsResponse response = null;
+            AirtableListCommentsResponse? response = null;
 
             fakeResponse.Content = new StringContent
                 ("{\"comments\":[{\"id\":\"com8pc4Ht1i4CkPM5\",\"author\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"name\":\"Ngoc Nicholas\"},\"text\":\"Hello World @[usrvQIoafw4agP8m3] @[usrBw9fdcVFbu7ug9]\",\"createdTime\":\"2023-03-01T00:14:37.000Z\",\"lastUpdatedTime\":null,\"mentioned\":{\"usrvQIoafw4agP8m3\":{\"type\":\"user\",\"id\":\"usrvQIoafw4agP8m3\",\"displayName\":\"Ngoc2 Nicholas\",\"email\":\"ngocnicholas@yahoo.com\"},\"usrBw9fdcVFbu7ug9\":{\"type\":\"user\",\"id\":\"usrBw9fdcVFbu7ug9\",\"displayName\":\"Ngoc Nicholas\",\"email\":\"ngocnicholas@gmail.com\"}}},{\"id\":\"comThy6KTVRbi4SIa\",\"author\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"name\":\"Ngoc Nicholas\"},\"text\":\"@[usrBw9fdcVFbu7ug9] and @[usrvQIoafw4agP8m3]. Also @[usr01234567891234]\",\"createdTime\":\"2023-02-28T22:25:24.000Z\",\"lastUpdatedTime\":\"2023-03-01T00:56:05.000Z\",\"mentioned\":{\"usrBw9fdcVFbu7ug9\":{\"type\":\"user\",\"id\":\"usrBw9fdcVFbu7ug9\",\"displayName\":\"Ngoc Nicholas\",\"email\":\"ngocnicholas@gmail.com\"},\"usrvQIoafw4agP8m3\":{\"type\":\"user\",\"id\":\"usrvQIoafw4agP8m3\",\"displayName\":\"Ngoc2 Nicholas\",\"email\":\"ngocnicholas@yahoo.com\"}}}],\"offset\":\"MTk1MTE0Mg==\"}");
@@ -1678,7 +1683,7 @@ namespace AirtableApiClient.Tests
                 if (response.Comments.Length > 0)     // This guy has 3 comments and all of them have @[] patterns
                 {
                     Assert.IsTrue(response.Comments.Length == 2 || response.Comments.Length == 1);
-                    string textWithUserNames = null;
+                    string? textWithUserNames = null;
                     foreach (Comment comment in response.Comments)
                     {
                         // Each comment has its own Mentioned which is Dictionary<string, UserMentioned/UserGroupMentioned/UserEmail>
@@ -2186,10 +2191,10 @@ namespace AirtableApiClient.Tests
             Assert.IsNotNull(attListFromRecordCreated);
             Assert.IsTrue(attListFromRecordCreated.Count() == 2);
 
-            List<string> genre = jony.Genre;
+            List<string>? genre = jony.Genre;
             Assert.IsTrue(genre[0].Equals(Jony.Genre[0]));
 
-            List<string> coll = jony.Collection;
+            List<string>? coll = jony.Collection;
             Assert.IsTrue(coll[0].Equals("reccV1ddwIspBOe4O")); // reccV1ddwIspBOe4O is the recprd ID of "Scupture" in the Collections table
         }
 
@@ -2292,7 +2297,7 @@ namespace AirtableApiClient.Tests
             fakeResponse,
             null);
 
-            string errorMessage = null;
+            string? errorMessage = null;
             string idJony2 = "rec8vJPDc7Seqekbi";
             string idJony3 = "recPDSfwdOECYtod5";
             if (!string.IsNullOrEmpty(idJony2) && !string.IsNullOrEmpty(idJony3))
@@ -2366,21 +2371,21 @@ namespace AirtableApiClient.Tests
 
 
         private async Task<ListAllRecordsTestResponse> ListAllRecords(
-            IEnumerable<string> fields = null,
-            string filterByFormula = null,
+            IEnumerable<string>? fields = null,
+            string? filterByFormula = null,
             int? maxRecords = null,
             int? pageSize = null,
-            IEnumerable<Sort> sort = null,
-            string view = null,
-            string cellFormat = null,
-            string timeZone = null,
-            string userLocale = null,
+            IEnumerable<Sort>? sort = null,
+            string? view = null,
+            string? cellFormat = null,
+            string? timeZone = null,
+            string? userLocale = null,
             bool returnFieldsByFieldId = false,
             bool includeCommentCount = false,
             CancellationToken token = default(CancellationToken))
         {
-            string offset = null;
-            string errorMessage = null;
+            string? offset = null;
+            string? errorMessage = null;
             var records = new List<AirtableRecord>();
             try
             {
@@ -2423,22 +2428,21 @@ namespace AirtableApiClient.Tests
 
 
         private async Task<ListAllRecordsTestResponse<T>> ListAllRecords<T>(
-        IEnumerable<string> fields = null, 
-        //string[] fields = null,
-        string filterByFormula = null,
+        IEnumerable<string>? fields = null, 
+        string? filterByFormula = null,
         int? maxRecords = null,
         int? pageSize = null,
-        IEnumerable<Sort> sort = null,
-        string view = null,
-        string cellFormat = null,
-        string timeZone = null,
-        string userLocale = null,
+        IEnumerable<Sort>? sort = null,
+        string? view = null,
+        string? cellFormat = null,
+        string? timeZone = null,
+        string? userLocale = null,
         bool returnFieldsByFieldId = false,
         bool includeCommentCount = false,
         CancellationToken token = default(CancellationToken))
         {
-            string offset = null;
-            string errorMessage = null;
+            string? offset = null;
+            string? errorMessage = null;
             var records = new List<AirtableRecord<T>>();
             try
             {
@@ -2608,8 +2612,8 @@ namespace AirtableApiClient.Tests
             {
                 foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(obj))
                 {
-                    string name = descriptor.Name;
-                    object value = descriptor.GetValue(obj);
+                    string? name = descriptor.Name;
+                    object? value = descriptor.GetValue(obj);
                     Console.WriteLine("{0}={1}", name, value);
                 }
             }

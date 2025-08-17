@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +55,7 @@ namespace AirtableApiClient.Tests
                     }
                 }
             }
-            return new HttpResponseMessage(HttpStatusCode.NotFound) { RequestMessage = request };
+            return new HttpResponseMessage(System.Net.HttpStatusCode.NotFound) { RequestMessage = request };
         }
 
 #if false
