@@ -1,31 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net8.0;net472</TargetFrameworks>
+    <IsTestProject>true</IsTestProject>
+    <LangVersion>latest</LangVersion>
+    <IsTestProject>true</IsTestProject>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-    <NoWarn>CS8602</NoWarn>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
-  <!-- net472: PIN EXACT versions -->
-  <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="[6.0.10]" />
-    <Reference Include="System.Net.Http" Version="4.3.4"/>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.4.3" />
     <PackageReference Include="MSTest.TestFramework" Version="3.4.3" />
-    <!-- Optional but recommended -->
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="System.Text.Json" Version="[6.0.10]" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="[6.0.0]" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[6.0.0]" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AirtableApiClient\AirtableApiClient.csproj" />
   </ItemGroup>
-
 </Project>

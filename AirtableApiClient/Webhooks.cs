@@ -7,13 +7,13 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("webhooks")]
         [JsonInclude]
-        public Webhook[] Hooks { get; set; }
+        public Webhook[]? Hooks { get; set; }
     }
     public class Webhook
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("areNotificationsEnabled")]
         [JsonInclude]
@@ -33,7 +33,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("notificationUrl")]
         [JsonInclude]
-        public string NotificationUrl { get; set; }
+        public string? NotificationUrl { get; set; }
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]
@@ -42,11 +42,11 @@ namespace AirtableApiClient
 
         [JsonPropertyName("lastNotificationResult")]
         [JsonInclude]
-        public WebhooksNotification LastNotificationResult { get; set; }
+        public WebhooksNotification? LastNotificationResult { get; set; }
 
         [JsonPropertyName("specification")]
         [JsonInclude]
-        public WebhooksSpecification Specification { get; set; }
+        public WebhooksSpecification? Specification { get; set; }
     }
 
     //-------------------------------- Webhooks Specification ----------------------------------------
@@ -54,7 +54,7 @@ namespace AirtableApiClient
 	{
         [JsonPropertyName("options")]
         [JsonInclude]
-        public WebhooksOptions Options { get; set; }
+        public WebhooksOptions? Options { get; set; }
     }
 
 
@@ -62,11 +62,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("filters")]
         [JsonInclude]
-        public WebhooksFilters Filters { get; set; }
+        public WebhooksFilters? Filters { get; set; }
 
         [JsonPropertyName("includes")]
         [JsonInclude]
-        public WebhooksIncludes Includes { get; set; }
+        public WebhooksIncludes? Includes { get; set; }
 
     }
 
@@ -74,32 +74,32 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("recordChangeScope")]
         [JsonInclude]
-        public string RecordChangeScope { get; set; }
+        public string? RecordChangeScope { get; set; }
 
 
         [JsonPropertyName("dataTypes")]
         [JsonInclude]
-        public string[] DataTypes { get; set; } // array of ("tableData" | "tableFields" | "tableMetadata")
+        public string[]? DataTypes { get; set; } // array of ("tableData" | "tableFields" | "tableMetadata")
 
         [JsonPropertyName("changeTypes")]
         [JsonInclude]
-        public string[] ChangeTypes { get; set; }   // optional<array of ("add" | "remove" | "update")>
+        public string[]? ChangeTypes { get; set; }   // optional<array of ("add" | "remove" | "update")>
 
         [JsonPropertyName("fromSources")]
         [JsonInclude]
-        public string[] FromSources { get; set; }   // optional<array of ("client" | "publicApi" | "formSubmission" | "automation" | "system" | "sync" | "anonymousUser" | "unknown")>
+        public string[]? FromSources { get; set; }   // optional<array of ("client" | "publicApi" | "formSubmission" | "automation" | "system" | "sync" | "anonymousUser" | "unknown")>
 
         [JsonPropertyName("sourceOptions")]
         [JsonInclude]
-        public SourceOptions SourceOptions { get; set; }    // optional<object>
+        public SourceOptions? SourceOptions { get; set; }    // optional<object>
 
         [JsonPropertyName("watchDataInFieldIds")]   
         [JsonInclude]
-        public string[] WatchDataInFieldIds { get; set; }   // optional<array of strings>
+        public string[]? WatchDataInFieldIds { get; set; }   // optional<array of strings>
 
         [JsonPropertyName("watchSchemasOfFieldIds")]
         [JsonInclude]
-        public string[] WatchSchemasOfFieldIds { get; set; }    // optional<array of strings>
+        public string[]? WatchSchemasOfFieldIds { get; set; }    // optional<array of strings>
 
     }
 
@@ -107,21 +107,21 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("formSubmission")]
         [JsonInclude]
-        public FormSubmission FormSubmission { get; set; }
+        public FormSubmission? FormSubmission { get; set; }
     }
 
     public class FormSubmission
     {
         [JsonPropertyName("viewId")]
         [JsonInclude]
-        public string ViewId { get; set; }
+        public string? ViewId { get; set; }
     }
 
     public class WebhooksIncludes
     {
         [JsonPropertyName("includeCellValuesInFieldIds")]
         [JsonInclude]
-        public object IncludeCellValuesInFieldIds { get; set; }     // optional<array of strings | "all">
+        public object? IncludeCellValuesInFieldIds { get; set; }     // optional<array of strings | "all">
 
         [JsonPropertyName("includePreviousCellValues")]
         [JsonInclude]
@@ -136,11 +136,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("macSecretBase64")]
         [JsonInclude] 
-        public string MacSecretBase64 {  get; set;} 
+        public string? MacSecretBase64 {  get; set;} 
 
         [JsonPropertyName("expirationTime")]
         [JsonInclude]

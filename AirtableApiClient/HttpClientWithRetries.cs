@@ -42,7 +42,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public HttpClientWithRetries(DelegatingHandler delegatingHandler, string apiKey, HttpClient providedClient = null)
+        public HttpClientWithRetries(DelegatingHandler? delegatingHandler, string apiKey, HttpClient? providedClient = null)
         {
             // Allow retries by default.
             ShouldNotRetryIfRateLimited = false;
@@ -96,7 +96,7 @@ namespace AirtableApiClient
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
-            string content = null;
+            string? content = null;
 
             // Content will be disposed once used.
             // Store it so that we can regenerate HttpRequestMessage in case
@@ -116,7 +116,7 @@ namespace AirtableApiClient
                 !ShouldNotRetryIfRateLimited)
             {
                 await Task.Delay(dueTimeDelay).ConfigureAwait(false);
-                var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri, content);
+                var requestRegenerated = RegenerateRequest(request.Method, request.RequestUri!, content);
                 response = await client.SendAsync(requestRegenerated, token).ConfigureAwait(false);
                 retries++;
                 dueTimeDelay *= 2;
@@ -134,7 +134,7 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        private HttpRequestMessage RegenerateRequest(HttpMethod method, Uri requestUri, string content)
+        private HttpRequestMessage RegenerateRequest(HttpMethod method, Uri requestUri, string? content)
         {
             var request = new HttpRequestMessage(method, requestUri);
             if (content != null)

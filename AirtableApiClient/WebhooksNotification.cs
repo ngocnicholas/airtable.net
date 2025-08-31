@@ -23,7 +23,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("error")]
         [JsonInclude]
-        public Error Error { get; set; }                    // This field only exists in case of error
+        public Error? Error { get; set; }                    // This field only exists in case of error
 
         [JsonPropertyName("willBeRetried")]
         [JsonInclude]
@@ -34,7 +34,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("message")]
         [JsonInclude]
-        public string Message { get; set; }
+        public string? Message { get; set; }
     }
 
 }

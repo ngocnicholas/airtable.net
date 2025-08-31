@@ -18,7 +18,7 @@ namespace AirtableApiClient
         }
 
         public readonly bool Success;
-        public readonly AirtableApiException AirtableApiError;
+        public readonly AirtableApiException? AirtableApiError;
     }
 
 
@@ -35,8 +35,8 @@ namespace AirtableApiClient
             UserId = userIdAndScopes.Id;
             Scopes = userIdAndScopes.Scopes;
         }
-        public readonly string UserId;
-        public readonly ICollection<string> Scopes;
+        public readonly string? UserId;
+        public readonly ICollection<string>? Scopes;
     }
 
 
@@ -55,8 +55,8 @@ namespace AirtableApiClient
             Records = recordList.Records;
         }
 
-        public readonly IEnumerable<AirtableRecord> Records;
-        public readonly string Offset;
+        public readonly IEnumerable<AirtableRecord>? Records;
+        public readonly string? Offset;
     }
 
 
@@ -75,8 +75,8 @@ namespace AirtableApiClient
             Records = recordList.Records;
         }
 
-        public readonly IEnumerable<AirtableRecord<T>> Records;
-        public readonly string Offset;
+        public readonly IEnumerable<AirtableRecord<T>>? Records;
+        public readonly string? Offset;
     }
 
 
@@ -92,7 +92,7 @@ namespace AirtableApiClient
             Record = record;
         }
 
-        public readonly AirtableRecord Record;
+        public readonly AirtableRecord? Record;
     }
 
 
@@ -108,7 +108,7 @@ namespace AirtableApiClient
             Record = record;
         }
 
-        public readonly AirtableRecord<T> Record;
+        public readonly AirtableRecord<T>? Record;
     }
 
 
@@ -124,7 +124,7 @@ namespace AirtableApiClient
             Record = record;
         }
 
-        public readonly AirtableRecord Record;
+        public readonly AirtableRecord? Record;
     }
 
     public class AirtableCreateReplaceRecordGenericResponse<T> : AirtableApiResponse
@@ -139,7 +139,7 @@ namespace AirtableApiClient
             Record = record;
         }
 
-        public readonly AirtableRecord<T> Record;
+        public readonly AirtableRecord<T>? Record;
     }
 
 
@@ -159,9 +159,9 @@ namespace AirtableApiClient
             UpdatedRecords = upsertRecordList.UpdatedRecords;
         }
 
-        public readonly AirtableRecord[] Records;
-        public readonly string[] CreatedRecords;
-        public readonly string[] UpdatedRecords;
+        public readonly AirtableRecord[]? Records;
+        public readonly string[]? CreatedRecords;
+        public readonly string[]? UpdatedRecords;
     }
 
 
@@ -181,9 +181,9 @@ namespace AirtableApiClient
             UpdatedRecords = upsertRecordList.UpdatedRecords;
         }
 
-        public readonly AirtableRecord<T>[] Records;
-        public readonly string[] CreatedRecords;
-        public readonly string[] UpdatedRecords;
+        public readonly AirtableRecord<T>[]? Records;
+        public readonly string[]? CreatedRecords;
+        public readonly string[]? UpdatedRecords;
     }
 
 
@@ -195,14 +195,14 @@ namespace AirtableApiClient
             Id = null;
         }
 
-        public AirtableDeleteRecordResponse(bool deleted, string id) : base()
+        public AirtableDeleteRecordResponse(bool deleted, string? id) : base()
         {
             Deleted = deleted;
             Id = id;
         }
 
         public readonly bool Deleted;
-        public readonly string Id;
+        public readonly string? Id;
     }
 
 
@@ -214,14 +214,14 @@ namespace AirtableApiClient
             Id = null;
         }
 
-        public AirtableDeleteCommentResponse(bool deleted, string id) : base()
+        public AirtableDeleteCommentResponse(bool deleted, string? id) : base()
         {
             Deleted = deleted;
             Id = id;
         }
 
         public readonly bool Deleted;
-        public readonly string Id;
+        public readonly string? Id;
     }
 
 
@@ -237,7 +237,7 @@ namespace AirtableApiClient
             Comment = comment;
         }
 
-        public readonly Comment Comment;
+        public readonly Comment? Comment;
     }
 
 
@@ -255,8 +255,8 @@ namespace AirtableApiClient
             Offset = commentList.Offset;
         }
 
-        public readonly Comment[] Comments;
-        public readonly string Offset;
+        public readonly Comment[]? Comments;
+        public readonly string? Offset;
     }
 
     public class AirtableCreateWebhookResponse : AirtableApiResponse
@@ -271,7 +271,7 @@ namespace AirtableApiClient
             createWebhookResponse = createResponse;
         }
 
-        public readonly CreateWebhookResponse createWebhookResponse;
+        public readonly CreateWebhookResponse? createWebhookResponse;
     }
 
     public class AirtableListWebhooksResponse : AirtableApiResponse
@@ -286,7 +286,7 @@ namespace AirtableApiClient
             Webhooks = webhooks;
         }
 
-        public readonly Webhooks Webhooks;
+        public readonly Webhooks? Webhooks;
     }
 
     public class AirtableListPayloadsResponse : AirtableApiResponse
@@ -304,7 +304,7 @@ namespace AirtableApiClient
             MighHaveMore = payloadList.MightHaveMore;
         }
 
-        public readonly WebhooksPayload[] Payloads;
+        public readonly WebhooksPayload[]? Payloads;
         public readonly int Cursor;
         public readonly bool MighHaveMore;
     }
@@ -319,7 +319,7 @@ namespace AirtableApiClient
         public AirtableDeleteWebhookResponse() : base()
         {
             // The base class's ctor is protected so we need this public method here
-            // so that we can construct an tmpty AirtabeDeleteWebhookResponse in a Successful operation.
+            // so that we can construct an empty AirtabeDeleteWebhookResponse in a Successful operation.
         }
     }
     public class AirtabeEnableOrDisableWebhookNotificationsResponse : AirtableApiResponse

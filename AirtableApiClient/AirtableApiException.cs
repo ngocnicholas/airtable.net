@@ -16,7 +16,7 @@ namespace AirtableApiClient
         public readonly HttpStatusCode ErrorCode;
         public readonly string ErrorName;
         public readonly string ErrorMessage;
-        public string DetailedErrorMessage { get; protected set; }                 // The derived class AirtableInvalidRequestException needs to set it.
+        public string? DetailedErrorMessage { get; protected set; }                 // The derived class AirtableInvalidRequestException needs to set it.
     }
 
 
@@ -89,10 +89,10 @@ namespace AirtableApiClient
 
     public class AirtableInvalidRequestException : AirtableApiException
     {
-        public AirtableInvalidRequestException(string detailedErrorMessage = null) : base(
+        public AirtableInvalidRequestException(string? detailedErrorMessage = null) : base(
             (HttpStatusCode)422, 
-            "Invalid Request",
-            "The request data is invalid. This includes most of the base-specific validations.\nThe DetailedErrorMessage property contains the detailed error message string.")
+            "Invalid Request"!,
+            "The request data is invalid. This includes most of the base-specific validations.\nThe DetailedErrorMessage property contains the detailed error message string."!)
         {
             DetailedErrorMessage = detailedErrorMessage;
         }
