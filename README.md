@@ -7,13 +7,13 @@ Airtable by consuming what Airtable public APIs have to offer programmatically s
 Update Record, Replace Record, Delete Record.
 
 # Installation
-Install the latest nuget package Airtable.1.7.0.nupkg
+Install the latest nuget package Airtable.1.7.1.nupkg
 
 ## Requirements
 
 Operating System: Windows 10 or newer
 Microsoft Visual Studio 2022 or newer (only if you choose to build AirtableApiClient.dll from source files using the instructions below.)
-.NET Standard 2.0 and the usage of System.Text.Json are supported in Visual Studio 2022.
+.NET Standard 2.0, .NET 8.0, and the usage of System.Text.Json are supported in Visual Studio 2022.
 
 ## Build AirtableApiClient.dll
 
@@ -21,10 +21,10 @@ Download Airtable.net c# source files from github.com. To compile to an assembly
 of C# .NET Standard Class Library and add these source files to the project.
 
 Refer to this link for downloading VS 2022 Community Edition:
-https://visualstudio.microsoft.com/free-developer-offers/
+https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022&source=VSLandingPage&cid=2030&passive=false
 
 Refer to the link below for downloading .NET SDK for VS 2022
-https://github.com/dotnet/core/blob/main/release-notes/7.0/7.0.3/7.0.3.md?WT.mc_id=dotnet-35129-website
+https://dotnet.microsoft.com/en-us/download/visual-studio-sdks
 
 Refer to the link below to learn more about what's in .NET Standard 2.0
 https://docs.microsoft.com/en-us/dotnet/standard/net-standard
