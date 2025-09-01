@@ -13,7 +13,7 @@ namespace AirtableApiClient
     public class Sort
     {
         [JsonPropertyName("field")]
-        public string Field { get; set; }
+        public string? Field { get; set; }
 
         [JsonPropertyName("direction")]
         public SortDirection Direction { get; set; }
@@ -36,7 +36,7 @@ namespace AirtableApiClient
     /// </summary>
     public class IdFields : Fields
     {
-        public IdFields(string id=null)
+        public IdFields(string? id=null)
         {
             this.id = id;
         }
@@ -46,7 +46,7 @@ namespace AirtableApiClient
         // Change 'field' to 'property' but not changing the case of 'i' in 'Id'
         // to keep backward compatiblity.
         [JsonPropertyName("id")]
-        public string id { get; set; }      // Note: this is the record ID of the record containing Fields (not to be confused with the field ID)
+        public string? id { get; set; }      // Note: this is the record ID of the record containing Fields (not to be confused with the field ID)
     }
 
 
@@ -105,16 +105,16 @@ namespace AirtableApiClient
     internal class ListRecordsParameters
     {
         [JsonPropertyName("offset")]
-        public string Offset { get; set; }
+        public string? Offset { get; set; }
 
         [JsonPropertyName("fields")]
-        public string[] Fields { get; set; }
+        public string[]? Fields { get; set; }
 
         [JsonPropertyName("filterByFormula")]
-        public string FilterByFormula { get; set; }
+        public string? FilterByFormula { get; set; }
 
         [JsonPropertyName("recordMetadata")]
-        public string RecordMetadata { get; set; }
+        public string? RecordMetadata { get; set; }
 
         [JsonPropertyName("maxRecords")]
         public int? MaxRecords { get; set; }
@@ -123,19 +123,19 @@ namespace AirtableApiClient
         public int? PageSize { get; set; }
 
         [JsonPropertyName("sort")]
-        public IEnumerable<Sort> Sort { get; set; }
+        public IEnumerable<Sort>? Sort { get; set; }
 
         [JsonPropertyName("view")]
-        public string View { get; set; }
+        public string? View { get; set; }
 
         [JsonPropertyName("cellFormat")]
-        public string CellFormat { get; set; }
+        public string? CellFormat { get; set; }
 
         [JsonPropertyName("timeZone")]
-        public string TimeZone { get; set; }
+        public string? TimeZone { get; set; }
 
         [JsonPropertyName("userLocale")]
-        public string UserLocale { get; set; }
+        public string? UserLocale { get; set; }
 
         [JsonPropertyName("returnFieldsByFieldId")]
         public bool ReturnFieldsByFieldId { get; set; }
@@ -145,7 +145,7 @@ namespace AirtableApiClient
     internal class UpsertRecordsParameters
     {
         [JsonPropertyName("performUpsert")]
-        public PerformUpsert PerformUpsert { get; set; }
+        public PerformUpsert? PerformUpsert { get; set; }
 
         [JsonPropertyName("returnFieldsByFieldId")]
         public bool ReturnFieldsByFieldId { get; set; }
@@ -154,13 +154,13 @@ namespace AirtableApiClient
         public bool Typecast { get; set; }
 
         [JsonPropertyName("records")]
-        public IdFields[] Records { get; set; }
+        public IdFields[]? Records { get; set; }
     }
 
     public class PerformUpsert
     {
         [JsonPropertyName("fieldsToMergeOn")]
-        public string[] FieldsToMergeOn { get; set; }
+        public string[]? FieldsToMergeOn { get; set; }
     }
 
 }   // end namespace 

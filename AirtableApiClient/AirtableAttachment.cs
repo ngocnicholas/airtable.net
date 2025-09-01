@@ -5,22 +5,22 @@ namespace AirtableApiClient
     public class AirtableAttachment
     {
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonPropertyName("filename")]
-        public string Filename { get; set; }
+        public string? Filename { get; set; }
 
         [JsonPropertyName("size")]
         public long? Size { get; set; }
 
         [JsonPropertyName("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonPropertyName("thumbnails")]
-        public Thumbnails Thumbnails { get; set; }
+        public Thumbnails? Thumbnails { get; set; }
     }
 
 
@@ -30,11 +30,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("small")]
         [JsonInclude]
-        public Thumbnail Small { get; set; }
+        public Thumbnail? Small { get; set; }
 
         [JsonPropertyName("large")]
         [JsonInclude]
-        public Thumbnail Large { get; set; }
+        public Thumbnail? Large { get; set; }
     }
 
 
@@ -44,7 +44,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("url")]
         [JsonInclude]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonPropertyName("width")]
         [JsonInclude]

@@ -28,6 +28,10 @@ namespace AirtableApiClient.Tests
 
         protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
         {
+            if (request == null || request.RequestUri == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
             if (_FakeResponses.ContainsKey(request.RequestUri.AbsoluteUri))
             {
                 if (_FakeResponses[request.RequestUri.AbsoluteUri].Method == request.Method)
@@ -38,7 +42,7 @@ namespace AirtableApiClient.Tests
                     }                    
                     string? bodyText = null;
                     string? dictBodyText = _FakeResponses[request.RequestUri.AbsoluteUri].BodyText;
-                    if (dictBodyText != null)
+                    if (dictBodyText != null && request.Content != null)
                     { 
                         bodyText = await request.Content.ReadAsStringAsync();
                     }

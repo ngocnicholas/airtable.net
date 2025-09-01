@@ -1,8 +1,16 @@
 ﻿#define FEWER_ARTISTS
-using System.ComponentModel;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text.Json.Serialization;
-using System.Net.Http;
+global using System;
+global using System.ComponentModel;
+global using Microsoft.VisualStudio.TestTools.UnitTesting;
+global using System.Text.Json.Serialization;
+global using System.Net.Http;
+global using System.Collections.Generic;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using System.Linq;
+//global using AirtableApiClient;
+
+
 
 
 namespace AirtableApiClient.Tests
@@ -40,9 +48,9 @@ namespace AirtableApiClient.Tests
         const string API_KEY = "key1234567890ABCD";                                 // fake airtable api key for tests
         readonly string BASE_URL = $"https://api.airtable.com/v0/{APPLICATION_ID}/{Uri.EscapeDataString(TABLE_NAME)}";
 
-        static private AirtableBase? airtableBase;
-        private FakeResponseHandler? fakeResponseHandler;
-        private HttpResponseMessage? fakeResponse;
+        static private AirtableBase airtableBase = default!;                // to suppress CS8625. It will be initialized before use.
+        private FakeResponseHandler fakeResponseHandler = default!;
+        private HttpResponseMessage fakeResponse = default!;
 
         //private readonly string UrlHead = "https://api.airtable.com/v0/";
         private readonly string UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + APPLICATION_ID + "/webhooks");
@@ -55,7 +63,7 @@ namespace AirtableApiClient.Tests
         {
             fakeResponseHandler = new FakeResponseHandler();
             airtableBase = new AirtableBase(API_KEY, APPLICATION_ID, fakeResponseHandler);
-            airtableBase.ShouldNotRetryIfRateLimited = false;
+            airtableBase!.ShouldNotRetryIfRateLimited = false;
             airtableBase.RetryDelayMillisecondsIfRateLimited = 2000;
             fakeResponse = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
         }
@@ -141,6 +149,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords();
             var response = await task;
             Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.Records);
             Assert.IsTrue(response.Records.Count > 0);
         }
 
@@ -177,13 +186,15 @@ namespace AirtableApiClient.Tests
 
             // Abstract all fields of the 1st record as
             // an instance of Artist.
-            Artist AlHeld = response.Records[0].Fields;
-
-            Assert.AreEqual(AlHeld.Name, "Al Held");
+            Artist? AlHeld = response.Records[0].Fields;
+            Assert.AreEqual(AlHeld!.Name, "Al Held");
             Assert.IsTrue(AlHeld.OnDisplay);
+            Assert.IsNotNull(AlHeld.Collection);
             Assert.AreEqual(AlHeld.Collection.Count, 1);
+            Assert.IsNotNull(AlHeld.Genre);
             Assert.AreEqual(AlHeld.Genre.Count, 2);
             Assert.IsNotNull(AlHeld.Bio);
+            Assert.IsNotNull(AlHeld.Attachments);
             Assert.AreEqual(AlHeld.Attachments.Count, 4);
         }
 
@@ -219,6 +230,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(fields: fields);
             var response = await task;
             Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.Records);
             Assert.IsTrue(response.Records.Count > 0);
         }
 
@@ -253,7 +265,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(fields: fields);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0);
+            Assert.IsTrue(response.Records!.Count > 0);
         }
 
 
@@ -288,7 +300,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(filterByFormula: formula);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0);
+            Assert.IsTrue(response.Records!.Count > 0);
             foreach(var record in response.Records)
             {
                 Assert.IsTrue(record.GetField<bool>("On Display?"));
@@ -318,8 +330,8 @@ namespace AirtableApiClient.Tests
 
             Task<ListAllRecordsTestResponse> task = ListAllRecords(maxRecords: 4);
             var response = await task;
-            Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0 && response.Records.Count <= 4);
+            Assert.IsTrue(response!.Success);
+            Assert.IsTrue(response.Records!.Count > 0 && response.Records.Count <= 4);
         }
 
 
@@ -403,7 +415,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableRetrieveRecordResponse> task = airtableBase.RetrieveRecord(TABLE_NAME, MIYA_ANDO_RECORD_ID);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Record.Id == MIYA_ANDO_RECORD_ID);
+            Assert.IsTrue(response.Record!.Id == MIYA_ANDO_RECORD_ID);
             Assert.IsTrue(response.Record.GetField<string>("fldSAUw6qVy9NzXzF") == "Miya Ando");
 
             object? collectionObject = response.Record.GetField("fldE0muAk6ejOkkKa");
@@ -438,7 +450,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableRetrieveRecordResponse> task = airtableBase.RetrieveRecord(TABLE_NAME, MIYA_ANDO_RECORD_ID);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Record.Id == MIYA_ANDO_RECORD_ID);
+            Assert.IsTrue(response.Record!.Id == MIYA_ANDO_RECORD_ID);
             Assert.IsTrue(response.Record.GetField<string>("Name") == "Miya Ando");
 
             var attachmentList = response.Record.GetAttachmentField("Attachments");
@@ -469,17 +481,17 @@ namespace AirtableApiClient.Tests
             Task<AirtableRetrieveRecordResponse<Artist>> task = airtableBase.RetrieveRecord<Artist>(TABLE_NAME, MIYA_ANDO_RECORD_ID);
             var response = await task;
             Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.Record);
             Assert.IsTrue(response.Record.Id == MIYA_ANDO_RECORD_ID);
 
             // Abstract all fields of the record as an instance of Artist.
-            Artist MiyaAndo = response.Record.Fields;
-
-            Assert.AreEqual(MiyaAndo.Name, "Miya Ando");
+            Artist? MiyaAndo = response.Record.Fields;
+            Assert.AreEqual(MiyaAndo!.Name, "Miya Ando");
             Assert.IsFalse(MiyaAndo.OnDisplay);
-            Assert.AreEqual(MiyaAndo.Collection.Count, 1);
-            Assert.AreEqual(MiyaAndo.Genre.Count, 2);
+            Assert.AreEqual(MiyaAndo.Collection!.Count, 1);
+            Assert.AreEqual(MiyaAndo.Genre!.Count, 2);
             Assert.IsNotNull(MiyaAndo.Bio);
-            Assert.AreEqual(MiyaAndo.Attachments.Count, 4);
+            Assert.AreEqual(MiyaAndo.Attachments!.Count, 4);
         }
 
 
@@ -519,8 +531,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
 
             Assert.IsTrue(response.Success);
-
-            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso");
+            Assert.IsTrue(response.Record!.GetField<string>("Name") == "Pablo Picasso");
 
             Assert.IsTrue(response.Record.GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
 
@@ -571,10 +582,10 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            AirtableRecord record = response.Record;
+            AirtableRecord? record = response.Record;
 
             // the following 2 fields should be updated
-            Assert.IsTrue(record.GetField<string>("Name") == "Pablo Picasso Updated");
+            Assert.IsTrue(record!.GetField<string>("Name") == "Pablo Picasso Updated");
             Assert.IsTrue(record.GetField<bool>("On Display?"));
 
             var attachmentListFromUpdatedRecord = record.GetAttachmentField("Attachments");
@@ -619,7 +630,7 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso Updated");
+            Assert.IsTrue(response.Record!.GetField<string>("Name") == "Pablo Picasso Updated");
             Assert.IsTrue(response.Record.GetField<bool>("On Display?"));
 
             var attachmentListFromUpdatedRecord = response.Record.GetAttachmentField("Attachments");
@@ -661,7 +672,7 @@ namespace AirtableApiClient.Tests
             var response = await testRecordTask;
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(response.Record.GetField<string>("Name") == "Pablo Picasso Replaced");
+            Assert.IsTrue(response.Record!.GetField<string>("Name") == "Pablo Picasso Replaced");
             Assert.IsTrue(response.Record.GetField<bool>("On Display?"));
 
             var attachmentListFromReplacedRecord = response.Record.GetAttachmentField("Attachments");
@@ -734,7 +745,7 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(response.Records[0].GetField<string>("Name") == "Pablo Picasso");
+            Assert.IsTrue(response.Records![0].GetField<string>("Name") == "Pablo Picasso");
             Assert.IsTrue(response.Records[0].GetField<string>("Bio") == "Spanish expatriate Pablo Picasso was one of the greatest and most influential artists of the 20th century, as well as the co-creator of Cubism.");
 
             Assert.IsFalse(response.Records[0].GetField<bool>("On Display?"));  // because "On Display?" is null, default to false
@@ -787,9 +798,8 @@ namespace AirtableApiClient.Tests
             else
             {
                 records = response.Records;
-
                 // the following field should be updated
-                Assert.IsTrue(response.Records[0].GetField<bool>("On Display?"));
+                Assert.IsTrue(records![0].GetField<bool>("On Display?"));
 
                 // the following 2 fields should be unchanged
                 Assert.IsTrue(records[0].GetField<string>("Name") == "Pablo Picasso");
@@ -846,7 +856,7 @@ namespace AirtableApiClient.Tests
                 records = response.Records;
 
                 // the following field should be updated
-                Assert.IsFalse(records[0].GetField<bool>("On Display?"));  // false for null value 
+                Assert.IsFalse(records![0].GetField<bool>("On Display?"));  // false for null value 
 
                 Assert.IsNull(records[0].GetField("Bio?"));
 
@@ -894,7 +904,7 @@ namespace AirtableApiClient.Tests
 
             Assert.IsTrue(response.Success);
 
-            Assert.IsTrue(response.Records[0].GetField<string>("Name") == "Claude Monet");
+            Assert.IsTrue(response.Records![0].GetField<string>("Name") == "Claude Monet");
 
             Assert.IsTrue(response.Records[0].GetField<string>("Bio") == "Oscar - Claude Monet was a French painter, a founder of French Impressionist painting and the most consistent and prolific practitioner of the movement philosophy of expressing perceptions before nature, especially as applied to plein air landscape painting");
 
@@ -935,11 +945,11 @@ namespace AirtableApiClient.Tests
             var response = await task;
 
             Assert.IsTrue(response.Success);
-            AirtableRecord[] records = response.Records;
+            AirtableRecord[]? records = response.Records;
 
             // the following 2 fields should be updated
-            Assert.IsTrue(records[0].GetField<bool>("On Display?"));
-            Assert.IsTrue(response.Records[1].GetField<string>("Name") == "UpdatedNameVincentVanGogh");
+            Assert.IsTrue(records![0].GetField<bool>("On Display?"));
+            Assert.IsTrue(response.Records![1].GetField<string>("Name") == "UpdatedNameVincentVanGogh");
 
             // Id should be unchanged
             Assert.IsTrue(records[0].Id == "recFTkasLaZJa8Hvz");
@@ -1001,7 +1011,7 @@ namespace AirtableApiClient.Tests
                 records = response.Records;
 
                 // the following 2 fields should be updated
-                Assert.IsTrue(records[0].GetField<bool>("On Display?"));
+                Assert.IsTrue(records![0].GetField<bool>("On Display?"));
                 Assert.IsTrue(records[1].GetField<string>("Name") == "Vincent VanGogh replaced");
 
                 // the following 4 fields should be unchanged
@@ -1044,12 +1054,11 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(returnFieldsByFieldId: true, maxRecords: 3);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0);
+            Assert.IsTrue(response.Records!.Count > 0);
             var record = response.Records[0];                // We knew this is the record for "Al Held"
             string fieldIdOfFieldName = "fldSAUw6qVy9NzXzF";    // We also knew this is the field ID for "Al Held"
             string? artistName = record.GetField<string>(fieldIdOfFieldName);
-            Assert.IsNotNull(artistName);
-            Assert.IsTrue(artistName == "Al Held");
+            Assert.IsTrue(artistName! == "Al Held");
         }
 
 
@@ -1085,7 +1094,7 @@ namespace AirtableApiClient.Tests
             for (int i = 0; i < arraySize; i++)
             {
                 records[i] = new AirtableRecord();
-                records[i].Fields["Attachments"] = null;    // NOTE: The "Attachments" fields in the returned record list cannot be used in Create records?! (NN)
+                records[i].Fields["Attachments"] = default!;    // NOTE: The "Attachments" fields in the returned record list cannot be used in Create records?! (NN)
             }
 
             BuildRecordListWith3RecordsForTest(records);
@@ -1141,9 +1150,9 @@ namespace AirtableApiClient.Tests
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task2 = airtableBase.UpdateMultipleRecords(TABLE_NAME, records);
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
-            foreach (var record in response2.Records)
+            foreach (var record in response2.Records!)
             {
-                Assert.IsTrue(record.Fields["Bank Name"].ToString().Contains("Updated"));
+                Assert.IsTrue(record.Fields!["Bank Name"].ToString()!.Contains("Updated"));
                 Assert.IsNotNull(record.Fields["Bio"]);         // Update operation should be non-destructive
             }
         }
@@ -1188,9 +1197,9 @@ namespace AirtableApiClient.Tests
             Task<AirtableCreateUpdateReplaceMultipleRecordsResponse> task2 = airtableBase.ReplaceMultipleRecords(TABLE_NAME, records);
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
-            foreach (var record in response2.Records)
+            foreach (var record in response2.Records!)
             {
-                Assert.IsTrue(record.Fields["Bank Name"].ToString().Contains("Replaced"));
+                Assert.IsTrue(record.Fields["Bank Name"]?.ToString()?.Contains("Replaced"));
                 Assert.IsFalse(record.Fields.ContainsKey("Bio"));            // Replace operation is destructive. We should no longer find the 'Bio' field.
             }
         }
@@ -1230,7 +1239,7 @@ namespace AirtableApiClient.Tests
             var response = await task;
             string? renoirId = null;
             string ?manetId = null;
-            foreach (var record in response.Records)
+            foreach (var record in response.Records!)
             {
                 string? name = record.GetField<string>("Name");
                 Assert.IsNotNull(name);
@@ -1550,7 +1559,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count == 7);  // 7 is the item count in the Fewer Artists table.
+            Assert.IsTrue(response.Records!.Count == 7);  // 7 is the item count in the Fewer Artists table.
 
             List<AirtableRecord> doubleList = new List<AirtableRecord>(response.Records);   // Double the size to 7 * 2 > 10.  This will fail the test intentionally.
             foreach (var record in response.Records)
@@ -1613,7 +1622,7 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(response.Success);
             Assert.IsNotNull(response.Comment);
             Assert.IsFalse(String.IsNullOrEmpty(response.Comment.Id));
-            string IdOfJustCreatedComment = response.Comment.Id;
+            string? IdOfJustCreatedComment = response.Comment.Id;
 
             // Update the newly created comment
             fakeResponse.Content = new StringContent
@@ -1678,9 +1687,10 @@ namespace AirtableApiClient.Tests
             {
                 // Set pageSize to 2 so that we wil get one page of 2 comments and one page of 1 comment.
                 task = airtableBase.ListComments(TABLE_NAME, AL_HELD_RECORD_ID, offset, pageSize: 2);   // record ID of Al Held
+                Assert.IsNotNull(task);
                 response = await task;
                 Assert.IsTrue(response.Success);
-                if (response.Comments.Length > 0)     // This guy has 3 comments and all of them have @[] patterns
+                if (response.Comments!.Length > 0)     // This guy has 3 comments and all of them have @[] patterns
                 {
                     Assert.IsTrue(response.Comments.Length == 2 || response.Comments.Length == 1);
                     string? textWithUserNames = null;
@@ -1737,7 +1747,7 @@ namespace AirtableApiClient.Tests
             Task<ListAllRecordsTestResponse> task = ListAllRecords(maxRecords: 3, includeCommentCount: true);
             var response = await task;
             Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0);
+            Assert.IsTrue(response.Records!.Count > 0);
             var record = response.Records[0];                // We knew this is the record for "Al Held"
             Assert.AreEqual(record.CommentCount, 3);            // Al Held has 3 comments
 
@@ -1755,7 +1765,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableListCommentsResponse> task2 = airtableBase.ListComments(TABLE_NAME, EDVARD_MUNCH_RECORD_ID);
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
-            Assert.IsTrue(response2.Comments.Length == 0);
+            Assert.IsTrue(response2.Comments!.Length == 0);
         }
 
 
@@ -1880,7 +1890,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
+            Webhooks? webhooks = response.Webhooks;
 
             if (webhooks != null && webhooks.Hooks != null)
             {
@@ -1891,7 +1901,7 @@ namespace AirtableApiClient.Tests
 
                     fakeResponse.Content = new StringContent("\"{}\"");
                     string bodyText = "{\"enable\":true}";
-                    string webhookId = webhooks.Hooks[0].Id;
+                    string? webhookId = webhooks.Hooks[0].Id;
 
                     fakeResponseHandler.AddFakeResponse(
                                 UrlHeadWebhooks + "/" + webhookId + "/enableNotifications",
@@ -1930,11 +1940,11 @@ namespace AirtableApiClient.Tests
 
 
             // ListWebhooks to see the Notification error
-            Webhooks webhooks = await ListWebhooks();
-            Assert.IsTrue(webhooks.Hooks.Length == 1);
-            Assert.IsTrue(webhooks.Hooks.First().LastNotificationResult.Success);
-            Assert.IsNull(webhooks.Hooks.First().LastNotificationResult.Error);
-            Assert.IsFalse(webhooks.Hooks.First().LastNotificationResult.WillBeRetried);
+            Webhooks? webhooks = await ListWebhooks();
+            Assert.IsTrue(webhooks.Hooks!.Length == 1);
+            Assert.IsTrue(webhooks.Hooks!.First()!.LastNotificationResult!.Success);
+            Assert.IsNull(webhooks.Hooks!.First()!.LastNotificationResult!.Error);
+            Assert.IsFalse(webhooks.Hooks!.First()!.LastNotificationResult!.WillBeRetried);
         }
 
 
@@ -1958,10 +1968,10 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
+            Webhooks? webhooks = response.Webhooks;
             Assert.IsTrue(webhooks != null && webhooks.Hooks != null && webhooks.Hooks.Length > 0);
             Console.WriteLine("List payloads for webhook with ID = {0}", webhooks.Hooks[0].Id);
-            string webhookId = webhooks.Hooks[0].Id;
+            string? webhookId = webhooks.Hooks[0].Id;
 
             fakeResponse.Content = new StringContent
                 ("{\"payloads\":[{\"timestamp\":\"2023-11-06T20:48:28.797Z\",\"baseTransactionNumber\":9730,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recmL2nzyOJVrv00D\":{\"createdTime\":\"2023-11-06T20:48:29.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-06T20:59:57.651Z\",\"baseTransactionNumber\":9731,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"recmL2nzyOJVrv00D\"]} } },{\"timestamp\":\"2023-11-07T04:49:12.530Z\",\"baseTransactionNumber\":9732,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"rec9Nb0erkoW9fsH8\":{\"createdTime\":\"2023-11-07T04:49:12.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T04:53:20.253Z\",\"baseTransactionNumber\":9733,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recDoe9ZnKJZnbXL5\":{\"createdTime\":\"2023-11-07T04:53:20.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T05:10:20.106Z\",\"baseTransactionNumber\":9734,\"actionMetadata\":{\"source\":\"client\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"rec9Nb0erkoW9fsH8\",\"recDoe9ZnKJZnbXL5\"]} } },{\"timestamp\":\"2023-11-07T05:10:46.036Z\",\"baseTransactionNumber\":9735,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recmbMlVD0uWUy3Ru\":{\"createdTime\":\"2023-11-07T05:10:46.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } },{\"timestamp\":\"2023-11-07T05:20:01.877Z\",\"baseTransactionNumber\":9736,\"actionMetadata\":{\"source\":\"client\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"destroyedRecordIds\":[\"recmbMlVD0uWUy3Ru\"]} } },{\"timestamp\":\"2023-11-07T05:30:05.650Z\",\"baseTransactionNumber\":9737,\"actionMetadata\":{\"source\":\"publicApi\",\"sourceMetadata\":{\"user\":{\"id\":\"usrBw9fdcVFbu7ug9\",\"email\":\"ngocnicholas@gmail.com\",\"permissionLevel\":\"create\",\"name\":\"Ngoc Nicholas\",\"profilePicUrl\":\"https://static.airtable.com/images/userIcons/user_icon_10.png\"} } },\"payloadFormat\":\"v0\",\"changedTablesById\":{\"tblUmsH10MkIMMGYP\":{\"createdRecordsById\":{\"recL5S17OeXlIl53k\":{\"createdTime\":\"2023-11-07T05:30:06.000Z\",\"cellValuesByFieldId\":{\"fldSAUw6qVy9NzXzF\":\"Record for Testing Webhooks\"} } } } } }],\"cursor\":9,\"mightHaveMore\":false,\"payloadFormat\":\"v0\"}");
@@ -2008,12 +2018,12 @@ namespace AirtableApiClient.Tests
                         null);
 
             // ListWebhooks to see the Notification error
-            Webhooks webhooks = await ListWebhooks();
-            Assert.IsTrue(webhooks.Hooks.Length == 1);
-            Assert.IsFalse(webhooks.Hooks.First().LastNotificationResult.Success);
-            Assert.IsNotNull(webhooks.Hooks.First().LastNotificationResult.Error);
-            Console.WriteLine("Error message is: {0}", webhooks.Hooks.First().LastNotificationResult.Error.Message);
-            Console.WriteLine("WillBeRetried is {0}", webhooks.Hooks.First().LastNotificationResult.WillBeRetried);
+            Webhooks? webhooks = await ListWebhooks();
+            Assert.IsTrue(webhooks.Hooks!.Length == 1);
+            Assert.IsFalse(webhooks.Hooks.First()!.LastNotificationResult!.Success);
+            Assert.IsNotNull(webhooks.Hooks.First().LastNotificationResult!.Error);
+            Console.WriteLine("Error message is: {0}", webhooks.Hooks.First().LastNotificationResult!.Error!.Message);
+            Console.WriteLine("WillBeRetried is {0}", webhooks.Hooks.First().LastNotificationResult!.WillBeRetried);
 
         }
 
@@ -2036,9 +2046,9 @@ namespace AirtableApiClient.Tests
                         null);
 
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
-            var response = await task;
+            AirtableListWebhooksResponse? response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
+            Webhooks? webhooks = response.Webhooks;
     
 
             if (webhooks != null && webhooks.Hooks != null)
@@ -2046,7 +2056,7 @@ namespace AirtableApiClient.Tests
                 Console.WriteLine("webhooks.Hooks.Legth = {0}", webhooks.Hooks.Length);
                 if (webhooks.Hooks.Length > 0)
                 {
-                    string webhookId = webhooks.Hooks[0].Id;
+                    string? webhookId = webhooks.Hooks[0].Id;
                     Console.WriteLine("Disabling notifications for Webhook with ID = {0}", webhookId);
 
                     fakeResponse.Content = new StringContent("\"{}\"");
@@ -2090,7 +2100,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
+            Webhooks? webhooks = response.Webhooks;
 
             Assert.IsTrue(webhooks != null && webhooks.Hooks != null);
             Console.WriteLine("webhooks.Hooks.Legth = {0}", webhooks.Hooks.Length);
@@ -2098,7 +2108,7 @@ namespace AirtableApiClient.Tests
             fakeResponse.Content = new StringContent
                 ("{\"expirationTime\":\"2023-11-14T21:50:33.685Z\"}");
 
-            string webhookId = webhooks.Hooks[0].Id;
+            string? webhookId = webhooks.Hooks[0].Id;
 
             fakeResponseHandler.AddFakeResponse(
                         UrlHeadWebhooks + "/" + webhookId + "/refresh",
@@ -2107,7 +2117,7 @@ namespace AirtableApiClient.Tests
                         null);
                     
             Console.WriteLine("Refreshing Webhook with ID = {0}", webhookId);
-            Task<AirtabeRefreshWebhookResponse> task2 = airtableBase.RefreshWebhook(webhookId);
+            Task<AirtabeRefreshWebhookResponse> task2 = airtableBase.RefreshWebhook(webhookId!);
             var response2 = await task2;
             Assert.IsTrue(response2.Success);
         }
@@ -2133,8 +2143,8 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
-            Console.WriteLine("Number of Webhooks is {0}", webhooks.Hooks.Length);
+            Webhooks? webhooks = response.Webhooks;
+            Console.WriteLine("Number of Webhooks is {0}", webhooks!.Hooks!.Length);
         }
 
 
@@ -2176,11 +2186,12 @@ namespace AirtableApiClient.Tests
 
             Task<AirtableCreateReplaceRecordGenericResponse<Artist>> task = airtableBase.CreateRecordGeneric<Artist>(TABLE_NAME, Jony, true);
             var response = await task;
+            //AirtableCreateReplaceRecordGenericResponse<Artist> response = await task;
 
             Assert.IsTrue(response.Success);
-            Artist jony = response.Record.Fields;
+            Artist? jony = response.Record!.Fields;
 
-            Assert.IsTrue(jony.Name == "Jony");
+            Assert.IsTrue(jony!.Name == "Jony");
 
             Assert.IsTrue(jony.Bio == "Jony was born last year.");
 
@@ -2192,9 +2203,10 @@ namespace AirtableApiClient.Tests
             Assert.IsTrue(attListFromRecordCreated.Count() == 2);
 
             List<string>? genre = jony.Genre;
-            Assert.IsTrue(genre[0].Equals(Jony.Genre[0]));
+            Assert.IsTrue(genre![0].Equals(Jony.Genre[0]));
 
             List<string>? coll = jony.Collection;
+            Assert.IsNotNull(coll);
             Assert.IsTrue(coll[0].Equals("reccV1ddwIspBOe4O")); // reccV1ddwIspBOe4O is the recprd ID of "Scupture" in the Collections table
         }
 
@@ -2225,9 +2237,9 @@ namespace AirtableApiClient.Tests
             var response = await task;
 
             Assert.IsTrue(response.Success);
-            Artist jonyReplaced = response.Record.Fields;
+            Artist? jonyReplaced = response.Record!.Fields;
 
-            Assert.IsTrue(jonyReplaced.Name == "Jony Replaced");
+            Assert.IsTrue(jonyReplaced!.Name == "Jony Replaced");
 
             Assert.IsTrue(jonyReplaced.Bio == "Jony Replaced was born last year.");
         }
@@ -2265,13 +2277,13 @@ namespace AirtableApiClient.Tests
             var response = await task;
 
             Assert.IsTrue(response.Success);
-            AirtableRecord<Artist>[] recordArr = response.Records;
-            Artist jony2 = recordArr[0].Fields;
-            Assert.IsTrue(jony2.Name == "Jony2");
+            AirtableRecord<Artist>[]? recordArr = response.Records;
+            Artist? jony2 = recordArr![0].Fields;
+            Assert.IsTrue(jony2!.Name == "Jony2");
             Assert.IsTrue(jony2.Bio == "Jony2 was born last year.");
 
-            Artist jony3 = recordArr[1].Fields;
-            Assert.IsTrue(jony3.Name == "Jony3");
+            Artist? jony3 = recordArr[1].Fields;
+            Assert.IsTrue(jony3!.Name == "Jony3");
             var attListFromRecordCreated = jony3.Attachments;
             Assert.IsNotNull(attListFromRecordCreated);
             Assert.IsTrue(attListFromRecordCreated.Count() == 1);
@@ -2332,7 +2344,7 @@ namespace AirtableApiClient.Tests
                 else
                 {
                     errorMessage = null;
-                    AirtableRecord<Artist>[] records = response.Records;
+                    AirtableRecord<Artist>[]? records = response.Records;
                 }
             }
             else
@@ -2351,7 +2363,7 @@ namespace AirtableApiClient.Tests
         //------------------------------------------- Helper Functions --------------------------------------------
         //---------------------------------------------------------------------------------------------------------
 
-        private async Task<Webhooks>GenerateWebhooksToUse()
+        private async Task<Webhooks?>GenerateWebhooksToUse()
         {
             fakeResponse.Content = new StringContent
                 ("{\"webhooks\":[{\"id\":\"achfus4RR3IgSeeMK\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:50.929Z\"},{\"id\":\"achGVe4kJBlLroiOS\",\"specification\":{\"options\":{\"filters\":{\"recordChangeScope\":\"tblUmsH10MkIMMGYP\",\"dataTypes\":[\"tableData\"]},\"includes\":{\"includePreviousCellValues\":true,\"includePreviousFieldDefinitions\":false} } },\"notificationUrl\":\"https://httpbin.org/post\",\"cursorForNextPayload\":1,\"lastNotificationResult\":null,\"areNotificationsEnabled\":true,\"lastSuccessfulNotificationTime\":null,\"isHookEnabled\":true,\"expirationTime\":\"2023-11-12T19:14:51.272Z\"}]}");
@@ -2365,7 +2377,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> task = airtableBase.ListWebhooks();
             var response = await task;
             Assert.IsTrue(response.Success);
-            Webhooks webhooks = response.Webhooks;
+            Webhooks? webhooks = response.Webhooks;
             return webhooks;
         }
 
@@ -2397,7 +2409,7 @@ namespace AirtableApiClient.Tests
 
                     if (response.Success)
                     {
-                        records.AddRange(response.Records.ToList());
+                        records.AddRange(response.Records!.ToList());
                         offset = response.Offset;
                     }
                     else if (response.AirtableApiError is AirtableApiException)
@@ -2448,6 +2460,7 @@ namespace AirtableApiClient.Tests
             {
                 do
                 {
+                    Assert.IsNotNull(airtableBase);
                     Task<AirtableListRecordsResponse<T>> task = airtableBase.ListRecords<T>(TABLE_NAME, offset, fields, filterByFormula, maxRecords, pageSize, sort, view, 
                         cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount, token: token);
                     var response = await task;
@@ -2510,8 +2523,8 @@ namespace AirtableApiClient.Tests
             string formula = "NOT({Bank Name} = '')";
             Task<ListAllRecordsTestResponse> task = ListAllRecords(filterByFormula: formula);
             var response = await task;
-            Assert.IsTrue(response.Success);
-            Assert.IsTrue(response.Records.Count > 0);
+            Assert.IsTrue(response!.Success);
+            Assert.IsTrue(response.Records!.Count > 0);
             foreach (var record in response.Records)
             {
                 Assert.IsNotNull(record.GetField("Bank Name"));
@@ -2550,7 +2563,7 @@ namespace AirtableApiClient.Tests
             Task<AirtableListWebhooksResponse> listTask = airtableBase.ListWebhooks();
             var listResponse = await listTask;
             Assert.IsTrue(listResponse.Success);
-            return (listResponse.Webhooks);
+            return (listResponse.Webhooks!);
         }
 
 
@@ -2577,7 +2590,7 @@ namespace AirtableApiClient.Tests
             foreach (var pl in payloads)
             {
                 Console.WriteLine("Timestamp = {0}, BaseTransactionNumber = {1}, PayloadFormat= {2} ", pl.Timestamp, pl.BaseTransactionNumber, pl.PayloadFormat);
-                PrintObject(pl.ActionMetadata);
+                PrintObject(pl.ActionMetadata!);
 
                 if (pl.ChangedTablesById != null)
                 {
@@ -2690,9 +2703,9 @@ namespace AirtableApiClient.Tests
 
 
         private void PrintChangedView(
-            Dictionary<string, WebhooksCreatedRecord> createdRecordsById,
-            Dictionary<string, WebhooksChangedRecord> changedRecordsById,
-            string[] destroyedRecordIds)
+            Dictionary<string, WebhooksCreatedRecord>? createdRecordsById,
+            Dictionary<string, WebhooksChangedRecord>? changedRecordsById,
+            string[]? destroyedRecordIds)
         {
             if (createdRecordsById != null)                         // Reccords created?
             {
@@ -2702,10 +2715,10 @@ namespace AirtableApiClient.Tests
                 if (createdRcd.Equals(default(KeyValuePair<string, WebhooksCreatedRecord>)) == false)
                 {
                     Console.WriteLine("Record ID = {0}, Created Time = {1}, ", createdRcd.Key, createdRcd.Value.CreatedTime);
-                    var cellValue = createdRcd.Value.CellValuesByFieldId.First();
+                    var cellValue = createdRcd!.Value.CellValuesByFieldId!.First();
                     if (cellValue.Equals(default(KeyValuePair<string, object>)) == false)
                     {
-                        foreach (var kvp in createdRcd.Value.CellValuesByFieldId)
+                        foreach (var kvp in createdRcd.Value.CellValuesByFieldId!)
                         {
                             Console.WriteLine("Field ID = {0}, Field Value = {1}", kvp.Key, kvp.Value);
                         }
@@ -2722,7 +2735,7 @@ namespace AirtableApiClient.Tests
                 {
                     Console.WriteLine("Key = {0}, Value = {1}", chgRecord.Key, chgRecord.Value);
 
-                    var rcdData = chgRecord.Value.Current.CellValuesByFieldId.First();
+                    var rcdData = chgRecord.Value.Current!.CellValuesByFieldId!.First();
                     Console.WriteLine("Key = {0}, Value = {1}", rcdData.Key, rcdData.Value);
 
                     if (chgRecord.Value.Previous != null && chgRecord.Value.Previous.CellValuesByFieldId != null)

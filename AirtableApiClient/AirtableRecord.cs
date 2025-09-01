@@ -10,11 +10,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get; set; }
+        public string? Offset { get; set; }
 
         [JsonPropertyName("records")]
         [JsonInclude]
-        public AirtableRecord[] Records { get; set; }
+        public AirtableRecord[]? Records { get; set; }
     }
 
 
@@ -22,7 +22,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
@@ -102,7 +102,7 @@ namespace AirtableApiClient
         // If there is no such field or there are no attachments in this field, it will return null.
         // 
         //----------------------------------------------------------------------------
-        public IEnumerable<AirtableAttachment> GetAttachmentField(string attachmentsFieldName)
+        public IEnumerable<AirtableAttachment>? GetAttachmentField(string attachmentsFieldName)
         {
             var attachmentField = GetField(attachmentsFieldName);
             if (attachmentField == null)
@@ -121,11 +121,10 @@ namespace AirtableApiClient
             {
                 var json = JsonSerializer.Serialize(attachmentField);
                 var rawAttachments = JsonSerializer.Deserialize<IEnumerable<Dictionary<string, object>>>(json);
-
-                foreach (var rawAttachment in rawAttachments)
+                foreach (var rawAttachment in rawAttachments!)
                 {
                     json = JsonSerializer.Serialize(rawAttachment);
-                    attachments.Add(JsonSerializer.Deserialize<AirtableAttachment>(json));
+                    attachments.Add(JsonSerializer.Deserialize<AirtableAttachment>(json)!);
                 }
             }
             catch (Exception error)
@@ -176,11 +175,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get; set; }
+        public string? Offset { get; set; }
 
         [JsonPropertyName("records")]
         [JsonInclude]
-        public AirtableRecord<T>[] Records { get; set; }
+        public AirtableRecord<T>[]? Records { get; set; }
     }
 
 
@@ -188,7 +187,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
@@ -196,7 +195,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public T Fields { get; set; }
+        public T? Fields { get; set; }
 
         [JsonPropertyName("commentCount")]
         [JsonInclude]
@@ -208,11 +207,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("createdRecords")]
         [JsonInclude]
-        public string[] CreatedRecords { get; set; }
+        public string[]? CreatedRecords { get; set; }
 
         [JsonPropertyName("updatedRecords")]
         [JsonInclude]
-        public string[] UpdatedRecords { get; set; }
+        public string[]? UpdatedRecords { get; set; }
     }
 
 
@@ -220,10 +219,10 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("createdRecords")]
         [JsonInclude]
-        public string[] CreatedRecords { get; set; }
+        public string[]? CreatedRecords { get; set; }
 
         [JsonPropertyName("updatedRecords")]
         [JsonInclude]
-        public string[] UpdatedRecords { get; set; }
+        public string[]? UpdatedRecords { get; set; }
     }
 }

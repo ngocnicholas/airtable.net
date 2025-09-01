@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -9,11 +10,11 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get;set; }
+        public string? Id { get;set; }
 
         [JsonPropertyName("author")]
         [JsonInclude]
-        public Author Author { get;set; }
+        public Author? Author { get;set; }
 
         [JsonPropertyName("mentioned")] // mentioned may contain one or more multiple. Each user is a key value pair of UserMentioned in the dictionary.
         [JsonInclude]
@@ -23,7 +24,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("text")]
         [JsonInclude]
-        public string Text { get;set; }
+        public string? Text { get;set; }
 
         [JsonPropertyName("createdTime")]
         [JsonInclude]
@@ -45,14 +46,14 @@ namespace AirtableApiClient
         // <Key, Value> pairs representing 2 UserMentioned objects.
         //
         //----------------------------------------------------------------------------
-        public string GetTextWithMentionedDisplayNames()
+        public string? GetTextWithMentionedDisplayNames()
         {
            if (Mentioned != null)   // Comment has any Mentioned?
            {
                 string pattern = "@\\[(usr|ugp)[a-zA-Z0-9]{14}\\]";
 
                 //Replace matched value which is a mentioned such as @[ugpBw4fdcVFbu5ug6] in comment and replace it with the Display Name.
-                return Regex.Replace(Text, pattern, match => FindDisplayName(match));
+                return Regex.Replace(Text!, pattern, match => FindDisplayName(match)!);
 
                 // The 2 lines of code below demonstrate that, match => FindDisplayName(match), is the same as the line above
                 // and using lambda expression directly is just easier.
@@ -70,13 +71,13 @@ namespace AirtableApiClient
         // Each match is a User ID or Group ID. The corresponding Display Name will be returned.
         //
         //----------------------------------------------------------------------------
-        private string FindDisplayName(Match match)
+        private string? FindDisplayName(Match match)
         {
             string value = match.Value;                      // i.e. @[ugpBw4fdcVFbu5ug6]
             string key = value.Substring(2).TrimEnd(']');    // Get rid of "@[" at beginning and ']' at the end.The resulting string is the key for the dictionary of Mentioned objects.
             if (Mentioned.ContainsKey(key))
             {
-                return Mentioned[key].DisplayName;
+                return Mentioned[key]!.DisplayName;
             }
             return value;       // The match value is not usable. Return it, 
         }
@@ -88,15 +89,15 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get;set; }
+        public string? Id { get;set; }
 
         [JsonPropertyName("email")]
         [JsonInclude]
-        public string Email { get;set; }
+        public string? Email { get;set; }
 
         [JsonPropertyName("name")]
         [JsonInclude]
-        public string Name { get;set; }
+        public string? Name { get;set; }
     }
 
 
@@ -104,19 +105,19 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("type")]
         [JsonInclude]
-        public string Type { get;set; }
+        public string? Type { get;set; }
 
         [JsonPropertyName("id")]
         [JsonInclude]
-        public string Id { get;set; }
+        public string? Id { get;set; }
 
         [JsonPropertyName("displayName")]
         [JsonInclude]
-        public string DisplayName { get;set; }
+        public string? DisplayName { get;set; }
 
         [JsonPropertyName("email")]
         [JsonInclude]
-        public string Email { get;set; }
+        public string? Email { get;set; }
     }
 
 
@@ -124,12 +125,12 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("comments")]
         [JsonInclude]
-        public Comment[] Comments { get;set; }
+        public Comment[]? Comments { get;set; }
 
 
         [JsonPropertyName("offset")]
         [JsonInclude]
-        public string Offset { get;set; }
+        public string? Offset { get;set; }
     }
 
 }   // end namespace

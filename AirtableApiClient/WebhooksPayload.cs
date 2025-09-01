@@ -8,7 +8,7 @@ namespace AirtableApiClient
     {
         [JsonPropertyName("payloads")]
         [JsonInclude]
-        public WebhooksPayload[] Payloads;
+        public WebhooksPayload[]? Payloads;
 
         [JsonPropertyName("cursor")]
         [JsonInclude]
@@ -31,23 +31,23 @@ namespace AirtableApiClient
 
         [JsonPropertyName("payloadFormat")]
         [JsonInclude]
-        public string PayloadFormat { get; set; }
+        public string? PayloadFormat { get; set; }
 
         [JsonPropertyName("actionMetadata")]
         [JsonInclude]
-        public WebhooksAction ActionMetadata { get; set; }
+        public WebhooksAction? ActionMetadata { get; set; }
 
         [JsonPropertyName("changedTablesById")]
         [JsonInclude]
-        public Dictionary<string, WebhooksTableChanged> ChangedTablesById { get; set; }
+        public Dictionary<string, WebhooksTableChanged>? ChangedTablesById { get; set; }
 
         [JsonPropertyName("createdTablesById")]
         [JsonInclude]
-        public Dictionary<string, WebhooksTableCreated> CreatedTablesById { get; set; }
+        public Dictionary<string, WebhooksTableCreated>? CreatedTablesById { get; set; }
 
         [JsonPropertyName("destroyedTableIds")]
         [JsonInclude]
-        public string[] DestroyedTableIds { get; set; }
+        public string[]? DestroyedTableIds { get; set; }
 
         // Only error responses have the "error" and "code" fields.
         [JsonPropertyName("error")]
@@ -56,7 +56,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("code")]          // "INVALID_FILTERS" | "INVALID_HOOK" | "INTERNAL_ERROR" or more may be introduced in the future
         [JsonInclude]
-        public string Code { get; set; }
+        public string? Code { get; set; }
     }
 
 }
