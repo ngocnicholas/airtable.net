@@ -43,9 +43,9 @@
 
   <!-- Only legacy target needs these packages; use relaxed ranges -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" Version="[6.0.10, 10.0.0)" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="[6.0.0, 10.0.0)" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[6.0.0, 10.0.0)" />
+    <PackageReference Include="System.Text.Json" Version="[8.0.5, 10.0.0)" />
+    <!--PackageReference Include="System.Text.Encodings.Web" Version="[6.0.0, 10.0.0)" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[6.0.0, 10.0.0)" /-->
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -20,6 +21,9 @@ namespace AirtableApiClient
 
         private readonly string? UrlHead = null;
         private readonly string? UrlHeadWebhooks = null;
+        private readonly string? UrlHeadBaseModel = null;
+        private string? UrlHeadBaseSchema = null;
+
         private readonly HttpClientWithRetries httpClientWithRetries;
 
         private readonly JsonSerializerOptions JsonOptionIgnoreNullValues = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, };
@@ -74,6 +78,9 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
+            UrlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
+
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
 
@@ -106,6 +113,8 @@ namespace AirtableApiClient
 
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
             UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
+            UrlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
             httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, null);
         }
 
@@ -134,8 +143,132 @@ namespace AirtableApiClient
             UserIdAndScopes? userIdAndScopes = JsonSerializer.Deserialize<UserIdAndScopes>(responseBody, JsonOptionIgnoreNullValues);
             return new AirtableGetUserIdAndScopesResponse(userIdAndScopes!);
         }
-        
-        
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.GetBaseSchema
+        // Called to get the schema for all tables in the base.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(BaseSchemaInclude[]? baseSchemaInclude = null, string? baseId = null, CancellationToken token = default(CancellationToken))
+        {
+            string? urlHeadBaseSchema = UrlHeadBaseSchema;
+            string? uriStr = UrlHeadBaseSchema;
+            if (baseId != null)
+            {
+                urlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables"; ;
+            }
+
+            if (baseSchemaInclude != null)
+            {
+                var queryParams = string.Join("&", baseSchemaInclude.Select(i => $"include={Uri.EscapeDataString(i.ToString())}"));
+                uriStr = $"{urlHeadBaseSchema}?{queryParams}";
+            }
+            var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+            AirtableApiException? error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableGetBaseSchemaResponse(error);
+            }
+            var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var options = new JsonSerializerOptions
+            {
+                //DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                PropertyNameCaseInsensitive = true,
+                Converters = {
+                    new FieldConfigJsonConverter(),
+                    //new PromptItemListConverter()  // Register the list converter
+                }
+            };
+
+            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
+
+#if false
+            Console.WriteLine("After deserializing responseBody");
+            // Add this test code to force access to TypedOptions
+            IEnumerable<TableModel>? tables = tableModelList!.Tables;
+            foreach (var table in tables!) // Adjust based on your TableModelList structure
+            {
+                foreach (var field in table.Fields!) // Adjust based on your structure
+                {
+                    if (field is AiTextField aiField)
+                    {
+                        Console.WriteLine("Found AiTextField, accessing TypedOptions...");
+                        var typedOptions = aiField.TypedOptions; // This should trigger your converter
+                        Console.WriteLine($"TypedOptions accessed, Prompt count: {typedOptions.Prompt?.Count ?? 0}");
+                    }
+                }
+            }
+ #endif
+            return new AirtableGetBaseSchemaResponse(tableModelList!);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.CreateBase
+        //
+        // Note : The input arg TableConfig tables must be a list of JSON objects representing the tables that will be created along with the base.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateBaseResponse> CreateBase(string nameOfBaseToCreate, string workspaceIdofBase, TableConfig[] tablesToCreate, CancellationToken token = default(CancellationToken))
+        {
+            if (tablesToCreate == null)
+            {
+                throw new ArgumentException("tablesToCreate cannot be null.");
+            }
+            if (String.IsNullOrEmpty(nameOfBaseToCreate))
+            {
+                throw new ArgumentException("nameOfBaseToCreate cannot be empty or null");
+            }
+            if (String.IsNullOrEmpty(workspaceIdofBase))
+            {
+                throw new ArgumentException("workspaceIdofBase cannot be empty or null");
+            }
+
+            var uriBuilder = new UriBuilder(UrlHeadBaseModel!);
+
+            string json = JsonSerializer.Serialize(new { name = nameOfBaseToCreate, workspaceId = workspaceIdofBase, tables = tablesToCreate }, JsonOptionIgnoreNullValues);
+
+            var (responseBody, error) = await SendRequest(HttpMethod.Post, UrlHeadBaseModel!, json, token).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableCreateBaseResponse(error);
+            }
+            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, JsonOptionIgnoreNullValues);
+            return new AirtableCreateBaseResponse(createdBase!);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.ListBases
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableListBasesResponse> ListBases(string? offset = null, CancellationToken token = default(CancellationToken))
+        {
+            var uriBuilder = new UriBuilder(UrlHeadBaseModel!);
+            if (offset != null)
+            {
+                AddParametersToQuery(ref uriBuilder, $"offset={offset}");
+            }
+            var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.Uri);
+            var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
+            AirtableApiException? error = await CheckForAirtableException(response).ConfigureAwait(false);
+            if (error != null)
+            {
+                return new AirtableListBasesResponse(error);
+            }
+
+            string? responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var baseList = JsonSerializer.Deserialize<BaseList>(responseBody, JsonOptionIgnoreNullValues);
+            return new AirtableListBasesResponse(baseList!);
+        }
+
+
+
         //----------------------------------------------------------------------------
         //
         // AirtableBase.ListRecords
