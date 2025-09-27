@@ -5,17 +5,6 @@ using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
-    public enum FieldTypeEnum
-    {
-        singleLineText, email, url, multilineText, number, 
-        percent, currency, singleSelect, multipleSelects, singleCollaborator, 
-        multipleCollaborators, multipleRecordLinks, date, dateTime, phoneNumber, 
-        multipleAttachments, checkbox, formula, createdTime, rollup, 
-        count, multipleLookupValues, autoNumber, barcode, 
-        rating, richText, duration, lastModifiedTime, button, 
-        createdBy, lastModifiedBy, externalSyncSource, aiText
-    }
-
     public class FieldConfig
     {
         [JsonPropertyName("id")]
@@ -28,8 +17,10 @@ namespace AirtableApiClient
 
         // from original FieldConfig
         [JsonPropertyName("type")]
+        [JsonConverter(typeof(FieldTypeConverter))]
+
         [JsonInclude]
-        public string? Type { get; set; }       // optional<Field type> https://airtable.com/developers/web/api/model/field-type
+        public FieldType Type { get; set; }       // optional<Field type> https://airtable.com/developers/web/api/model/field-type
                                                // Should this be an eum or a string?
         [JsonPropertyName("name")]
         [JsonInclude]
@@ -62,7 +53,7 @@ namespace AirtableApiClient
     {
         public AiTextField()
         {
-            Type = "aiText";
+            Type = FieldType.AiText;
         }
     }
 
@@ -108,7 +99,7 @@ namespace AirtableApiClient
     {
         public AttachmentField()
         {
-            Type = "multipleAttachments";
+            Type = FieldType.MultipleAttachments;
         }
     }
 
@@ -125,7 +116,7 @@ namespace AirtableApiClient
     {
         public AutoNumberField()
         {
-            Type = "autoNumber";
+            Type = FieldType.AutoNumber;
         }
     }
 
@@ -137,7 +128,7 @@ namespace AirtableApiClient
     {
         public BarcodeField()
         {
-            Type = "barcode";
+            Type = FieldType.Barcode;
         }
     }
 
@@ -149,7 +140,7 @@ namespace AirtableApiClient
     {
         public ButtonField()
         {
-            Type = "button";
+            Type = FieldType.Button;
         }
     }
 
@@ -160,7 +151,7 @@ namespace AirtableApiClient
     {
         public CheckboxField()
         {
-            Type = "checkbox";
+            Type = FieldType.Checkbox;
         }
     }
 
@@ -182,7 +173,7 @@ namespace AirtableApiClient
     {
         public CollaboratorField()
         {
-            Type = "singleCollaborator";
+            Type = FieldType.SingleCollaborator;
         }
     }
 
@@ -193,7 +184,7 @@ namespace AirtableApiClient
     {
         public CountField()
         {
-            Type = "count";
+            Type = FieldType.Count;
         }
     }
 
@@ -213,7 +204,7 @@ namespace AirtableApiClient
     {
         public CreateByField()
         {
-            Type = "createdBy";
+            Type = FieldType.CreatedBy;
         }
     }
 
@@ -224,7 +215,7 @@ namespace AirtableApiClient
     {
         public CreatedTimeField()
         {
-            Type = "createdTime";
+            Type = FieldType.CreatedTime;
         }
     }
 
@@ -252,7 +243,7 @@ namespace AirtableApiClient
     {
         public CurrencyField()
         {
-            Type = "currency";
+            Type = FieldType.Currency;
         }
     }
 
@@ -279,7 +270,7 @@ namespace AirtableApiClient
     {
         public DateField()
         {
-            Type = "date";
+            Type = FieldType.Date;
         }
     }
 
@@ -313,7 +304,7 @@ namespace AirtableApiClient
     {
         public DateTimeField()
         {
-            Type = "dateTime";
+            Type = FieldType.DateTime;
         }
     }
 
@@ -348,7 +339,7 @@ namespace AirtableApiClient
     {
         public DurationField()
         {
-            Type = "duration";
+            Type = FieldType.Duration;
         }
     }
 
@@ -366,7 +357,7 @@ namespace AirtableApiClient
     {
         public EmailField()
         {
-            Type = "email";
+            Type = FieldType.Email;
         }
     }
 
@@ -377,7 +368,7 @@ namespace AirtableApiClient
     {
         public FormulaField()
         {
-            Type = "formula";
+            Type = FieldType.Formula;
         }
     }
 
@@ -407,7 +398,7 @@ namespace AirtableApiClient
     {
         public LastModifiedByField()
         {
-            Type = "lastModifiedBy";
+            Type = FieldType.LastModifiedBy;
         }
     }
 
@@ -419,7 +410,7 @@ namespace AirtableApiClient
     {
         public LastModifiedTimeField()
         {
-            Type = "lastModifiedTime";
+            Type = FieldType.LastModifiedTime;
         }
     }
 
@@ -460,7 +451,7 @@ namespace AirtableApiClient
         // Creating "multipleRecordLinks" fields is supported but updating options for existing "multipleRecordLinks" fields is not supported.
         public LinkToAnotherRecordField()
         {
-            Type = "multipleRecordLinks";
+            Type = FieldType.MultipleRecordLinks;
         }
     }
 
@@ -494,7 +485,7 @@ namespace AirtableApiClient
     {
         public LongTextField()
         {
-            Type = "multilineText";
+            Type = FieldType.MultilineText;
         }
     }
 
@@ -506,7 +497,7 @@ namespace AirtableApiClient
     {
         public LookupField()
         {
-            Type = "multipleLookupValues";
+            Type = FieldType.MultipleLookupValues;
         }
     }
 
@@ -531,7 +522,7 @@ namespace AirtableApiClient
     {
         public MultipleCollaboratorField()
         {
-            Type = "multipleCollaborators";
+            Type = FieldType.MultipleCollaborators;
         }
     }
 
@@ -545,7 +536,7 @@ namespace AirtableApiClient
     {
         public MultipleSelectField()
         {
-            Type = "multipleSelects";
+            Type = FieldType.MultipleSelects;
         }
     }
 
@@ -582,7 +573,7 @@ namespace AirtableApiClient
     {
         public NumberField()
         {
-            Type = "number";
+            Type = FieldType.Number;
         }
     }
 
@@ -606,7 +597,7 @@ namespace AirtableApiClient
     {
         public PercentField()
         {
-            Type = "percent";
+            Type = FieldType.Percent;
         }
     }
 
@@ -619,7 +610,7 @@ namespace AirtableApiClient
     {
         public PhoneField()
         {
-            Type = "phoneNumber";
+            Type = FieldType.PhoneNumber;
         }
     }
 
@@ -632,7 +623,7 @@ namespace AirtableApiClient
     {
         public RatingField()
         {
-            Type = "rating";
+            Type = FieldType.Rating;
         }
 
     }
@@ -660,7 +651,7 @@ namespace AirtableApiClient
     {
         public RichTextField()
         {
-            Type = "richText";
+            Type = FieldType.RichText;
         }
     }
 
@@ -673,7 +664,7 @@ namespace AirtableApiClient
     {
         public RollupField()
         {
-            Type = "rollup";
+            Type = FieldType.Rollup;
         }
     }
 
@@ -703,7 +694,7 @@ namespace AirtableApiClient
     {
         public SingleLineTextField()
         {
-            Type = "singleLineText";
+            Type = FieldType.SingleLineText;
         }
     }
     //-------------------------------------
@@ -715,7 +706,7 @@ namespace AirtableApiClient
     { 
         public SingleSelectField()
         {
-            Type = "singleSelect";
+            Type = FieldType.SingleSelect;
         }
     }
 
@@ -724,17 +715,10 @@ namespace AirtableApiClient
     {
         public SyncSourceField()
         {
-            Type = "externalSyncSource";
+            Type = FieldType.ExternalSyncSource;
         }
     }
 
-#if false
-    public class SyncSourceOptions
-    {
-        [JsonPropertyName("choices")]
-        public List<Choice>? Choices { get; set; }
-    }
-#endif
     //------------------------------------
 
     /// <summary>
@@ -744,7 +728,7 @@ namespace AirtableApiClient
     {
         public UrlField()
         {
-            Type = "url";
+            Type = FieldType.Url;
         }
     }
 }

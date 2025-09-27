@@ -1,9 +1,47 @@
 ﻿using System;
+using System.Drawing;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
+    public enum FieldType
+    {
+        SingleLineText,
+        Email, 
+        Url, 
+        MultilineText, 
+        Number,
+        Percent, 
+        Currency, 
+        SingleSelect, 
+        MultipleSelects, 
+        SingleCollaborator,
+        MultipleCollaborators, 
+        MultipleRecordLinks, 
+        Date, 
+        DateTime, 
+        PhoneNumber,
+        MultipleAttachments, 
+        Checkbox, 
+        Formula, 
+        CreatedTime, 
+        Rollup,
+        Count, 
+        MultipleLookupValues, 
+        AutoNumber, 
+        Barcode,
+        Rating, 
+        RichText, 
+        Duration, 
+        LastModifiedTime, 
+        Button,
+        CreatedBy, 
+        LastModifiedBy, 
+        ExternalSyncSource, 
+        AiText
+    }
+
     // Checkbox field enums
     public enum CheckboxColor
     {
@@ -140,10 +178,55 @@ namespace AirtableApiClient
         Flag,
         Dot
     }
+    /*
+        createdBy, lastModifiedBy, externalSyncSource, aiText
 
-    // Extension methods to convert enums to API strings
+     * */
+
+    // ----------------- Extension methods to convert enums to API strings ------------------------
     public static class EnumExtensions
     {
+        public static string ToApiString(this FieldType field)
+        {
+            return field switch
+            { 
+                FieldType.SingleLineText => "singleLineText",
+                FieldType.Email => "email",
+                FieldType.Url => "url",
+                FieldType.MultilineText => "multilineText",
+                FieldType.Number => "number",
+                FieldType.Percent => "percent",
+                FieldType.Currency => "currency",
+                FieldType.SingleSelect => "singleSelect",
+                FieldType.MultipleSelects => "multipleSelects",
+                FieldType.SingleCollaborator => "singleCollaborator",
+                FieldType.MultipleCollaborators => "multipleCollaborators",
+                FieldType.MultipleRecordLinks => "multipleRecordLinks",
+                FieldType.Date => "date",
+                FieldType.DateTime => "dateTime",
+                FieldType.PhoneNumber => "phoneNumber",
+                FieldType.MultipleAttachments => "multipleAttachments",
+                FieldType.Checkbox => "checkbox",
+                FieldType.Formula => "formula",
+                FieldType.CreatedTime => "createdTime",
+                FieldType.Rollup => "rollup",
+                FieldType.Count => "count",
+                FieldType.MultipleLookupValues => "multipleLookupValues",
+                FieldType.AutoNumber => "autoNumber",
+                FieldType.Barcode => "barcode",
+                FieldType.Rating => "rating",
+                FieldType.RichText => "richText",
+                FieldType.Duration => "duration",
+                FieldType.LastModifiedTime => "lastModifiedTime",
+                FieldType.Button => "button",
+                FieldType.CreatedBy => "createdBy",
+                FieldType.LastModifiedBy => "lastModifiedBy",
+                FieldType.ExternalSyncSource => "externalSyncSource",
+                FieldType.AiText => "aiText",
+                _ => throw new ArgumentOutOfRangeException(nameof(field), field, "Unsupported FieldType")
+            };
+        }
+
         public static string ToApiString(this CheckboxColor color)
         {
             return color switch
@@ -364,6 +447,7 @@ namespace AirtableApiClient
     }
 
     // Specific converters for each enum type
+    public class FieldTypeConverter : ApiStringEnumConverter<FieldType> { }
     public class CheckboxColorConverter : ApiStringEnumConverter<CheckboxColor> { }
     public class CheckboxIconConverter : ApiStringEnumConverter<CheckboxIcon> { }
     public class DateFormatTypeConverter : ApiStringEnumConverter<DateFormatType> { }
