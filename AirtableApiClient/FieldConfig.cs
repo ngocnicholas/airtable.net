@@ -15,13 +15,11 @@ namespace AirtableApiClient
         [JsonInclude]
         public string? Description { get; set; }     // optional
 
-        // from original FieldConfig
         [JsonPropertyName("type")]
         [JsonConverter(typeof(FieldTypeConverter))]
-
         [JsonInclude]
-        public FieldType Type { get; set; }       // optional<Field type> https://airtable.com/developers/web/api/model/field-type
-                                               // Should this be an eum or a string?
+        public FieldType Type { get; set; }         // optional<Field type> https://airtable.com/developers/web/api/model/field-type
+                                               
         [JsonPropertyName("name")]
         [JsonInclude]
         public string? Name { get; set; }

@@ -185,9 +185,9 @@ namespace AirtableApiClient
 
             var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
 
-#if false
+#if false   // Save this block of code for testing 'lazy deserialization' purpose.
             Console.WriteLine("After deserializing responseBody");
-            // Add this test code to force access to TypedOptions
+            // Add this test code to force access to TypedOptions in lazy deserialization of Prompt
             IEnumerable<TableModel>? tables = tableModelList!.Tables;
             foreach (var table in tables!) // Adjust based on your TableModelList structure
             {
