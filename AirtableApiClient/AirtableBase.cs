@@ -21,7 +21,7 @@ namespace AirtableApiClient
 
         private readonly string? UrlHead = null;
         private readonly string? UrlHeadWebhooks = null;
-        private readonly string? UrlHeadBaseModel = null;
+        internal readonly string? UrlHeadBaseModel = null;
         private string? UrlHeadBaseSchema = null;
 
         private readonly HttpClientWithRetries httpClientWithRetries;
@@ -157,7 +157,7 @@ namespace AirtableApiClient
             string? uriStr = UrlHeadBaseSchema;
             if (baseId != null)
             {
-                urlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables"; ;
+                urlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
             }
 
             if (baseSchemaInclude != null)
@@ -227,8 +227,6 @@ namespace AirtableApiClient
             {
                 throw new ArgumentException("workspaceIdofBase cannot be empty or null");
             }
-
-            var uriBuilder = new UriBuilder(UrlHeadBaseModel!);
 
             string json = JsonSerializer.Serialize(new { name = nameOfBaseToCreate, workspaceId = workspaceIdofBase, tables = tablesToCreate }, JsonOptionIgnoreNullValues);
 
