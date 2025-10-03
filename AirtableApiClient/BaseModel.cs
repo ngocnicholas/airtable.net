@@ -13,8 +13,7 @@ namespace AirtableApiClient
 
     public enum BaseSchemaInclude
     {
-        visibleFieldIds,
-        dateDependencySettings
+        visibleFieldIds
     }
 
 

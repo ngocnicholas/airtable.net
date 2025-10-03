@@ -46,6 +46,8 @@ namespace AirtableApiClient
         }
     }
 
+    //-------------------------------------------------------------------------------------------
+
     // https://airtable.com/developers/web/api/field-model
     public class AiTextField : FieldOptions<AiTextOptions>      // READ only
     {
@@ -93,7 +95,7 @@ namespace AirtableApiClient
 
     //-------------------------- end of AiTextField
 
-    public class AttachmentField : FieldOptions<AttachementFieldReadOptions>
+    public class AttachmentField : FieldOptions<AttachmentFieldReadOptions>
     {
         public AttachmentField()
         {
@@ -101,11 +103,14 @@ namespace AirtableApiClient
         }
     }
 
-    public class AttachementFieldReadOptions
+    public class AttachmentFieldReadOptions
     {
         [JsonPropertyName("isReversed")]
         public bool IsReversed { get; set; }
     }
+
+
+    //--------------------------------------------------------
 
     /// <summary>
     /// Auto number field
@@ -156,12 +161,10 @@ namespace AirtableApiClient
     public class CheckboxOptions  
     {
         [JsonPropertyName("color")]
-        [JsonConverter(typeof(CheckboxColorConverter))]
-        public CheckboxColor Color { get; set; }
+        public string? Color { get; set; }
 
         [JsonPropertyName("icon")]
-        [JsonConverter(typeof(CheckboxIconConverter))]
-        public CheckboxIcon Icon { get; set; }    // "check" | "xCheckbox" | "star" | "heart" | "thumbsUp" | "flag" | "dot"
+        public string? Icon { get; set; }    // "check" | "xCheckbox" | "star" | "heart" | "thumbsUp" | "flag" | "dot"
     }
 
     /// <summary>
@@ -175,6 +178,7 @@ namespace AirtableApiClient
         }
     }
 
+#if true   // Only commented this out if we want to see what happens when a schema has a FieldConfig that the current code does not recognize.
     /// <summary>
     /// Count field
     /// </summary>
@@ -194,18 +198,18 @@ namespace AirtableApiClient
         [JsonPropertyName("recordLinkFieldId")]
         public string? RecordLinkFieldId { get; set; }   // optional<string | null >
     }
+#endif
 
     /// <summary>
     /// Created By field
     /// </summary>
-    public class CreateByField : FieldConfig
+    public class CreatedByField : FieldConfig
     {
-        public CreateByField()
+        public CreatedByField()
         {
             Type = FieldType.CreatedBy;
         }
     }
-
     /// <summary>
     /// Created time field
     /// </summary>
@@ -286,12 +290,10 @@ namespace AirtableApiClient
         [JsonPropertyName("format")]        // "l" | "LL" | "M/D/YYYY" | "D/M/YYYY" | "YYYY-MM-DD"
                                             // format is always provided when reading.
                                             // (l for local, LL for friendly, M/D/YYYY for us, D/M/YYYY for european, YYYY-MM-DD for iso)
-        [JsonConverter(typeof(DateFormatTypeConverter))]
-        public DateFormatType Format { get; set; }  // Format is optional when writing, but it must match the corresponding name if provided.
+        public string? Format { get; set; }  // Format is optional when writing, but it must match the corresponding name if provided.
 
         [JsonPropertyName("name")]
-        [JsonConverter(typeof(DateFormatNameConverter))]
-        public DateFormatName Name { get; set; }    // "local" | "friend" | "us" | "european" | "iso" 
+        public string? Name { get; set; }    // "local" | "friend" | "us" | "european" | "iso" 
     }
 
 
@@ -321,12 +323,10 @@ namespace AirtableApiClient
     public class TimeFormat 
     {
         [JsonPropertyName("format")]                        //format is always provided when reading. (l for local, LL for friendly, M/D/YYYY for us, D/M/YYYY for european, YYYY-MM-DD for iso)
-        [JsonConverter(typeof(TimeFormatTypeConverter))]
-        public TimeFormatType Format { get; set; }                  // 	Optional for Write. "h:mma" | "HH:mm"
+        public string? Format { get; set; }                  // 	Optional for Write. "h:mma" | "HH:mm"
 
         [JsonPropertyName("name")]
-        [JsonConverter(typeof(TimeFormatNameConverter))]
-        public TimeFormatName Name { get; set; }                    // "12hour" | "24hour"
+        public string? Name { get; set; }                    // "12hour" | "24hour"
     }
 
 
@@ -344,8 +344,7 @@ namespace AirtableApiClient
     public class DurationOptions  
     {
         [JsonPropertyName("durationFormat")]
-        [JsonConverter(typeof(DurationFormatTypeConverter))]
-        public DurationFormatType DurationFormat { get; set; } //"h:mm" | "h:mm:ss" | "h:mm:ss.S" | "h:mm:ss.SS" | "h:mm:ss.SSS"
+        public string? DurationFormat { get; set; } //"h:mm" | "h:mm:ss" | "h:mm:ss.S" | "h:mm:ss.SS" | "h:mm:ss.SSS"
     }
 
     /// <summary>
@@ -381,12 +380,12 @@ namespace AirtableApiClient
         public bool IsValid { get; set; }
 
         [JsonPropertyName("referencedFieldIds")]
-        public string[]? ReferencedFieldIds { get; set; }        // array of strings | null
+        public string[]? ReferencedFieldIds { get; set; }       // array of strings | null
                                                                 // All fields in the record that are used in the formula.
 
         [JsonPropertyName("result")]
-        // public object Result { get; set; }                      // Field type and options | null if invalid. See https://airtable.com/developers/web/api/field-model
-        public FieldConfig? Result { get; set; }                 // Question: should the type be FieldDefinition or object???
+        // public object Result { get; set; }                   // Field type and options | null if invalid. See https://airtable.com/developers/web/api/field-model
+        public FieldConfig? Result { get; set; }                // Question: should the type be FieldDefinition or object???
     }
 
     /// <summary>
@@ -553,8 +552,7 @@ namespace AirtableApiClient
         public string? Id { get; set; }
 
         [JsonPropertyName("color")]
-        [JsonConverter(typeof(ChoiceColorConverter))]
-        public ChoiceColor? Color { get; set; }     // optional during Read when the select field is configured to not use colors.           
+        public string? Color { get; set; }     // optional during Read when the select field is configured to not use colors.           
                                                     // optional duiring Write - This is not specified when creating new options,
                                                     // useful when specifing existing options (for example: reordering options,
                                                     // keeping old options and adding new ones, etc)
@@ -629,12 +627,10 @@ namespace AirtableApiClient
     public class RatingOptions 
     {
         [JsonPropertyName("color")]
-        [JsonConverter(typeof(RatingColorConverter))]
-        public RatingColor Color { get; set; }       // TODO: make an EMUM for this
+        public string? Color { get; set; }       // TODO: make an EMUM for this
 
         [JsonPropertyName("icon")]
-        [JsonConverter(typeof(RatingIconConverter))]
-        public RatingIcon Icon { get; set; }
+        public string? Icon { get; set; }
 
         [JsonPropertyName("max")]
         public int Max { get; set; }            // The maximum value for the rating, from 1 to 10 inclusive.
@@ -729,4 +725,23 @@ namespace AirtableApiClient
             Type = FieldType.Url;
         }
     }
+
+    public class UnknownField : FieldConfig
+    {
+        public UnknownField()
+        {
+            Type = FieldType.UnknownField;
+        }
+
+        // The discriminator we saw (could be null/missing)
+        public string? UnknownType { get; set; }
+
+        // Raw JSON of the entire field object so we can re-emit it exactly
+        public string FieldConfigRawJson { get; set; } = "";
+
+        // Optional convenience: parsed "options" if present
+        //public string? OptionsRawJson { get; set; }
+
+    }
+
 }

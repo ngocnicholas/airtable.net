@@ -363,7 +363,7 @@ namespace AirtableApiClient
             Tables = tables.Tables;
         }
 
-        public readonly IEnumerable<TableModel>? Tables;
+        public readonly TableModel[]? Tables;
     }
 
     public class AirtableCreateBaseResponse : AirtableApiResponse
@@ -379,7 +379,7 @@ namespace AirtableApiClient
             Tables = createdBase.Tables; ;
         }
 
-        public readonly IEnumerable<TableModel>? Tables;
+        public readonly TableModel[]? Tables;
         public readonly string? Id;
     }
 
@@ -397,7 +397,7 @@ namespace AirtableApiClient
             Bases = baseList.Bases;
         }
 
-        public readonly IEnumerable<BaseModel>? Bases;
+        public readonly BaseModel[]? Bases;
         public readonly string? Offset;
     }
 }

@@ -24,7 +24,7 @@ namespace AirtableApiClient
             ["checkbox"] = typeof(CheckboxField),                       // RW, same options
             ["singleCollaborator"] = typeof(CollaboratorField),         // RW, same options
             ["count"] = typeof(CountField),                             // R,   options
-            ["createdBy"] = typeof(CreateByField),                      // R,   No
+            ["createdBy"] = typeof(CreatedByField),                     // R,   No
             ["createdTime"] = typeof(CreatedTimeField),                 // R,   options
             ["currency"] = typeof(CurrencyField),                       // RW, same options
             ["date"] = typeof(DateField),                               // RW,  same options, but Format is optional in Write
@@ -63,9 +63,30 @@ namespace AirtableApiClient
 
             string? typeString = root.GetProperty("type").GetString();
 
-            if (string.IsNullOrEmpty(typeString) || !TypeMap.TryGetValue(typeString!, out var targetType))
+            if (string.IsNullOrEmpty(typeString))
             {
                 throw new JsonException($"Unknown or unsupported field type: {typeString}");
+            }
+
+            if (!TypeMap.TryGetValue(typeString!, out var targetType))
+            {
+                // Build a tolerant "unknown" instance and keep original JSON
+                root.TryGetProperty("id", out var idProp);
+                root.TryGetProperty("name", out var nameProp);
+
+                string? optionsRaw = null;
+                if (root.TryGetProperty("options", out var optProp))
+                    optionsRaw = optProp.GetRawText();
+
+                UnknownField unknownField =  new UnknownField
+                {
+                    Id = idProp.ValueKind == JsonValueKind.String ? idProp.GetString() : null,
+                    Name = nameProp.ValueKind == JsonValueKind.String ? nameProp.GetString() : null,
+                    UnknownType = typeString,
+                    Options = optionsRaw,
+                    FieldConfigRawJson = root.GetRawText(),
+                };
+                return unknownField;
             }
 
             // First, deserialize the field object itself

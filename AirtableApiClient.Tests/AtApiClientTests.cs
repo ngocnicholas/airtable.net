@@ -9,6 +9,7 @@ global using System.Text.Json.Serialization;
 global using System.Threading;
 global using System.Threading.Tasks;
 using System.Buffers.Text;
+using System.Text.Json;
 //global using AirtableApiClient;
 
 
@@ -2360,13 +2361,39 @@ namespace AirtableApiClient.Tests
 
         }
 
-#if true   // working on it
         [TestMethod]
-        public async Task TzVAtApiClientRGetBaseSchema()
+        public async Task TzVAtApiClientListBases()
+        {
+            fakeResponse.Content = new StringContent
+                ("""{"bases":[{"id":"appRwEOcQj015ORpX","name":"Art Gallery Example","permissionLevel":"create"},{"id":"app3NeZrh3cpnqOQT","name":"Travel Bucket List Example","permissionLevel":"create"},{"id":"appQJmuleJsrBmZvu","name":"Restaurant Field Guide Example","permissionLevel":"create"},{"id":"appLTqZUq9pFkcWQ3","name":"Sales Leads Example","permissionLevel":"create"},{"id":"app5iNmix90NbdHZU","name":"Applicant Tracking Example","permissionLevel":"create"},{"id":"appx9wceu4lCAndE1","name":"Team Task Management Example","permissionLevel":"create"},{"id":"appr3UlnwlPFGekrc","name":"PR/Communications Example","permissionLevel":"create"},{"id":"appGUps6aB7D8QARH","name":"First base","permissionLevel":"create"},{"id":"appKuI67YAJ29a1WE","name":"FurnitureShop","permissionLevel":"create"},{"id":"appvdIxcMzHRMZWUY","name":"Art Gallery","permissionLevel":"create"},{"id":"app9OOCxXShf7sHAC","name":"Japan and Thailand","permissionLevel":"create"},{"id":"appVZ6LpY4rD9WLqN","name":"Germany May 2016","permissionLevel":"create"},{"id":"appIvnrjWGhnT4goH","name":"Japan Itinerary","permissionLevel":"create"},{"id":"appjBNuIcnrRsK3Dp","name":"Birthday Celebration - Post Wedding lunch","permissionLevel":"create"},{"id":"appTAwmN1QWreK0Gt","name":"Guest arrangement","permissionLevel":"create"},{"id":"appBQqW2eB1V2Pb6d","name":"Denver CO trip","permissionLevel":"create"},{"id":"appjJzgSsAzQl9mrO","name":"Hawaii Itinerary","permissionLevel":"create"},{"id":"appsnojZVHWDToruS","name":"Norah's party","permissionLevel":"create"},{"id":"app4drnMgyUVfOhyB","name":"RecruitingToolJs","permissionLevel":"create"},{"id":"app7W78eHewnZTqdA","name":"Template Test","permissionLevel":"create"},{"id":"appoyCwFmlzmlol2N","name":"NewMexico","permissionLevel":"create"},{"id":"appO4gbypIOyMT9p5","name":"Carolyn's Wedding","permissionLevel":"create"},{"id":"appNHEamLipsDQC0E","name":"Gardening","permissionLevel":"create"},{"id":"app7CzMn2UpuAlGD1","name":"Flower Beds","permissionLevel":"create"},{"id":"appOTh5R9PuUYPi9v","name":"Base Sources","permissionLevel":"create"},{"id":"app5azIXXRJZvdzI3","name":"Saigon","permissionLevel":"create"},{"id":"appptCKqFJAp3l1mo","name":"AI Text Example","permissionLevel":"create"}]}""");
+
+            fakeResponseHandler.AddFakeResponse(
+            airtableBase.UrlHeadBaseModel!,
+            HttpMethod.Get,
+            fakeResponse,
+            null);
+
+            Task<AirtableListBasesResponse> task = airtableBase.ListBases();
+            var response = await task;
+            Assert.IsTrue(response!.Success);
+            string? offset = response!.Offset;
+            IEnumerable<BaseModel>? bases = response!.Bases;
+            Assert.IsNotNull(bases);
+            Assert.IsTrue(bases.Count() > 0);
+            Console.WriteLine($"bases count is {bases.Count()}");
+            foreach (var airBase in bases)
+            {
+                Console.WriteLine(airBase.Name);
+                Console.WriteLine(airBase.Id);
+                Console.WriteLine(airBase.PermissionLevel);
+            }
+        }
+
+        [TestMethod]
+        public async Task TzWAtApiClientRGetBaseSchema()
         {
             fakeResponse.Content = new StringContent
                 ("""{"tables":[{"id":"tbl1gBn6Wgec2TfsB","name":"Companies","primaryFieldId":"fld4jnbJKLtjbxfwT","fields":[{"type":"singleLineText","id":"fld4jnbJKLtjbxfwT","name":"Name"},{"type":"aiText","options":{"referencedFieldIds":["fld4jnbJKLtjbxfwT"],"prompt":["CEO of ",{"field":{"fieldId":"fld4jnbJKLtjbxfwT"}},". Return the first, middle, and last name.\n"]},"id":"fldpoCwjKHIEI2YN6","name":"CEO"},{"type":"aiText","options":{"referencedFieldIds":["fldpoCwjKHIEI2YN6"],"prompt":["[Static Text: \"Profile of \" ] + ",{"field":{"fieldId":"fldpoCwjKHIEI2YN6"}},"+ [. Return a paragraph of no more than 100 words.] \n"]},"id":"fld1A2Y2B68OP29ck","name":"LinkedIn Profile"},{"type":"autoNumber","id":"fldYscteFt64cI7pt","name":"AutonumberFName"},{"type":"createdBy","id":"fldWDTmSz48ccHp5Q","name":"CreatedByName"},{"type":"createdTime","options":{"result":{"type":"dateTime","options":{"dateFormat":{"name":"local","format":"l"},"timeFormat":{"name":"12hour","format":"h:mma"},"timeZone":"client"}}},"id":"fldw3uxxQEYuoq8un","name":"CreatedTimeName"},{"type":"lastModifiedBy","id":"fldsysLMbLu2XE7Gh","name":"LastModifiedByName"},{"type":"lastModifiedTime","options":{"isValid":true,"referencedFieldIds":[],"result":{"type":"dateTime","options":{"dateFormat":{"name":"local","format":"l"},"timeFormat":{"name":"12hour","format":"h:mma"},"timeZone":"client"}}},"id":"flds9bYVcoDpKXI3F","name":"LastModifiedTimeName"},{"type":"multipleRecordLinks","options":{"linkedTableId":"tblgs2NtQNDQxevy7","isReversed":false,"prefersSingleRecordLink":false,"inverseLinkFieldId":"fldN8f5TvniPRrCDj"},"id":"fldypssJpbRNX7K5P","name":"Test Table"},{"type":"multipleLookupValues","options":{"isValid":true,"recordLinkFieldId":"fldypssJpbRNX7K5P","fieldIdInLinkedTable":"fldzH39z1Isgq9ugR","result":{"type":"singleLineText"}},"id":"fldkmKe6vblDXGzYR","name":"LookupName"},{"type":"multipleSelects","options":{"choices":[{"id":"selsIJRYXQNH7fbU0","name":"","color":"redLight1"},{"id":"selo6s8WtuzHJzZSy","name":"","color":"blueLight2"},{"id":"selYnj68ZGw0qSiHO","name":"","color":"cyanLight2"},{"id":"selifQ4BsGkp3JYx3","name":"","color":"tealLight2"}]},"id":"fldx1dNdg7vwEBLVZ","name":"MultipleSelectName"},{"type":"rollup","options":{"isValid":true,"recordLinkFieldId":"fldypssJpbRNX7K5P","fieldIdInLinkedTable":"fldN8f5TvniPRrCDj","referencedFieldIds":[],"result":{"type":"singleLineText"}},"id":"fldnEpCy2mluxYa8h","name":"Companies Rollup (from Test Table)"},{"type":"singleLineText","id":"fld5s3vwlSmdphZYJ","name":"FormulaField"},{"type":"count","options":{"isValid":true,"recordLinkFieldId":"fldypssJpbRNX7K5P"},"id":"fldqix7jJD0yTCBXa","name":"CountField"},{"type":"button","id":"fldKxUBWy7lfYlJ4B","name":"ButtonField"}],"views":[{"id":"viw32zuhRWo7x3GIv","name":"Grid view","type":"grid","visibleFieldIds":["fld4jnbJKLtjbxfwT","fldpoCwjKHIEI2YN6","fld1A2Y2B68OP29ck","fldYscteFt64cI7pt","fldWDTmSz48ccHp5Q","fldw3uxxQEYuoq8un","fldsysLMbLu2XE7Gh","flds9bYVcoDpKXI3F","fldypssJpbRNX7K5P","fldkmKe6vblDXGzYR","fldx1dNdg7vwEBLVZ","fldnEpCy2mluxYa8h","fld5s3vwlSmdphZYJ","fldqix7jJD0yTCBXa","fldKxUBWy7lfYlJ4B"]}]},{"id":"tblgs2NtQNDQxevy7","name":"Test Table","primaryFieldId":"fldzH39z1Isgq9ugR","fields":[{"type":"singleLineText","id":"fldzH39z1Isgq9ugR","name":"Name"},{"type":"multipleRecordLinks","options":{"linkedTableId":"tbl1gBn6Wgec2TfsB","isReversed":false,"prefersSingleRecordLink":false,"inverseLinkFieldId":"fldypssJpbRNX7K5P"},"id":"fldN8f5TvniPRrCDj","name":"Companies"}],"views":[{"id":"viwsWUHMhUKSla6Jw","name":"Grid view","type":"grid","visibleFieldIds":["fldzH39z1Isgq9ugR","fldN8f5TvniPRrCDj"]}]}]}""");
-                //("{\"records\":[{\"id\":\"rec8vJPDc7Seqekbi\",\"createdTime\":\"2025-08-03T23:50:36.000Z\",\"fields\":{\"Name\":\"Jony2 Again\"} },{\"id\":\"recPDSfwdOECYtod5\",\"createdTime\":\"2025-08-03T23:50:36.000Z\",\"fields\":{\"Name\":\"Jony3 Again\"} }]}");
 
             string urlHeadBaseSchema = airtableBase.UrlHeadBaseModel + "/" + BASE_ID + "/tables";
             string uriStr = urlHeadBaseSchema + "?include=visibleFieldIds";
@@ -2394,7 +2421,193 @@ namespace AirtableApiClient.Tests
                 Console.WriteLine(tbl.Name);
             }
         }
-#endif
+
+
+        [TestMethod]
+        public async Task TzXAtApiClientCreateBase()
+        {
+            fakeResponse.Content = new StringContent
+                ("""{"id":"app8uxXLFWRyx2Hcb","tables":[{"id":"tbl3O9FFIkJ6IzHih","name":"Singapore","description":"First Stop","primaryFieldId":"fldeGX09qNIfG2WCU","fields":[{"type":"singleLineText","id":"fldeGX09qNIfG2WCU","name":"Name"},{"type":"multilineText","id":"fld8QL69T6P8EbF9J","name":"Notes"},{"type":"multipleAttachments","options":{"isReversed":false},"id":"fldoszk790F8NvQ1V","name":"Attachments"},{"type":"checkbox","options":{"icon":"xCheckbox","color":"cyanBright"},"id":"fld0BaNdltswYCJUi","name":"Checkbox"},{"type":"url","id":"fldZ1Gi58pwUfSZYz","name":"URL"},{"type":"phoneNumber","id":"fldGmFhNJQZR2Voqr","name":"Phone Number"},{"type":"number","options":{"precision":3},"id":"fld5dBbGPCKozDcj7","name":"Our House Worth"},{"type":"number","options":{"precision":2},"id":"fldrfSyBPwRzqrFoP","name":"My savings"},{"type":"percent","options":{"precision":1},"id":"fldPPuLXGblpSwLjU","name":"Percent"},{"type":"rating","options":{"icon":"star","max":5,"color":"orangeBright"},"id":"fldoA2E1VDVbqMW4U","name":"Rating"},{"type":"multipleSelects","options":{"choices":[{"id":"selyr9pQM1OqAnSsQ","name":"Emmett","color":"redDark1"},{"id":"sel25uVFkmN03Su3f","name":"Angela","color":"purpleDark1"},{"id":"selDd4zGbUUYZF6TE","name":"Walter","color":"blueBright"}]},"id":"fldm3I7vZeJLtXyf4","name":"Inheritants"},{"type":"singleSelect","options":{"choices":[{"id":"selr75oXhA1mNgtxo","name":"Willie","color":"redDark1"},{"id":"seleC5Gs9bFy3h6hn","name":"Cassie","color":"purpleDark1"},{"id":"selUKiXqhNL4CXlhL","name":"Ruby","color":"blueBright"}]},"id":"fldHU4O0kleZVncRb","name":"Pests"},{"type":"richText","id":"fldBJ5LUBvvhzmoJj","name":"Family"},{"type":"email","id":"fldjrAjq3wgAqP2pV","name":"Email"},{"type":"duration","options":{"durationFormat":"h:mm:ss"},"id":"fldCMUhQZKinbz0Uw","name":"Duration"},{"type":"barcode","id":"fld9h4eVCkXnqqSm6","name":"Barcode"},{"type":"singleCollaborator","id":"fld4nmPOikRihCb0Y","name":"Single Collaborator"},{"type":"currency","options":{"precision":2,"symbol":"$"},"id":"fldaegIfazNLtgaG0","name":"Money"},{"type":"date","options":{"dateFormat":{"name":"us","format":"M/D/YYYY"}},"id":"fldMp15xaAZ6tXZWe","name":"Date"},{"type":"dateTime","options":{"dateFormat":{"name":"us","format":"M/D/YYYY"},"timeFormat":{"name":"12hour","format":"h:mma"},"timeZone":"America/Adak"},"id":"fldM9ClwbJccM0QVp","name":"Date & Time"},{"type":"multipleCollaborators","id":"fldIkHbaYPlMgjam0","name":"MultipleCollaborator"}],"views":[{"id":"viwKOTRtQNPQfRFY3","name":"Grid view","type":"grid"}]}]}""");
+
+            fakeResponseHandler.AddFakeResponse(
+                airtableBase.UrlHeadBaseModel!,
+                HttpMethod.Post,
+                fakeResponse,
+                null);
+
+            string baseName = "Saigon";
+            string workSpaceId = "wspw42QpP4SY13Qxu";         // worspace ID of the workspace "Personal";
+            FieldConfig[] sngFields = new FieldConfig[21];
+
+            sngFields[0] = new SingleLineTextField();
+            sngFields[0].Name = "Name";
+
+            sngFields[1] = new LongTextField();
+            sngFields[1].Name = "Notes";
+
+            sngFields[2] = new AttachmentField();
+            sngFields[2].Name = "Attachments";
+
+            sngFields[3] = new CheckboxField
+            {
+                Name = "Checkbox",
+                TypedOptions = new CheckboxOptions
+                {
+                    Icon = "xCheckbox",
+                    Color = "cyanBright"
+                }
+            };
+            Console.WriteLine(((CheckboxField)sngFields[3]).Options); // Should NOT be null
+            string json = JsonSerializer.Serialize(sngFields[3], new JsonSerializerOptions { WriteIndented = true });
+            Console.WriteLine(json);
+
+            sngFields[4] = new UrlField();
+            sngFields[4].Name = "URL";
+
+            sngFields[5] = new PhoneField();
+            sngFields[5].Name = "Phone Number";
+
+            sngFields[6] = new NumberField
+            {
+                Name = "Our House Worth",
+                TypedOptions = new PrecisionOptions { Precision = 3 }
+            };
+
+            sngFields[7] = new NumberField { Name = "My savings", TypedOptions = new PrecisionOptions { Precision = 2 } };
+
+            sngFields[8] = new PercentField { Name = "Percent", TypedOptions = new PrecisionOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
+
+            sngFields[9] = new RatingField
+            {
+                Name = "Rating",
+                TypedOptions = new RatingOptions
+                {
+                    Max = 5,
+                    Color = "orangeBright",
+                    Icon = "star"
+                }
+            };
+
+            sngFields[10] = new MultipleSelectField
+            {
+                Name = "Inheritants",
+                TypedOptions = new ChoiceOptions
+                {
+                    Choices = new List<Choice>               
+                    {
+                        new Choice { Name = "Emmett", Color = "redDark1" },
+                        new Choice { Name = "Angela", Color = "purpleDark1" },
+                        new Choice { Name = "Walter", Color = "blueBright" }
+                    }
+                }
+            };
+
+            sngFields[11] = new SingleSelectField
+            {
+                Name = "Pests",
+                TypedOptions = new ChoiceOptions
+                {
+                    Choices = new List<Choice>
+                    {
+                        new Choice { Name = "Willie", Color = "redDark1" },
+                        new Choice { Name = "Cassie", Color = "purpleDark1" },
+                        new Choice { Name = "Ruby", Color = "blueBright" }
+                    }
+                }
+            };
+
+            sngFields[12] = new RichTextField
+            {
+                Name = "Family"
+            };
+
+            sngFields[13] = new EmailField
+            {
+                Name = "Email"
+            };
+
+            sngFields[14] = new DurationField
+            {
+                Name = "Duration",
+                TypedOptions = new DurationOptions
+                {
+                    DurationFormat = "h:mm:ss"
+                }
+
+            };
+
+            sngFields[15] = new BarcodeField
+            {
+                Name = "Barcode"
+            };
+
+            sngFields[16] = new CollaboratorField { Name = "Single Collaborator" };
+
+            sngFields[17] = new CurrencyField
+            {
+                Name = "Money",
+                TypedOptions = new CurrencyOptions
+                {
+                    Precision = 2,
+                    Symbol = "$"
+                }
+            };
+
+            sngFields[18] = new DateField
+            {
+                Name = "Date",
+                TypedOptions = new DateOptions
+                {
+                    DateFormat = new AirtableApiClient.DateFormat
+                    {
+                        Format = "M/D/YYYY",
+                        Name = "us"
+                    }
+                }
+            };
+
+
+            sngFields[19] = new DateTimeField
+            {
+                Name = "Date & Time",
+                TypedOptions = new DateTimeOptions
+                {
+                    TimeZone = "America/Adak",
+                    DateFormat = new AirtableApiClient.DateFormat
+                    {
+                        Format = "M/D/YYYY",
+                        Name = "us"
+                    },
+                    TimeFormat = new AirtableApiClient.TimeFormat
+                    {
+                        Format = "h:mma",
+                        Name = "12hour"
+                    }
+                }
+            };
+
+            sngFields[20] = new MultipleCollaboratorField       // Can't have TypedOptions as an object (told Emmett)
+            {
+                Name = "MultipleCollaborator",
+            };
+
+            TableConfig[] tableConfigs = new TableConfig[1]; // a list of json objects of TableConfig
+            tableConfigs[0] = new TableConfig();
+            tableConfigs[0].Name = "Singapore";
+            tableConfigs[0].Description = "First Stop";
+            tableConfigs[0].Fields = sngFields;
+
+             
+            Task<AirtableCreateBaseResponse> task = airtableBase.CreateBase(baseName, workSpaceId, tableConfigs);
+            var response = await task;
+            Assert.IsTrue(response.Success);
+            IEnumerable<TableModel>? tables = response!.Tables;
+            Assert.IsNotNull(tables);
+            Assert.IsTrue(tables.Count() > 0);
+            Console.WriteLine($"tables count is {tables.Count()}");
+        }
+
+
         //---------------------------------------------------------------------------------------------------------
         //------------------------------------------- Helper Functions --------------------------------------------
         //---------------------------------------------------------------------------------------------------------

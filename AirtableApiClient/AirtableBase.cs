@@ -19,10 +19,10 @@ namespace AirtableApiClient
         private const int MAX_RECORD_OPERATION_SIZE = 10;
         private const int MAX_LIST_RECORDS_URL_SIZE = 16000;
 
-        private readonly string? UrlHead = null;
-        private readonly string? UrlHeadWebhooks = null;
-        internal readonly string? UrlHeadBaseModel = null;
+        private string? UrlHead = null;
+        private string? UrlHeadWebhooks = null;
         private string? UrlHeadBaseSchema = null;
+        internal readonly string? UrlHeadBaseModel = null;
 
         private readonly HttpClientWithRetries httpClientWithRetries;
 
@@ -38,6 +38,28 @@ namespace AirtableApiClient
         {
             get { return httpClientWithRetries.RetryDelayMillisecondsIfRateLimited; }
             set { httpClientWithRetries.RetryDelayMillisecondsIfRateLimited = value; }
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.AirtableBase
+        //    constructor -- for creating an instance providing with apiKeyOraccessToken only.
+        //      This AirtableBase, once constructed, is only useful for CreateBase and ListBase
+        //      because all other public APIs requires the base ID to be passed in to the consturctor.
+        //      However, the user can call SetBaseId to make all public APIs available.
+        //
+        //----------------------------------------------------------------------------
+        public AirtableBase(string apiKeyOrAccessToken) : this (apiKeyOrAccessToken, null, null)
+        {
+            // Base ID is not given. All APIs of Airtable relying on a base ID already set previously will throw an exception.
+            // However, a base ID can be set later to render all other APIs available.
+            //
+            // This constructor is useful for ListBases and CreateBase.
+            // 
+            // 
+            // No delegating handler is given; a normal HttpClient will be constructed
+            // to communicate with Airtable.
         }
 
 
@@ -63,7 +85,7 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public AirtableBase(
             string apiKeyOrAccessToken,
-            string baseId,
+            string? baseId,
             DelegatingHandler? delegatingHandler)
         {
             if (String.IsNullOrEmpty(apiKeyOrAccessToken))
@@ -76,10 +98,13 @@ namespace AirtableApiClient
                 throw new ArgumentException("baseId cannot be null", "baseId");
             }
 
-            UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
-            UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
             UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
-            UrlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
+            if (baseId != null)
+            { 
+                UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
+                UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+                UrlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
+            }
 
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
@@ -95,7 +120,7 @@ namespace AirtableApiClient
         public AirtableBase(
             HttpClient client,
             string apiKeyOrAccessToken,
-            string baseId)
+            string? baseId = null)
         {
             if (client == null)
             {
@@ -119,6 +144,14 @@ namespace AirtableApiClient
         }
 
 
+        public void SetBaseId(string baseId)
+        {
+            UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
+            UrlHeadWebhooks = "https://api.airtable.com/v0/" + ("bases/" + baseId + "/webhooks");
+            UrlHeadBaseSchema = UrlHeadBaseModel + "/" + baseId + "/tables";
+        }
+
+
         //----------------------------------------------------------------------------
         //
         // AirtableBase.GetUserIdAndScopes
@@ -128,6 +161,11 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableGetUserIdAndScopesResponse> GetUserIdAndScopes(CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             string uriStr = "https://api.airtable.com/v0/meta/whoami";
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
 
@@ -153,6 +191,11 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(BaseSchemaInclude[]? baseSchemaInclude = null, string? baseId = null, CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             string? urlHeadBaseSchema = UrlHeadBaseSchema;
             string? uriStr = UrlHeadBaseSchema;
             if (baseId != null)
@@ -185,23 +228,6 @@ namespace AirtableApiClient
 
             var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
 
-#if false   // Save this block of code for testing 'lazy deserialization' purpose.
-            Console.WriteLine("After deserializing responseBody");
-            // Add this test code to force access to TypedOptions in lazy deserialization of Prompt
-            IEnumerable<TableModel>? tables = tableModelList!.Tables;
-            foreach (var table in tables!) // Adjust based on your TableModelList structure
-            {
-                foreach (var field in table.Fields!) // Adjust based on your structure
-                {
-                    if (field is AiTextField aiField)
-                    {
-                        Console.WriteLine("Found AiTextField, accessing TypedOptions...");
-                        var typedOptions = aiField.TypedOptions; // This should trigger your converter
-                        Console.WriteLine($"TypedOptions accessed, Prompt count: {typedOptions.Prompt?.Count ?? 0}");
-                    }
-                }
-            }
- #endif
             return new AirtableGetBaseSchemaResponse(tableModelList!);
         }
 
@@ -291,6 +317,11 @@ namespace AirtableApiClient
             CancellationToken token = default(CancellationToken)
             )
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view,
                 cellFormat, timeZone, userLocale,
@@ -334,6 +365,11 @@ namespace AirtableApiClient
             bool? includeCommentCount = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             HttpResponseMessage response = await ListRecordsInternal(tableIdOrName, offset, fields, filterByFormula,
                 maxRecords, pageSize, sort, view, cellFormat, timeZone, userLocale, returnFieldsByFieldId, includeCommentCount, token).ConfigureAwait(false);
             AirtableApiException? error = await CheckForAirtableException(response).ConfigureAwait(false);
@@ -364,6 +400,11 @@ namespace AirtableApiClient
         bool returnFieldsByFieldId = false,
         CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
@@ -396,6 +437,11 @@ namespace AirtableApiClient
             bool returnFieldsByFieldId = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
 
             Uri uri = BuildUriForRetrieveRecord(tableIdOrName, id, cellFormat, timeZone, userLocale, returnFieldsByFieldId);
@@ -426,6 +472,11 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Post, typecast: typecast, token: token)).ConfigureAwait(false);
         }
 
@@ -443,6 +494,11 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Post, typecast: typecast, token: token).ConfigureAwait(false));
         }
 
@@ -461,6 +517,11 @@ namespace AirtableApiClient
             bool typeCast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateUpdateReplaceRecord(tableIdOrName, fields, new HttpMethod("PATCH"), id, typeCast, token)).ConfigureAwait(false);
         }
 
@@ -479,6 +540,11 @@ namespace AirtableApiClient
             bool typeCast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateUpdateReplaceRecord(tableIdOrName, fields, HttpMethod.Put, id, typeCast, token)).ConfigureAwait(false);
         }
 
@@ -497,6 +563,11 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast, token)).ConfigureAwait(false);
         }
 
@@ -513,6 +584,11 @@ namespace AirtableApiClient
             string id,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             TableIdOrNameAndRecordIdCheck(tableIdOrName, id);
 
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + id;
@@ -542,6 +618,11 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (fields == null || fields.Length == 0 || fields.Length > MAX_RECORD_OPERATION_SIZE)
             {
                 throw new ArgumentException(String.Format("Number of records to be created must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
@@ -564,6 +645,11 @@ namespace AirtableApiClient
             bool typecast = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (records == null || records.Length == 0 || records.Length > MAX_RECORD_OPERATION_SIZE)
             {
                 throw new ArgumentException("Record list cannot be null or empty or cannot have more than 10 records");
@@ -603,6 +689,11 @@ namespace AirtableApiClient
             bool returnFieldsByFieldId = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateReplaceMultipleRecordsGeneric<T>(tableIdOrName, records, HttpMethod.Post, null, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
         }
 
@@ -622,6 +713,11 @@ namespace AirtableApiClient
             PerformUpsert? performUpsert = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json, token)).ConfigureAwait(false);
         }
@@ -642,6 +738,11 @@ namespace AirtableApiClient
             PerformUpsert? performUpsert = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json, token)).ConfigureAwait(false);
@@ -663,6 +764,11 @@ namespace AirtableApiClient
             PerformUpsert? performUpsert = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
         }
@@ -683,6 +789,11 @@ namespace AirtableApiClient
             PerformUpsert? performUpsert = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, HttpMethod.Put, json, token)).ConfigureAwait(false);
@@ -704,6 +815,11 @@ namespace AirtableApiClient
             bool returnFieldsByFieldId = false,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateReplaceMultipleRecordsGeneric<T>(tableIdOrName, records, HttpMethod.Put, ids, typecast, returnFieldsByFieldId, token)).ConfigureAwait(false);
         }
 
@@ -722,6 +838,11 @@ namespace AirtableApiClient
             int? pageSize = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
             var uriBuilder = new UriBuilder(UrlHead + Uri.EscapeDataString(tableIdOrName) + "/" + recordId + "/comments");
             if (!string.IsNullOrEmpty(offset))
@@ -761,6 +882,11 @@ namespace AirtableApiClient
             string recordId,
             string commentText)
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             return await (CreateUpdateComment(tableIdOrName, recordId, commentText)).ConfigureAwait(false);
         }
 
@@ -779,6 +905,11 @@ namespace AirtableApiClient
            string commentText,
            string? rowCommentId)
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (string.IsNullOrEmpty(rowCommentId))
             {
                 throw new ArgumentException("Comment ID cannot be null.", "rowCommentId");
@@ -801,6 +932,11 @@ namespace AirtableApiClient
             string? rowCommentId,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             TableIdOrNameAndRecordIdCheck(tableIdOrName, recordId);
             if (string.IsNullOrEmpty(rowCommentId))
             {
@@ -830,6 +966,11 @@ namespace AirtableApiClient
         public async Task<AirtableListWebhooksResponse> ListWebhooks(
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             var request = new HttpRequestMessage(HttpMethod.Get, UrlHeadWebhooks);
             var response = await httpClientWithRetries.SendAsync(request, token).ConfigureAwait(false);
             AirtableApiException? error = await CheckForAirtableException(response).ConfigureAwait(false);
@@ -856,6 +997,11 @@ namespace AirtableApiClient
             int? limit = null,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             var uriBuilder = new UriBuilder(UrlHeadWebhooks + "/" + webhookId + "/payloads");
             if(cursor != null)
             {
@@ -893,6 +1039,11 @@ namespace AirtableApiClient
             CancellationToken token = default(CancellationToken))
 
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (spec == null)
             {
                 throw new ArgumentException("specification cannot be null");
@@ -926,6 +1077,11 @@ namespace AirtableApiClient
             bool enable,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (string.IsNullOrEmpty(webhookId))
             {
                 throw new ArgumentException("Webhook ID cannot be null.");
@@ -955,6 +1111,11 @@ namespace AirtableApiClient
             string webhookId,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (string.IsNullOrEmpty(webhookId))
             {
                 throw new ArgumentException("Webhook ID cannot be null.");
@@ -983,6 +1144,11 @@ namespace AirtableApiClient
             string? webhookId,
             CancellationToken token = default(CancellationToken))
         {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
             if (string.IsNullOrEmpty(webhookId))
             {
                 throw new ArgumentException("Webhook ID cannot be null.");
