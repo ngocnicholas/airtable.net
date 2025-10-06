@@ -214,17 +214,7 @@ namespace AirtableApiClient
                 return new AirtableGetBaseSchemaResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var options = new JsonSerializerOptions
-            {
-                //DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNameCaseInsensitive = true,
-                Converters = {
-                    new FieldConfigJsonConverter(),
-                    //new PromptItemListConverter()  // Register the list converter
-                }
-            };
-
-            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, options);
+            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, ReadJsonOptions);
 
             return new AirtableGetBaseSchemaResponse(tableModelList!);
         }
@@ -252,15 +242,16 @@ namespace AirtableApiClient
                 throw new ArgumentException("workspaceIdofBase cannot be empty or null");
             }
 
-            string json = JsonSerializer.Serialize(new { name = nameOfBaseToCreate, workspaceId = workspaceIdofBase, tables = tablesToCreate }, JsonOptionIgnoreNullValues);
+            var payload = new { name = nameOfBaseToCreate, workspaceId = workspaceIdofBase, tables = tablesToCreate };
+            string json = JsonSerializer.Serialize(payload, WriteJsonOptions); 
+
 
             var (responseBody, error) = await SendRequest(HttpMethod.Post, UrlHeadBaseModel!, json, token).ConfigureAwait(false);
-            if (error != null)
-            {
-                return new AirtableCreateBaseResponse(error);
-            }
-            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, JsonOptionIgnoreNullValues);
+            if (error != null) return new AirtableCreateBaseResponse(error);
+
+            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, ReadJsonOptions);
             return new AirtableCreateBaseResponse(createdBase!);
+
         }
 
 
@@ -1173,6 +1164,37 @@ namespace AirtableApiClient
             httpClientWithRetries.Dispose();
         }
 
+        //---------------------------------------------------------------------------------------------------------
+        // private helper functions
+        //---------------------------------------------------------------------------------------------------------
+
+        private static readonly JsonSerializerOptions WriteJsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new WriteFieldConfigConverter() }
+        };
+
+        private static readonly JsonSerializerOptions ReadJsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new FieldConfigJsonConverter() }
+        };
+
+        //-------------------
+        // This is for the future if ever need to serialize the deserialized result from GetBaseSchema.
+        // We will need to use this reemitJsonOptions as our serialization options.
+        // We have no need for it for the moment.
+        //------------------------------------------
+        #if false
+        var reemitJsonOptions = JsonSerializer.Serialize(tableModel, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new FieldConfigJsonConverter() }   // <-- important
+        });
+        #endif
 
         //----------------------------------------------------------------------------
         //
@@ -1376,7 +1398,7 @@ namespace AirtableApiClient
             }
 
             var (responseBody, error) = await SendRequest(httpMethod, uriStr, json, token).ConfigureAwait(false);
-            //var request = new HttpRequestMessage(httpMethod, uriStr);
+
             if (error != null)
             {
                 return new AirtableCreateReplaceRecordGenericResponse<T>(error);

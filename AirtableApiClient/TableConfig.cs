@@ -14,6 +14,6 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public FieldConfig[]? Fields { get; set; }
+        public WriteFieldConfig[] Fields { get; set; } = Array.Empty<WriteFieldConfig>();
     }
 }

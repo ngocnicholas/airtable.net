@@ -16,27 +16,27 @@ namespace AirtableApiClient
     {
         private static readonly Dictionary<string, Type> TypeMap = new()
         {
-            ["aiText"] = typeof(AiTextField),                           // R,   options
-            ["multipleAttachments"] = typeof(AttachmentField),          // R,   No
-            ["autoNumber"] = typeof(AutoNumberField),                   // R,   No
+            ["aiText"] = typeof(AiTextField_Read),                      // R,   options
+            ["multipleAttachments"] = typeof(AttachmentField_Read),     // R,   No
+            ["autoNumber"] = typeof(AutoNumberField_Read),              // R,   No
             ["barcode"] = typeof(BarcodeField),                         // RW,  No
-            ["button"] = typeof(ButtonField),                           // R,   No
+            ["button"] = typeof(ButtonField_Read),                      // R,   No
             ["checkbox"] = typeof(CheckboxField),                       // RW, same options
             ["singleCollaborator"] = typeof(CollaboratorField),         // RW, same options
-            ["count"] = typeof(CountField),                             // R,   options
-            ["createdBy"] = typeof(CreatedByField),                     // R,   No
-            ["createdTime"] = typeof(CreatedTimeField),                 // R,   options
+            ["count"] = typeof(CountField_Read),                        // R,   options
+            ["createdBy"] = typeof(CreatedByField_Read),                // R,   No
+            ["createdTime"] = typeof(CreatedTimeField_Read),            // R,   options
             ["currency"] = typeof(CurrencyField),                       // RW, same options
             ["date"] = typeof(DateField),                               // RW,  same options, but Format is optional in Write
             ["dateTime"] = typeof(DateTimeField),                       // RW,  same options, but Format is optional in Write
             ["duration"] = typeof(DurationField),                       // RW, same options
             ["email"] = typeof(EmailField),                             // RW,  No
-            ["formula"] = typeof(FormulaField),                         // R,   options
-            ["lastModifiedBy"] = typeof(LastModifiedByField),           // R,   No
-            ["lastModifiedTime"] = typeof(LastModifiedTimeField),        // R,   options
-            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordField),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
+            ["formula"] = typeof(FormulaField_Read),                    // R,   options
+            ["lastModifiedBy"] = typeof(LastModifiedByField_Read),      // R,   No
+            ["lastModifiedTime"] = typeof(LastModifiedTimeField_Read),  // R,   options
+            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordField_Read),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
             ["multilineText"] = typeof(LongTextField),                  // RW,  No
-            ["multipleLookupValues"] = typeof(LookupField),             // R,   options
+            ["multipleLookupValues"] = typeof(LookupField_Read),        // R,   options
             ["multipleCollaborators"] = typeof(MultipleCollaboratorField), // RW,  same options
             ["multipleSelects"] = typeof(MultipleSelectField),          // RW,  same options, but Id is optional in Write
             ["number"] = typeof(NumberField),                           // RW,  same options
@@ -44,7 +44,7 @@ namespace AirtableApiClient
             ["phoneNumber"] = typeof(PhoneField),                       // RW,  No
             ["rating"] = typeof(RatingField),                           // RW,  same options 
             ["richText"] = typeof(RichTextField),                       // RW,  No
-            ["rollup"] = typeof(RollupField),                           // R,   options
+            ["rollup"] = typeof(RollupField_Read),                      // R,   options
             ["singleLineText"] = typeof(SingleLineTextField),           // RW,  No
             ["singleSelect"] = typeof(SingleSelectField),               // RW,  Same options, but Id is optinal in Write
             ["externalSyncSource"] = typeof(SyncSourceField),           // RW,  same options
@@ -74,48 +74,57 @@ namespace AirtableApiClient
                 root.TryGetProperty("id", out var idProp);
                 root.TryGetProperty("name", out var nameProp);
 
-                string? optionsRaw = null;
-                if (root.TryGetProperty("options", out var optProp))
-                    optionsRaw = optProp.GetRawText();
-
-                UnknownField unknownField =  new UnknownField
+                UnknownField_Read unknownField =  new UnknownField_Read
                 {
                     Id = idProp.ValueKind == JsonValueKind.String ? idProp.GetString() : null,
                     Name = nameProp.ValueKind == JsonValueKind.String ? nameProp.GetString() : null,
                     UnknownType = typeString,
-                    Options = optionsRaw,
                     FieldConfigRawJson = root.GetRawText(),
-                };
+                    OptionsRawJson = root.TryGetProperty("options", out var optEl) ? optEl.GetRawText() : null
+               };
                 return unknownField;
             }
 
-            // First, deserialize the field object itself
-            var deserialized = (FieldConfig?)JsonSerializer.Deserialize(root, targetType, jasonSerializerOptions);
+            // Deserialize to the mapped concrete type
+            var obj = root.Deserialize(targetType, jasonSerializerOptions)    // or JsonSerializer.Deserialize(root.GetRawText(), targetType, options)
+                      ?? throw new JsonException($"Failed to deserialize field of type '{typeString}'.");
 
             // If it's a FieldOptions<T> type, eagerly deserialize the options. Otherwise TOptions won't be deserialized until it's accessed.
-            if (deserialized != null && deserialized.GetType().IsSubclassOfGenericType(typeof(FieldOptions<>)))
+
+            var fc = (FieldConfig)obj;
+
+            // fc is the concrete field (already deserialized to targetType)
+            var t = fc.GetType();
+
+            // find which generic base it uses (if any)
+            static Type? FindGenericBase(Type cur, Type openGeneric)
             {
-                // Get the options JsonElement
-                if (deserialized!.Options is JsonElement optionsElement)
+                for (var x = cur; x != null; x = x.BaseType)
+                    if (x.IsGenericType && x.GetGenericTypeDefinition() == openGeneric)
+                        return x;
+                return null;
+            }
+
+            var readBase = FindGenericBase(t, typeof(ReadFieldConfig<>));
+            var rwBase = FindGenericBase(t, typeof(ReadWriteFieldConfig<>));
+
+            Type? genericBase = readBase ?? rwBase;
+            if (genericBase != null)
+            {
+                // property name depends on which base we matched
+                var propName = (readBase != null) ? "ReadOptions" : "Options";
+                var prop = t.GetProperty(propName);
+
+                // Only do the extra pass if the property is still a JsonElement
+                if (prop?.GetValue(fc) is JsonElement optionsElement)
                 {
-                    // Get the generic type argument (e.g., AiTextOptions from FieldOptions<AiTextOptions>)
-                    var baseType = deserialized.GetType().BaseType;
-                    var optionsType = baseType?.GetGenericArguments()[0];
-
-                    if (optionsType != null && optionsType != typeof(object))
-                    {
-                        // Deserialize the options immediately using the original JsonSerializerOptions
-                        var typedOptions = JsonSerializer.Deserialize(optionsElement.GetRawText(), optionsType, jasonSerializerOptions);
-
-                        // Store the deserialized options directly
-                        deserialized.Options = typedOptions;
-                    }
+                    var optionsType = genericBase.GetGenericArguments()[0];
+                    var typed = JsonSerializer.Deserialize(optionsElement.GetRawText(), optionsType, jasonSerializerOptions);
+                    prop.SetValue(fc, typed);
                 }
             }
 
-            return deserialized is FieldConfig typedField
-                ? typedField
-                : throw new JsonException($"Deserialized object is not a FieldConfig: {deserialized?.GetType()}");
+            return fc;
         }
 
         // For a Json Converter, override Write is for Serialization
@@ -223,54 +232,16 @@ namespace AirtableApiClient
         }
     }
 
-#if false
-    public sealed class PromptItemConverter : JsonConverter<PromptItem>
+    //------------------------------------------------------
+    public sealed class WriteFieldConfigConverter : JsonConverter<WriteFieldConfig>
     {
-        public override PromptItem Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override WriteFieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => throw new NotSupportedException("Reading write models is not supported here.");
+
+        public override void Write(Utf8JsonWriter writer, WriteFieldConfig value, JsonSerializerOptions options)
         {
-            // Put breakpoint here
-            if (reader.TokenType == JsonTokenType.String)
-                return PromptItem.FromText(reader.GetString()!);
-
-            if (reader.TokenType == JsonTokenType.StartObject)
-            {
-                using var doc = JsonDocument.ParseValue(ref reader);
-                var root = doc.RootElement;
-
-                if (root.TryGetProperty("field", out var fieldElem))
-                {
-                    var field = fieldElem.Deserialize<FieldReference>(options);
-                    return PromptItem.FromField(field!.FieldId!);
-                }
-
-                if (root.TryGetProperty("textContent", out var textElem))
-                    return PromptItem.FromText(textElem.GetString()!);
-
-                throw new JsonException("Expected 'field' or 'textContent' in prompt item.");
-            }
-
-            throw new JsonException($"Unexpected token {reader.TokenType} in prompt array.");
+            // Serialize using the *runtime* type so derived-only props (Options/WriteOptions) are included
+            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
         }
-        public override bool CanConvert(Type typeToConvert)
-        {
-            return typeToConvert == typeof(PromptItem);
-        }
-
-        public override void Write(Utf8JsonWriter writer, PromptItem value, JsonSerializerOptions options)
-        {
-            if (value.Field is not null)
-            {
-                writer.WriteStartObject();
-                writer.WritePropertyName("field");
-                JsonSerializer.Serialize(writer, value.Field, options);
-                writer.WriteEndObject();
-                return;
-            }
-
-            writer.WriteStringValue(value.TextContent ?? string.Empty);
-        }
-
-        public override bool HandleNull => true; // helpful if Airtable ever sends nulls
     }
-#endif
 }

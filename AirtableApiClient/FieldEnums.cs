@@ -139,4 +139,4 @@ namespace AirtableApiClient
     // Specific converters for each enum type
     public class FieldTypeConverter : ApiStringEnumConverter<FieldType> { }
 
-    }
+}
