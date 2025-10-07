@@ -5,11 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
- #if true
     public interface IField { }
     public interface IFieldModel : IField { }   // can appear in server responses
     public interface IFieldConfig : IField { }   // can be sent in CreateBase
-#endif
 
      public class FieldType : IField
     {
@@ -31,7 +29,8 @@ namespace AirtableApiClient
     public abstract class FieldModel : FieldType, IFieldModel { }
 
     // Generic base for read-options fields
-    public abstract class FieldModel<TReadOptions> : FieldType, IFieldModel
+    //public abstract class FieldModel<TReadOptions> : FieldType, IFieldModel
+    public abstract class FieldModel<TReadOptions> : FieldModel
     {
         [JsonPropertyName("options")]
         public TReadOptions? ReadOptions { get; set; }
