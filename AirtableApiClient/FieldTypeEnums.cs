@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
-    public enum FieldType
+    public enum FieldTypeEnum
     {
         SingleLineText,
         Email, 
@@ -47,43 +47,43 @@ namespace AirtableApiClient
     // ----------------- Extension methods to convert enums to API strings ------------------------
     public static class EnumExtensions
     {
-        public static string ToApiString(this FieldType field)
+        public static string ToApiString(this FieldTypeEnum field)
         {
             return field switch
             {
-                FieldType.SingleLineText => "singleLineText",
-                FieldType.Email => "email",
-                FieldType.Url => "url",
-                FieldType.MultilineText => "multilineText",
-                FieldType.Number => "number",
-                FieldType.Percent => "percent",
-                FieldType.Currency => "currency",
-                FieldType.SingleSelect => "singleSelect",
-                FieldType.MultipleSelects => "multipleSelects",
-                FieldType.SingleCollaborator => "singleCollaborator",
-                FieldType.MultipleCollaborators => "multipleCollaborators",
-                FieldType.MultipleRecordLinks => "multipleRecordLinks",
-                FieldType.Date => "date",
-                FieldType.DateTime => "dateTime",
-                FieldType.PhoneNumber => "phoneNumber",
-                FieldType.MultipleAttachments => "multipleAttachments",
-                FieldType.Checkbox => "checkbox",
-                FieldType.Formula => "formula",
-                FieldType.CreatedTime => "createdTime",
-                FieldType.Rollup => "rollup",
-                FieldType.Count => "count",
-                FieldType.MultipleLookupValues => "multipleLookupValues",
-                FieldType.AutoNumber => "autoNumber",
-                FieldType.Barcode => "barcode",
-                FieldType.Rating => "rating",
-                FieldType.RichText => "richText",
-                FieldType.Duration => "duration",
-                FieldType.LastModifiedTime => "lastModifiedTime",
-                FieldType.Button => "button",
-                FieldType.CreatedBy => "createdBy",
-                FieldType.LastModifiedBy => "lastModifiedBy",
-                FieldType.ExternalSyncSource => "externalSyncSource",
-                FieldType.AiText => "aiText",
+                FieldTypeEnum.SingleLineText => "singleLineText",
+                FieldTypeEnum.Email => "email",
+                FieldTypeEnum.Url => "url",
+                FieldTypeEnum.MultilineText => "multilineText",
+                FieldTypeEnum.Number => "number",
+                FieldTypeEnum.Percent => "percent",
+                FieldTypeEnum.Currency => "currency",
+                FieldTypeEnum.SingleSelect => "singleSelect",
+                FieldTypeEnum.MultipleSelects => "multipleSelects",
+                FieldTypeEnum.SingleCollaborator => "singleCollaborator",
+                FieldTypeEnum.MultipleCollaborators => "multipleCollaborators",
+                FieldTypeEnum.MultipleRecordLinks => "multipleRecordLinks",
+                FieldTypeEnum.Date => "date",
+                FieldTypeEnum.DateTime => "dateTime",
+                FieldTypeEnum.PhoneNumber => "phoneNumber",
+                FieldTypeEnum.MultipleAttachments => "multipleAttachments",
+                FieldTypeEnum.Checkbox => "checkbox",
+                FieldTypeEnum.Formula => "formula",
+                FieldTypeEnum.CreatedTime => "createdTime",
+                FieldTypeEnum.Rollup => "rollup",
+                FieldTypeEnum.Count => "count",
+                FieldTypeEnum.MultipleLookupValues => "multipleLookupValues",
+                FieldTypeEnum.AutoNumber => "autoNumber",
+                FieldTypeEnum.Barcode => "barcode",
+                FieldTypeEnum.Rating => "rating",
+                FieldTypeEnum.RichText => "richText",
+                FieldTypeEnum.Duration => "duration",
+                FieldTypeEnum.LastModifiedTime => "lastModifiedTime",
+                FieldTypeEnum.Button => "button",
+                FieldTypeEnum.CreatedBy => "createdBy",
+                FieldTypeEnum.LastModifiedBy => "lastModifiedBy",
+                FieldTypeEnum.ExternalSyncSource => "externalSyncSource",
+                FieldTypeEnum.AiText => "aiText",
                 _ => throw new ArgumentOutOfRangeException(nameof(field), field, "Unsupported FieldType")
             };
         }
@@ -137,6 +137,6 @@ namespace AirtableApiClient
     }
 
     // Specific converters for each enum type
-    public class FieldTypeConverter : ApiStringEnumConverter<FieldType> { }
+    public class FieldTypeEnumConverter : ApiStringEnumConverter<FieldTypeEnum> { }
 
 }

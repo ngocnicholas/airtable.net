@@ -18,6 +18,8 @@
         - ListBases for List bases
         - GetBaseSchema for Get base schema
         - CreateBase for Create base
+
+      Fixed a bug in an AirtableBase constructor causing the user provided HttpClient was not actually used.
     </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

@@ -12,31 +12,31 @@ namespace AirtableApiClient
 {
     //------------------------------------------------------------
 
-    public class FieldConfigJsonConverter : JsonConverter<FieldConfig>    // Custrom Json converter for FieldConfig due to System.Text.Json's de/serilization not able to handle polymorhism correctly
+    public class FieldConfigJsonConverter : JsonConverter<FieldType>    // Custrom Json converter for FieldConfig due to System.Text.Json's de/serilization not able to handle polymorhism correctly
     {
         private static readonly Dictionary<string, Type> TypeMap = new()
         {
-            ["aiText"] = typeof(AiTextField_Read),                      // R,   options
-            ["multipleAttachments"] = typeof(AttachmentField_Read),     // R,   No
-            ["autoNumber"] = typeof(AutoNumberField_Read),              // R,   No
+            ["aiText"] = typeof(AiTextFieldModel),                      // R,   options
+            ["multipleAttachments"] = typeof(AttachmentFieldModel),     // R,   No
+            ["autoNumber"] = typeof(AutoNumberFieldModel),              // R,   No
             ["barcode"] = typeof(BarcodeField),                         // RW,  No
-            ["button"] = typeof(ButtonField_Read),                      // R,   No
+            ["button"] = typeof(ButtonFieldModel),                      // R,   No
             ["checkbox"] = typeof(CheckboxField),                       // RW, same options
             ["singleCollaborator"] = typeof(CollaboratorField),         // RW, same options
-            ["count"] = typeof(CountField_Read),                        // R,   options
-            ["createdBy"] = typeof(CreatedByField_Read),                // R,   No
-            ["createdTime"] = typeof(CreatedTimeField_Read),            // R,   options
+            ["count"] = typeof(CountFieldModel),                        // R,   options
+            ["createdBy"] = typeof(CreatedByFieldModel),                // R,   No
+            ["createdTime"] = typeof(CreatedTimeFieldModel),            // R,   options
             ["currency"] = typeof(CurrencyField),                       // RW, same options
             ["date"] = typeof(DateField),                               // RW,  same options, but Format is optional in Write
             ["dateTime"] = typeof(DateTimeField),                       // RW,  same options, but Format is optional in Write
             ["duration"] = typeof(DurationField),                       // RW, same options
             ["email"] = typeof(EmailField),                             // RW,  No
-            ["formula"] = typeof(FormulaField_Read),                    // R,   options
-            ["lastModifiedBy"] = typeof(LastModifiedByField_Read),      // R,   No
-            ["lastModifiedTime"] = typeof(LastModifiedTimeField_Read),  // R,   options
-            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordField_Read),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
+            ["formula"] = typeof(FormulaFieldModel),                    // R,   options
+            ["lastModifiedBy"] = typeof(LastModifiedByFieldModel),      // R,   No
+            ["lastModifiedTime"] = typeof(LastModifiedTimeFieldModel),  // R,   options
+            ["multipleRecordLinks"] = typeof(LinkToAnotherRecordFieldModel),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
             ["multilineText"] = typeof(LongTextField),                  // RW,  No
-            ["multipleLookupValues"] = typeof(LookupField_Read),        // R,   options
+            ["multipleLookupValues"] = typeof(LookupFieldModel),        // R,   options
             ["multipleCollaborators"] = typeof(MultipleCollaboratorField), // RW,  same options
             ["multipleSelects"] = typeof(MultipleSelectField),          // RW,  same options, but Id is optional in Write
             ["number"] = typeof(NumberField),                           // RW,  same options
@@ -44,7 +44,7 @@ namespace AirtableApiClient
             ["phoneNumber"] = typeof(PhoneField),                       // RW,  No
             ["rating"] = typeof(RatingField),                           // RW,  same options 
             ["richText"] = typeof(RichTextField),                       // RW,  No
-            ["rollup"] = typeof(RollupField_Read),                      // R,   options
+            ["rollup"] = typeof(RollupFieldModel),                      // R,   options
             ["singleLineText"] = typeof(SingleLineTextField),           // RW,  No
             ["singleSelect"] = typeof(SingleSelectField),               // RW,  Same options, but Id is optinal in Write
             ["externalSyncSource"] = typeof(SyncSourceField),           // RW,  same options
@@ -56,7 +56,7 @@ namespace AirtableApiClient
         // the Config type.
 
         // We use this custom method to deserialize responseBody of GetBaseSchema() into the C# object to be used in constructing an AirtableApiResponse
-        public override FieldConfig Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions jasonSerializerOptions)
+        public override FieldType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions jasonSerializerOptions)
         {
             using var jsonDoc = JsonDocument.ParseValue(ref reader);
             var root = jsonDoc.RootElement;
@@ -74,7 +74,7 @@ namespace AirtableApiClient
                 root.TryGetProperty("id", out var idProp);
                 root.TryGetProperty("name", out var nameProp);
 
-                UnknownField_Read unknownField =  new UnknownField_Read
+                UnknownFieldModel unknownField =  new UnknownFieldModel
                 {
                     Id = idProp.ValueKind == JsonValueKind.String ? idProp.GetString() : null,
                     Name = nameProp.ValueKind == JsonValueKind.String ? nameProp.GetString() : null,
@@ -91,7 +91,7 @@ namespace AirtableApiClient
 
             // If it's a FieldOptions<T> type, eagerly deserialize the options. Otherwise TOptions won't be deserialized until it's accessed.
 
-            var fc = (FieldConfig)obj;
+            var fc = (FieldType)obj;
 
             // fc is the concrete field (already deserialized to targetType)
             var t = fc.GetType();
@@ -105,8 +105,8 @@ namespace AirtableApiClient
                 return null;
             }
 
-            var readBase = FindGenericBase(t, typeof(ReadFieldConfig<>));
-            var rwBase = FindGenericBase(t, typeof(ReadWriteFieldConfig<>));
+            var readBase = FindGenericBase(t, typeof(FieldModel<>));
+            var rwBase = FindGenericBase(t, typeof(FieldModelConfig<>));
 
             Type? genericBase = readBase ?? rwBase;
             if (genericBase != null)
@@ -128,7 +128,7 @@ namespace AirtableApiClient
         }
 
         // For a Json Converter, override Write is for Serialization
-        public override void Write(Utf8JsonWriter writer, FieldConfig value, JsonSerializerOptions jasonSerializerOptions)
+        public override void Write(Utf8JsonWriter writer, FieldType value, JsonSerializerOptions jasonSerializerOptions)
         {
             JsonSerializer.Serialize(writer, (object)value, value.GetType(), jasonSerializerOptions);  // The Json output stream will go into the HTTP request body of CreateBase
         }
@@ -233,15 +233,100 @@ namespace AirtableApiClient
     }
 
     //------------------------------------------------------
-    public sealed class WriteFieldConfigConverter : JsonConverter<WriteFieldConfig>
+    public sealed class FieldConfigConverter : JsonConverter<FieldConfig>
     {
-        public override WriteFieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override FieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException("Reading write models is not supported here.");
 
-        public override void Write(Utf8JsonWriter writer, WriteFieldConfig value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, FieldConfig value, JsonSerializerOptions options)
         {
             // Serialize using the *runtime* type so derived-only props (Options/WriteOptions) are included
             JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
         }
     }
+
+    //--------------------------------------------------------
+    #if false
+    public sealed class ReadFieldInterfaceConverter : JsonConverter<IReadField>
+    {
+        public override IReadField? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Null) return null;
+
+            using var doc = JsonDocument.ParseValue(ref reader);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("type", out var t) || t.ValueKind != JsonValueKind.String)
+                throw new JsonException("Field model is missing 'type'.");
+
+            var typeString = t.GetString();
+
+            Type concrete = typeString switch
+            {
+                // READ-ONLY models
+                "multipleLookupValues" => typeof(LookupFieldModel),
+                "rollup" => typeof(RollupFieldModel),
+                "formula" => typeof(FormulaFieldModel),
+
+                // READ-WRITE models (still valid for read shape)
+                "singleLineText" => typeof(SingleLineTextField),
+                "email" => typeof(EmailField),
+                "url" => typeof(UrlField),
+                "number" => typeof(NumberField),
+                "percent" => typeof(PercentField),
+                "currency" => typeof(CurrencyField),
+                "singleSelect" => typeof(SingleSelectField),
+                // ...add the rest
+
+                _ => throw new JsonException($"Unknown read field 'type': {typeString}")
+            };
+
+            var json = root.GetRawText();
+            return (IReadField?)JsonSerializer.Deserialize(json, concrete, options);
+        }
+
+        public override void Write(Utf8JsonWriter writer, IReadField value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+        }
+    }
+    //------------------------------------------------------------------------------
+
+    public sealed class ReadFieldConfigJsonConverter : JsonConverter<ReadFieldConfig>
+    {
+        public override ReadFieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+                return null;
+
+            using var doc = JsonDocument.ParseValue(ref reader);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("type", out var typeProp) || typeProp.ValueKind != JsonValueKind.String)
+                throw new JsonException("Field config is missing 'type'.");
+
+            var typeString = typeProp.GetString();
+
+            Type concrete = typeString switch
+            {
+                // Use your API strings here (example names)
+                "multipleLookupValues" => typeof(LookupFieldModel),
+                "rollup" => typeof(RollupFieldModel),
+                "formula" => typeof(FormulaFieldModel),
+                // … add all other read-side field types
+                _ => throw new JsonException($"Unknown read field 'type': {typeString}")
+            };
+
+            // Re-serialize the element to the chosen type
+            var json = root.GetRawText();
+            return (ReadFieldConfig?)JsonSerializer.Deserialize(json, concrete, options);
+        }
+
+        public override void Write(Utf8JsonWriter writer, ReadFieldConfig value, JsonSerializerOptions options)
+        {
+            // If you never write read-shapes, you can throw here.
+            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+        }
+    }
+    #endif
 }

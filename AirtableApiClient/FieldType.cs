@@ -5,37 +5,40 @@ using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
+ #if true
     public interface IField { }
-    public interface IReadField : IField { }   // can appear in server responses
-    public interface IWriteField : IField { }   // can be sent in CreateBase
+    public interface IFieldModel : IField { }   // can appear in server responses
+    public interface IFieldConfig : IField { }   // can be sent in CreateBase
+#endif
 
-    public class FieldConfig : IField
+     public class FieldType : IField
     {
         [JsonPropertyName("id")][JsonInclude] public string? Id { get; set; }
         [JsonPropertyName("description")][JsonInclude] public string? Description { get; set; }
 
         // Option 1: enum (preferred)
         [JsonPropertyName("type")]
-        [JsonConverter(typeof(FieldTypeConverter))]
+        [JsonConverter(typeof(FieldTypeEnumConverter))]
         [JsonInclude]
-        public FieldType Type { get; set; }
+        public FieldTypeEnum Type { get; set; }
 
-        [JsonPropertyName("name")][JsonInclude] public string? Name { get; set; }
+        [JsonPropertyName("name")][JsonInclude] 
+        public string? Name { get; set; }
     }
 
-    public abstract class WriteFieldConfig : FieldConfig, IWriteField { }
+    public abstract class FieldConfig : FieldType, IFieldConfig { }
 
-    public abstract class ReadFieldConfig : FieldConfig, IReadField { }
+    public abstract class FieldModel : FieldType, IFieldModel { }
 
     // Generic base for read-options fields
-    public abstract class ReadFieldConfig<TReadOptions> : FieldConfig, IReadField
+    public abstract class FieldModel<TReadOptions> : FieldType, IFieldModel
     {
         [JsonPropertyName("options")]
         public TReadOptions? ReadOptions { get; set; }
     }
 
     /// write-only, with options
-    public abstract class WriteFieldConfig<TWriteOptions> : WriteFieldConfig
+    public abstract class FieldConfig<TWriteOptions> : FieldConfig
     {
         [JsonPropertyName("options")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -43,19 +46,19 @@ namespace AirtableApiClient
     }
 
     // read–write, no options (inherits the writeable base!)
-    public abstract class ReadWriteFieldConfig : WriteFieldConfig, IReadField { }
+    public abstract class FieldModelConfig : FieldConfig, IFieldModel { }
 
     // If a field is RW with the **same** options type in both directions:
-    public abstract class ReadWriteFieldConfig<TOptions> : ReadWriteFieldConfig
+    public abstract class FieldModelConfig<TOptions> : FieldModelConfig
     {
         [JsonPropertyName("options")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TOptions? Options { get; set; }
     }
 
-    public sealed class AiTextField_Read : ReadFieldConfig<AiTextReadOptions>       // R only, with options
+    public sealed class AiTextFieldModel : FieldModel<AiTextReadOptions>       // R only, with options
     { 
-        public AiTextField_Read() { Type = FieldType.AiText; } 
+        public AiTextFieldModel() { Type = FieldTypeEnum.AiText; } 
     }
 
     public class AiTextReadOptions
@@ -98,9 +101,9 @@ namespace AirtableApiClient
 
 
     // Attachment RW, but has read options only
-    public sealed class AttachmentField_Read : ReadFieldConfig<AttachmentFieldReadOptions>
+    public sealed class AttachmentFieldModel : FieldModel<AttachmentFieldReadOptions>
     {
-        public AttachmentField_Read() => Type = FieldType.MultipleAttachments;
+        public AttachmentFieldModel() => Type = FieldTypeEnum.MultipleAttachments;
     }
 
     public sealed class AttachmentFieldReadOptions
@@ -110,19 +113,19 @@ namespace AirtableApiClient
     }
 
     // WRITE shape (no options allowed in payload)
-    public sealed class AttachmentField_Write : WriteFieldConfig
+    public sealed class AttachmentFieldConfig : FieldConfig
     {
-        public AttachmentField_Write() => Type = FieldType.MultipleAttachments;
+        public AttachmentFieldConfig() => Type = FieldTypeEnum.MultipleAttachments;
     }
 
     /// <summary>
     /// Auto number field
     /// </summary>
-    public class AutoNumberField_Read : ReadFieldConfig
+    public class AutoNumberFieldModel : FieldModel
     {
-        public AutoNumberField_Read()
+        public AutoNumberFieldModel()
         {
-            Type = FieldType.AutoNumber;
+            Type = FieldTypeEnum.AutoNumber;
         }
     }
 
@@ -130,11 +133,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Barcode field
     /// </summary>
-    public class BarcodeField : ReadWriteFieldConfig
+    public class BarcodeField : FieldModelConfig
     {
         public BarcodeField()
         {
-            Type = FieldType.Barcode;
+            Type = FieldTypeEnum.Barcode;
         }
     }
 
@@ -142,19 +145,19 @@ namespace AirtableApiClient
     /// <summary>
     /// Button field
     /// </summary>
-    public class ButtonField_Read : ReadFieldConfig
+    public class ButtonFieldModel : FieldModel
     {
-        public ButtonField_Read()
+        public ButtonFieldModel()
         {
-            Type = FieldType.Button;
+            Type = FieldTypeEnum.Button;
         }
     }
 
-    public class CheckboxField : ReadWriteFieldConfig<CheckboxOptions>  // RW, with same options
+    public class CheckboxField : FieldModelConfig<CheckboxOptions>  // RW, with same options
     {
         public CheckboxField()
         {
-            Type = FieldType.Checkbox;
+            Type = FieldTypeEnum.Checkbox;
         }
     }
 
@@ -170,11 +173,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Collaborator field
     /// </summary>
-    public class CollaboratorField : ReadWriteFieldConfig
+    public class CollaboratorField : FieldModelConfig
     {
         public CollaboratorField()
         {
-            Type = FieldType.SingleCollaborator;
+            Type = FieldTypeEnum.SingleCollaborator;
         }
     }
 
@@ -182,15 +185,15 @@ namespace AirtableApiClient
     /// <summary>
     /// Count field
     /// </summary>
-    public class CountField_Read : ReadFieldConfig<CountFieldReadOptions>
+    public class CountFieldModel : FieldModel<CountFieldModelOptions>
     {
-        public CountField_Read()
+        public CountFieldModel()
         {
-            Type = FieldType.Count;
+            Type = FieldTypeEnum.Count;
         }
     }
 
-    public class CountFieldReadOptions
+    public class CountFieldModelOptions
     {
         [JsonPropertyName("isValid")]
         public bool IsValid { get; set; }   // false when recordLinkFieldId is null, e.g. the referenced column was deleted.
@@ -202,26 +205,26 @@ namespace AirtableApiClient
     /// <summary>
     /// Created By field
     /// </summary>
-    public class CreatedByField_Read : ReadFieldConfig
+    public class CreatedByFieldModel : FieldModel
     {
-        public CreatedByField_Read()
+        public CreatedByFieldModel()
         {
-            Type = FieldType.CreatedBy;
+            Type = FieldTypeEnum.CreatedBy;
         }
     }
 
     /// <summary>
     /// Created time field
     /// </summary>
-    public class CreatedTimeField_Read : ReadFieldConfig<CreatedTimeFieldReadOptions>
+    public class CreatedTimeFieldModel : FieldModel<CreatedTimeFieldModelOptions>
     {
-        public CreatedTimeField_Read()
+        public CreatedTimeFieldModel()
         {
-            Type = FieldType.CreatedTime;
+            Type = FieldTypeEnum.CreatedTime;
         }
     }
 
-    public class CreatedTimeFieldReadOptions
+    public class CreatedTimeFieldModelOptions
     {
         [JsonPropertyName("result")]
         public CreatedTimeResult? Result { get; set; }
@@ -240,11 +243,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Currency field
     /// </summary>
-    public class CurrencyField : ReadWriteFieldConfig<CurrencyOptions>
+    public class CurrencyField : FieldModelConfig<CurrencyOptions>
     {
         public CurrencyField()
         {
-            Type = FieldType.Currency;
+            Type = FieldTypeEnum.Currency;
         }
     }
 
@@ -267,11 +270,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Date field
     /// </summary>
-    public class DateField : ReadWriteFieldConfig<DateFieldOptions>  // RW, with Options but Write's format is optional
+    public class DateField : FieldModelConfig<DateFieldOptions>  // RW, with Options but Write's format is optional
     {
         public DateField()
         {
-            Type = FieldType.Date;
+            Type = FieldTypeEnum.Date;
         }
     }
 
@@ -299,11 +302,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Date and time field
     /// </summary>
-    public class DateTimeField : ReadWriteFieldConfig<DateTimeFieldOptions>          // RW, with Options but Write's format is optional
+    public class DateTimeField : FieldModelConfig<DateTimeFieldOptions>          // RW, with Options but Write's format is optional
     {
         public DateTimeField()
         {
-            Type = FieldType.DateTime;
+            Type = FieldTypeEnum.DateTime;
         }
     }
 
@@ -332,11 +335,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Duration field
     /// </summary>
-    public class DurationField : ReadWriteFieldConfig<DurationOptions>
+    public class DurationField : FieldModelConfig<DurationOptions>
     {
         public DurationField()
         {
-            Type = FieldType.Duration;
+            Type = FieldTypeEnum.Duration;
         }
     }
 
@@ -349,26 +352,26 @@ namespace AirtableApiClient
     /// <summary>
     /// Email field
     /// </summary>
-    public class EmailField : ReadWriteFieldConfig
+    public class EmailField : FieldModelConfig
     {
         public EmailField()
         {
-            Type = FieldType.Email;
+            Type = FieldTypeEnum.Email;
         }
     }
 
     /// <summary>
     /// Formula field
     /// </summary>
-    public class FormulaField_Read : ReadFieldConfig<FormulaFieldReadOptions>
+    public class FormulaFieldModel : FieldModel<FormulaFieldModelOptions>
     {
-        public FormulaField_Read()
+        public FormulaFieldModel()
         {
-            Type = FieldType.Formula;
+            Type = FieldTypeEnum.Formula;
         }
     }
 
-    public class FormulaFieldReadOptions
+    public class FormulaFieldModelOptions
     {
         //The formula including fields referenced by their IDs.For example, LEFT(4, { Birthday}) in the Airtable.com formula editor
         //will be returned as LEFT(4, { fldXXX}) via API.
@@ -383,18 +386,20 @@ namespace AirtableApiClient
                                                                 // All fields in the record that are used in the formula.
 
         [JsonPropertyName("result")]
-        // public object Result { get; set; }                   // Field type and options | null if invalid. See https://airtable.com/developers/web/api/field-model
-        public FieldConfig? Result { get; set; }                // Question: should the type be FieldDefinition or object???
+        //[JsonConverter(typeof(ReadFieldInterfaceConverter))]
+        //public IFieldModel? Result { get; set; }
+        //[JsonConverter(typeof(FieldConfigJsonConverter))]
+        public FieldType? Result { get; set; }
     }
 
     /// <summary>
     /// Represents information about who last modified the record.
     /// </summary>
-    public class LastModifiedByField_Read : ReadFieldConfig  // Read only, no options
+    public class LastModifiedByFieldModel : FieldModel  // Read only, no options
     {
-        public LastModifiedByField_Read()
+        public LastModifiedByFieldModel()
         {
-            Type = FieldType.LastModifiedBy;
+            Type = FieldTypeEnum.LastModifiedBy;
         }
     }
 
@@ -402,15 +407,15 @@ namespace AirtableApiClient
     /// <summary>
     /// Last modified time field
     /// </summary>
-    public class LastModifiedTimeField_Read : ReadFieldConfig<LastModifiedTimeFieldReadOptions>
+    public class LastModifiedTimeFieldModel : FieldModel<LastModifiedTimeFieldModelOptions>
     {
-        public LastModifiedTimeField_Read()
+        public LastModifiedTimeFieldModel()
         {
-            Type = FieldType.LastModifiedTime;
+            Type = FieldTypeEnum.LastModifiedTime;
         }
     }
 
-    public class LastModifiedTimeFieldReadOptions
+    public class LastModifiedTimeFieldModelOptions
     {
         [JsonPropertyName("isValid")]
         public bool IsValid { get; set; }
@@ -441,17 +446,17 @@ namespace AirtableApiClient
     /// <summary>
     /// Link to another record field
     /// </summary>
-    public class LinkToAnotherRecordField_Read : ReadFieldConfig<LinkToAnotherRecordFieldReadOptions>
+    public class LinkToAnotherRecordFieldModel : FieldModel<LinkToAnotherRecordFieldModelOptions>
     {
         // Creating "multipleRecordLinks" fields is supported but updating options for existing "multipleRecordLinks" fields is not supported.
-        public LinkToAnotherRecordField_Read()
+        public LinkToAnotherRecordFieldModel()
         {
-            Type = FieldType.MultipleRecordLinks;
+            Type = FieldTypeEnum.MultipleRecordLinks;
         }
     }
 
 
-    public class LinkToAnotherRecordFieldReadOptions
+    public class LinkToAnotherRecordFieldModelOptions
     {
         // Note: All properties are in the READ situations
         [JsonPropertyName("isReversed")]
@@ -470,16 +475,16 @@ namespace AirtableApiClient
         public string? ViewIdForRecordSelection { get; set; } // Optional. The ID of the view in the linked table to use when showing a list of records to select from.    }
 
     }
-    public class LinkToAnotherRecordField_Write : WriteFieldConfig<LinkToAnotherRecordFieldWriteOptions>
+    public class LinkToAnotherRecordFieldConfig : FieldConfig<LinkToAnotherRecordFieldConfigOptions>
     {
         // Creating "multipleRecordLinks" fields is supported but updating options for existing "multipleRecordLinks" fields is not supported.
-        public LinkToAnotherRecordField_Write()
+        public LinkToAnotherRecordFieldConfig()
         {
-            Type = FieldType.MultipleRecordLinks;
+            Type = FieldTypeEnum.MultipleRecordLinks;
         }
     }
 
-    public class LinkToAnotherRecordFieldWriteOptions
+    public class LinkToAnotherRecordFieldConfigOptions
     {
         // Note: All properties are in the Write situations
         // Note: Only the 2 properties below are in the CreateBase situation, not even in the UpdateBase situation)
@@ -494,26 +499,26 @@ namespace AirtableApiClient
     /// <summary>
     /// Long text field (multi-line)
     /// </summary>    
-    public class LongTextField : ReadWriteFieldConfig
+    public class LongTextField : FieldModelConfig
     {
         public LongTextField()
         {
-            Type = FieldType.MultilineText;
+            Type = FieldTypeEnum.MultilineText;
         }
     }
 
     /// <summary>
     /// Lookup field
     /// </summary>
-    public class LookupField_Read : ReadFieldConfig<LookupFieldReadOptions>
+    public class LookupFieldModel : FieldModel<LookupFieldModelOptions>
     {
-        public LookupField_Read()
+        public LookupFieldModel()
         {
-            Type = FieldType.MultipleLookupValues;
+            Type = FieldTypeEnum.MultipleLookupValues;
         }
     }
 
-    public class LookupFieldReadOptions
+    public class LookupFieldModelOptions
     {
         [JsonPropertyName("fieldIdInLinkedTable")]
         public string? FieldIdInLinkedTable { get; set; }    // may be null
@@ -525,25 +530,29 @@ namespace AirtableApiClient
         public string? RecordLinkFieldId { get; set; }       // may be null
 
         [JsonPropertyName("result")]
-        public FieldConfig? Result { get; set; }             //	Field type and options | null. See https://airtable.com/developers/web/api/field-model for details
+        //[JsonConverter(typeof(ReadFieldInterfaceConverter))]
+        //public IFieldModel? Result { get; set; }
+        //[JsonConverter(typeof(FieldConfigJsonConverter))]
+        public FieldType? Result { get; set; }
+
     }
 
-    public class MultipleCollaboratorField : ReadWriteFieldConfig<object> 
+    public class MultipleCollaboratorField : FieldModelConfig<object> 
     {
         public MultipleCollaboratorField()
         {
-            Type = FieldType.MultipleCollaborators;
+            Type = FieldTypeEnum.MultipleCollaborators;
         }
     }
 
     /// <summary>
     /// Multi-select field
     /// </summary>
-    public class MultipleSelectField : ReadWriteFieldConfig<ChoiceOptions>  // RW with options but the Write's option is more flexible
+    public class MultipleSelectField : FieldModelConfig<ChoiceOptions>  // RW with options but the Write's option is more flexible
     {
         public MultipleSelectField()
         {
-            Type = FieldType.MultipleSelects;
+            Type = FieldTypeEnum.MultipleSelects;
         }
     }
 
@@ -573,11 +582,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Number field
     /// </summary>
-    public class NumberField : ReadWriteFieldConfig<PrecisionOptions> 
+    public class NumberField : FieldModelConfig<PrecisionOptions> 
     {
         public NumberField()
         {
-            Type = FieldType.Number;
+            Type = FieldTypeEnum.Number;
         }
     }
 
@@ -597,11 +606,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Percent field
     /// </summary>
-    public class PercentField : ReadWriteFieldConfig<PrecisionOptions> 
+    public class PercentField : FieldModelConfig<PrecisionOptions> 
     {
         public PercentField()
         {
-            Type = FieldType.Percent;
+            Type = FieldTypeEnum.Percent;
         }
     }
     //---------------------------------------------
@@ -609,11 +618,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Phone number field
     /// </summary>
-    public class PhoneField : ReadWriteFieldConfig 
+    public class PhoneField : FieldModelConfig 
     {
         public PhoneField()
         {
-            Type = FieldType.PhoneNumber;
+            Type = FieldTypeEnum.PhoneNumber;
         }
     }
 
@@ -622,11 +631,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Rating field
     /// </summary>
-    public class RatingField : ReadWriteFieldConfig<RatingOptions> 
+    public class RatingField : FieldModelConfig<RatingOptions> 
     {
         public RatingField()
         {
-            Type = FieldType.Rating;
+            Type = FieldTypeEnum.Rating;
         }
 
     }
@@ -654,11 +663,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Rich text field with formatting
     /// </summary>
-    public class RichTextField : ReadWriteFieldConfig
+    public class RichTextField : FieldModelConfig
     {
         public RichTextField()
         {
-            Type = FieldType.RichText;
+            Type = FieldTypeEnum.RichText;
         }
     }
 
@@ -667,15 +676,15 @@ namespace AirtableApiClient
     /// <summary>
     /// Rollup field
     /// </summary>
-    public class RollupField_Read : ReadFieldConfig<RollupFieldReadOptions>           // NEED EMMETT"S HELP in TESTING this field
+    public class RollupFieldModel : FieldModel<RollupFieldModelOptions>           // NEED EMMETT"S HELP in TESTING this field
     {
-        public RollupField_Read()
+        public RollupFieldModel()
         {
-            Type = FieldType.Rollup;
+            Type = FieldTypeEnum.Rollup;
         }
     }
 
-    public class RollupFieldReadOptions
+    public class RollupFieldModelOptions
     {
         [JsonPropertyName("fieldIdInLinkedTable")]
         public string? FieldIdInLinkedTable { get; set; }    // optional
@@ -698,11 +707,11 @@ namespace AirtableApiClient
     /// <summary>
     /// Single line text field
     /// </summary>
-    public sealed class SingleLineTextField : ReadWriteFieldConfig   // Read and Write but no options
+    public sealed class SingleLineTextField : FieldModelConfig   // Read and Write but no options
     {
         public SingleLineTextField()
         {
-            Type = FieldType.SingleLineText;
+            Type = FieldTypeEnum.SingleLineText;
         }
     }
 
@@ -711,20 +720,20 @@ namespace AirtableApiClient
     /// <summary>
     /// Single select field
     /// </summary>
-    public class SingleSelectField : ReadWriteFieldConfig<ChoiceOptions>
+    public class SingleSelectField : FieldModelConfig<ChoiceOptions>
     { 
         public SingleSelectField()
         {
-            Type = FieldType.SingleSelect;
+            Type = FieldTypeEnum.SingleSelect;
         }
     }
 
     //---------------------------------------
-    public class SyncSourceField: ReadWriteFieldConfig<ChoiceOptions>       // Emmett: Read only???
+    public class SyncSourceField: FieldModelConfig<ChoiceOptions>       // Emmett: Read only???
     {
         public SyncSourceField()
         {
-            Type = FieldType.ExternalSyncSource;
+            Type = FieldTypeEnum.ExternalSyncSource;
         }
     }
 
@@ -733,19 +742,19 @@ namespace AirtableApiClient
     /// <summary>
     /// URL field
     /// </summary>
-    public class UrlField : ReadWriteFieldConfig
+    public class UrlField : FieldModelConfig
     {
         public UrlField()
         {
-            Type = FieldType.Url;
+            Type = FieldTypeEnum.Url;
         }
     }
 
-    public class UnknownField_Read : FieldConfig, IReadField
+    public class UnknownFieldModel : FieldModel
     {
-        public UnknownField_Read()
+        public UnknownFieldModel()
         {
-            Type = FieldType.UnknownField;
+            Type = FieldTypeEnum.UnknownField;
         }
 
         // The discriminator we saw (could be null/missing)

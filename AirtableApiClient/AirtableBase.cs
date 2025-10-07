@@ -48,16 +48,11 @@ namespace AirtableApiClient
         //                   delegating handler.
         //
         //----------------------------------------------------------------------------
-        public AirtableBase(string apiKeyOrAccessToken, string baseId) : this(apiKeyOrAccessToken, baseId, null)
+        public AirtableBase(string apiKeyOrAccessToken, string? baseId=null) : this(apiKeyOrAccessToken, baseId, null)
         {
             // No delegating handler is given; a normal HttpClient will be constructed
             // to communicate with Airtable.
-            if (string.IsNullOrEmpty(baseId))
-            {
-                throw new ArgumentException("baseId cannot be null or empty.");
-            }
         }
-
 
         //----------------------------------------------------------------------------
         //
@@ -75,13 +70,12 @@ namespace AirtableApiClient
                 throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
             }
 
-            if (String.IsNullOrEmpty(baseId))
+            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
+            if (!String.IsNullOrEmpty(baseId))
             {
-                throw new ArgumentException("baseId cannot be null", "baseId");
+                SetBaseId(baseId!);
             }
 
-            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
-            SetBaseId(baseId!);
 
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
         }
@@ -97,50 +91,27 @@ namespace AirtableApiClient
         public AirtableBase(
             HttpClient client,
             string apiKeyOrAccessToken,
-            string baseId)
+            string? baseId = null,
+            DelegatingHandler? delegatingHandler = null)
         {
             if (client == null)
             {
                 throw new ArgumentException("HttpClient cannot be null.");
             }
 
-            if (String.IsNullOrEmpty(baseId))
+            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
+            if (!String.IsNullOrEmpty(baseId))
             {
-                throw new ArgumentException("baseId cannot be null", "baseId");
+                SetBaseId(baseId!);
             }
 
-            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
-            SetBaseId(baseId);
-            httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, client);
+            if (String.IsNullOrEmpty(apiKeyOrAccessToken))
+            {
+                throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
+            }
+
+            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken, client);
         }
-
-
-        //----------------------------------------------------------------------------
-        //
-        // AirtableBase.AirtableBase #4
-        //    constructor -- for creating an instance providing with apiKeyOraccessToken only.
-        //      This AirtableBase, once constructed, is only useful for CreateBase and ListBase
-        //      because all other public APIs requires the base ID to be passed in to the consturctor.
-        //      However, the user can call SetBaseId to make all public APIs available.
-        //
-        //----------------------------------------------------------------------------
-        public AirtableBase(string apiKeyOrAccessToken)
-        {
-            // Base ID is not given. All APIs of Airtable relying on a base ID already set previously will throw an exception.
-            // However, a base ID can be set later to render all other APIs available.
-            //
-            // This constructor is useful for ListBases and CreateBase only.
-            // If you want to use this AirtableBase for other methos, 
-            // you will need to provide a base ID by calling SetBaseId(baseId)
-            // 
-            // 
-            // No delegating handler is given; a normal HttpClient will be constructed
-            // to communicate with Airtable.
-
-            httpClientWithRetries = new HttpClientWithRetries(null, apiKeyOrAccessToken, null);
-            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
-        }
-
 
         public void SetBaseId(string baseId)
         {
@@ -1172,7 +1143,7 @@ namespace AirtableApiClient
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new WriteFieldConfigConverter() }
+            Converters = { new FieldConfigConverter() }
         };
 
         private static readonly JsonSerializerOptions ReadJsonOptions = new()

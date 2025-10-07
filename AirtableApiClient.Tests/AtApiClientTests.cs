@@ -2422,27 +2422,16 @@ namespace AirtableApiClient.Tests
 
             string baseName = "Saigon";
             string workSpaceId = "wspw42QpP4SY13Qxu";         // worspace ID of the workspace "Personal";
-            WriteFieldConfig[] sngFields = new WriteFieldConfig[21];
+            FieldConfig[] sngFields = new FieldConfig[21];
 
             sngFields[0] = new SingleLineTextField();
             sngFields[0].Name = "Name";
 
             sngFields[1] = new LongTextField();
             sngFields[1].Name = "Notes";
-#if true
-            sngFields[2] = new AttachmentField_Write();
-            sngFields[2].Name = "Attachments";
-#else
-            sngFields[2] = new AttachmentField_Read
-            {
-                Name = "Attachments",
-                ReadOptions = new AttachmentFieldReadOptions
-                {
-                    IsReversed = false
-                }
 
-            };
-#endif
+            sngFields[2] = new AttachmentFieldConfig();
+            sngFields[2].Name = "Attachments";
 
             sngFields[3] = new CheckboxField
             {
