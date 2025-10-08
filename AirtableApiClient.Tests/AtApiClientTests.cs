@@ -2422,16 +2422,15 @@ namespace AirtableApiClient.Tests
 
             string baseName = "Saigon";
             string workSpaceId = "wspw42QpP4SY13Qxu";         // worspace ID of the workspace "Personal";
-            FieldConfig[] sngFields = new FieldConfig[21];
+            IFieldConfig[] sngFields = new IFieldConfig[21];
 
-            sngFields[0] = new SingleLineTextField();
-            sngFields[0].Name = "Name";
+            sngFields[0] = new SingleLineTextField
+            {
+                Name = "Name",
+            };
 
-            sngFields[1] = new LongTextField();
-            sngFields[1].Name = "Notes";
-
-            sngFields[2] = new AttachmentFieldConfig();
-            sngFields[2].Name = "Attachments";
+            sngFields[1] = new LongTextField() { Name = "Notes" };
+            sngFields[2] = new AttachmentFieldConfig { Name = "Attachments" };
 
             sngFields[3] = new CheckboxField
             {
@@ -2446,11 +2445,9 @@ namespace AirtableApiClient.Tests
             string json = JsonSerializer.Serialize(sngFields[3], new JsonSerializerOptions { WriteIndented = true });
             Console.WriteLine(json);
 
-            sngFields[4] = new UrlField();
-            sngFields[4].Name = "URL";
+            sngFields[4] = new UrlField() { Name = "URL" };
 
-            sngFields[5] = new PhoneField();
-            sngFields[5].Name = "Phone Number";
+            sngFields[5] = new PhoneField { Name = "Phone Number" };
 
             sngFields[6] = new NumberField
             {
@@ -2577,7 +2574,7 @@ namespace AirtableApiClient.Tests
             };
 
 #if false
-            sngFields[XX] = new LinkToAnotherRecordField_Read        // Impossible to test this field but Airtable gives wrong error message.
+            sngFields[XX] = new LinkToAnotherRecordFieldModel        // Impossible to test this field but Airtable gives wrong error message.
                                                                 // NOTE: Testable in CreateTable only.
             {
                 Name = "MultipleRecordLinksField",
@@ -2588,7 +2585,7 @@ namespace AirtableApiClient.Tests
             };
 #endif
 
-            TableConfig[] tableConfigs = new TableConfig[1]; // a list of json objects of TableConfig
+            TableConfig[] tableConfigs = new TableConfig[1];
             tableConfigs[0] = new TableConfig();
             tableConfigs[0].Name = "Singapore";
             tableConfigs[0].Description = "First Stop";
@@ -2605,9 +2602,9 @@ namespace AirtableApiClient.Tests
         }
 #endif
 
-        //---------------------------------------------------------------------------------------------------------
-        //------------------------------------------- Helper Functions --------------------------------------------
-        //---------------------------------------------------------------------------------------------------------
+            //---------------------------------------------------------------------------------------------------------
+            //------------------------------------------- Helper Functions --------------------------------------------
+            //---------------------------------------------------------------------------------------------------------
 
         private async Task<Webhooks?>GenerateWebhooksToUse()
         {

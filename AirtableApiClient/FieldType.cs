@@ -5,14 +5,22 @@ using System.Text.Json.Serialization;
 
 namespace AirtableApiClient
 {
-    public interface IField { }
-    public interface IFieldModel : IField { }   // can appear in server responses
-    public interface IFieldConfig : IField { }   // can be sent in CreateBase
+    // public interface served as markers since C# does not allow multiple inheritance of classes
+    // but a class can inherite from multiple interfaces.
 
-     public class FieldType : IField
+    public interface IFieldModel { }    // for marking the READ fields, appearing in server responses
+    public interface IFieldConfig { }   // for marking the WRITE fields, to be fuse in CreateBase
+
+    //------------------------------------------------------------------
+
+    //public class FieldType : IField
+    public class FieldType
     {
-        [JsonPropertyName("id")][JsonInclude] public string? Id { get; set; }
-        [JsonPropertyName("description")][JsonInclude] public string? Description { get; set; }
+        [JsonPropertyName("id")][JsonInclude] 
+        public string? Id { get; set; }
+
+        [JsonPropertyName("description")][JsonInclude] 
+        public string? Description { get; set; }
 
         // Option 1: enum (preferred)
         [JsonPropertyName("type")]
@@ -24,19 +32,11 @@ namespace AirtableApiClient
         public string? Name { get; set; }
     }
 
+    //---------------------------------------------------------------------------
+
     public abstract class FieldConfig : FieldType, IFieldConfig { }
 
-    public abstract class FieldModel : FieldType, IFieldModel { }
-
-    // Generic base for read-options fields
-    //public abstract class FieldModel<TReadOptions> : FieldType, IFieldModel
-    public abstract class FieldModel<TReadOptions> : FieldModel
-    {
-        [JsonPropertyName("options")]
-        public TReadOptions? ReadOptions { get; set; }
-    }
-
-    /// write-only, with options
+    // Generic base for write-options fields
     public abstract class FieldConfig<TWriteOptions> : FieldConfig
     {
         [JsonPropertyName("options")]
@@ -44,8 +44,22 @@ namespace AirtableApiClient
         public TWriteOptions? WriteOptions { get; set; }
     }
 
-    // read–write, no options (inherits the writeable base!)
-    public abstract class FieldModelConfig : FieldConfig, IFieldModel { }
+    //-------------------------------------------------------------------------
+    public abstract class FieldModel : FieldType, IFieldModel { }
+
+    // Generic base for read-options fields
+    public abstract class FieldModel<TReadOptions> : FieldModel
+    {
+        [JsonPropertyName("options")]
+        public TReadOptions? ReadOptions { get; set; }
+    }
+
+    //------------------------------------------------------------------------------
+
+    // read–write, no options (inherits the WRITE base! and the READ interface)
+    // NOTE: FieldModelConfig must derive from class FieldModel (not classFieldConfig)
+    // so that the custom FieldModelJsonConverter for FieldModle will work for FieldModelConfig also.
+    public abstract class FieldModelConfig : FieldModel, IFieldConfig { }
 
     // If a field is RW with the **same** options type in both directions:
     public abstract class FieldModelConfig<TOptions> : FieldModelConfig
@@ -54,6 +68,8 @@ namespace AirtableApiClient
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public TOptions? Options { get; set; }
     }
+
+    //-------------------------------------------------------------------------
 
     public sealed class AiTextFieldModel : FieldModel<AiTextReadOptions>       // R only, with options
     { 
@@ -180,7 +196,6 @@ namespace AirtableApiClient
         }
     }
 
-
     /// <summary>
     /// Count field
     /// </summary>
@@ -226,17 +241,8 @@ namespace AirtableApiClient
     public class CreatedTimeFieldModelOptions
     {
         [JsonPropertyName("result")]
-        public CreatedTimeResult? Result { get; set; }
+        public FieldModel? Result { get; set; } //optional but always be either DateField or DateTimeField
 
-    }
-
-    public class CreatedTimeResult
-    {
-        [JsonPropertyName("date")]
-        public DateField? Date { get; set; }
-
-        [JsonPropertyName("dateTime")]
-        public DateTimeField? DateTime { get; set; }
     }
 
     /// <summary>
@@ -385,10 +391,7 @@ namespace AirtableApiClient
                                                                 // All fields in the record that are used in the formula.
 
         [JsonPropertyName("result")]
-        //[JsonConverter(typeof(ReadFieldInterfaceConverter))]
-        //public IFieldModel? Result { get; set; }
-        //[JsonConverter(typeof(FieldConfigJsonConverter))]
-        public FieldType? Result { get; set; }
+        public FieldModel? Result { get; set; }
     }
 
     /// <summary>
@@ -402,7 +405,7 @@ namespace AirtableApiClient
         }
     }
 
-
+    //-----------------------------------------------------------------------------
     /// <summary>
     /// Last modified time field
     /// </summary>
@@ -422,22 +425,11 @@ namespace AirtableApiClient
         [JsonPropertyName("referencedFieldIds")]
         public string[]? ReferencedFieldIds { get; set; }       // array of strings | null
                                                                 // All fields in the record that are used in the formula.
-
         [JsonPropertyName("result")]
-        public LastModifedTimeResult? Result { get; set; }      // Either DateField or DatFiemField | null
+        public FieldModel? Result { get; set; }      // null | Always be a DateField or DateFielField
     }
 
-    public class LastModifedTimeResult
-    {
-        // null | any of the below objects
-        // This will always be a date or dateTime field config.
-        [JsonPropertyName("date")]
-        public DateField? Date { get; set; }
-
-        [JsonPropertyName("dateTime")]
-        public DateTimeField? DateTime { get; set; }
-
-    }
+    //---------------------------------------------------------------------------
 
     /// <summary>
     /// Link to another record field
@@ -453,7 +445,6 @@ namespace AirtableApiClient
             Type = FieldTypeEnum.MultipleRecordLinks;
         }
     }
-
 
     public class LinkToAnotherRecordFieldModelOptions
     {
@@ -474,6 +465,9 @@ namespace AirtableApiClient
         public string? ViewIdForRecordSelection { get; set; } // Optional. The ID of the view in the linked table to use when showing a list of records to select from.    }
 
     }
+
+    //......................................................
+
     public class LinkToAnotherRecordFieldConfig : FieldConfig<LinkToAnotherRecordFieldConfigOptions>
     {
         // Creating "multipleRecordLinks" fields is supported but updating options for existing "multipleRecordLinks" fields is not supported.
@@ -494,6 +488,7 @@ namespace AirtableApiClient
         public string? ViewIdForRecordSelection { get; set; } // Optional. The ID of the view in the linked table to use when showing a list of records to select from.    }
 
     }
+    //--------------------------------------------------------------------------------------------
 
     /// <summary>
     /// Long text field (multi-line)
@@ -506,6 +501,7 @@ namespace AirtableApiClient
         }
     }
 
+    //--------------------------------------------------------------------------------------
     /// <summary>
     /// Lookup field
     /// </summary>
@@ -529,12 +525,11 @@ namespace AirtableApiClient
         public string? RecordLinkFieldId { get; set; }       // may be null
 
         [JsonPropertyName("result")]
-        //[JsonConverter(typeof(ReadFieldInterfaceConverter))]
-        //public IFieldModel? Result { get; set; }
-        //[JsonConverter(typeof(FieldConfigJsonConverter))]
-        public FieldType? Result { get; set; }
+        public FieldModel? Result { get; set; } 
 
     }
+
+    //--------------------------------------------------------------------------------
 
     public class MultipleCollaboratorField : FieldModelConfig<object> 
     {
@@ -577,6 +572,8 @@ namespace AirtableApiClient
         [JsonPropertyName("name")]
         public string? Name { get; set; }
     }
+
+    //----------------------------------------------------------------------
 
     /// <summary>
     /// Number field
@@ -691,8 +688,8 @@ namespace AirtableApiClient
         [JsonPropertyName("recordLinkFieldId")]
         public string? RecordLinkFieldId { get; set; }       // optional
 
-        [JsonPropertyName("result")]                        // optional<Field type and options | null> Can be null is invalid
-        public object? Result { get; set; }                  // optional
+        [JsonPropertyName("result")]                        // optional<FieldModel | null> Can be null is invalid
+        public FieldModel? Result { get; set; }            
 
         [JsonPropertyName("isValid")]
         public bool IsValid { get; set; }                   // valid
@@ -728,7 +725,7 @@ namespace AirtableApiClient
     }
 
     //---------------------------------------
-    public class SyncSourceField: FieldModelConfig<ChoiceOptions>       // Emmett: Read only???
+    public class SyncSourceField: FieldModelConfig<ChoiceOptions>       // Should be Read only according to feedback from Airtable
     {
         public SyncSourceField()
         {
@@ -749,6 +746,8 @@ namespace AirtableApiClient
         }
     }
 
+    //---------------------------------------------
+
     public class UnknownFieldModel : FieldModel
     {
         public UnknownFieldModel()
@@ -766,4 +765,45 @@ namespace AirtableApiClient
         public string? OptionsRawJson { get; set; }
 
     }
+
+    // Pick one of the below.  We don't need both
+#if true    
+    ///
+    /// Extension methods (ergonomic, discoverable)
+    /// Usage:
+    /// var opts = tables[0].Fields[18].RequireOptions<LookupFieldModelOptions>();
+    /// or 
+    /// if (tables[0].Fields[18].TryGetOptions<LookupFieldModelOptions>(out var o)) { use o }
+    /// 
+
+    public static class FieldModelExtensions    // Extension methods (ergonomic, discoverable)
+    {
+        public static TOpts RequireOptions<TOpts>(this FieldModel f) where TOpts : class
+        {
+            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) return o;
+            throw new InvalidOperationException($"Not a {typeof(TOpts).Name} field or options missing.");
+        }
+
+        public static bool TryGetOptions<TOpts>(this FieldModel f, out TOpts? options) where TOpts : class
+        {
+            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) { options = o; return true; }
+            options = null; return false;
+        }
+    }
+#else   
+    ///
+    /// Static helper on FieldModel (simple)
+    /// Usage:
+    /// var opts = FieldModel.RequireOptions<LookupFieldModelOptions>(tables[0].Fields[18]);
+    /// 
+
+    public abstract class FieldModel : FieldBase, IFieldModel
+    {
+        public static TOpts RequireOptions<TOpts>(FieldModel f) where TOpts : class
+        {
+            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) return o;
+            throw new InvalidOperationException($"Not a {typeof(TOpts).Name} field or options missing.");
+        }
+    }
+#endif
 }

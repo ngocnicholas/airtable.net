@@ -12,7 +12,7 @@ namespace AirtableApiClient
 {
     //------------------------------------------------------------
 
-    public class FieldConfigJsonConverter : JsonConverter<FieldType>    // Custrom Json converter for FieldConfig due to System.Text.Json's de/serilization not able to handle polymorhism correctly
+    public class FieldModelJsonConverter : JsonConverter<FieldModel>    // Custrom Json converter for FieldModel due to System.Text.Json's de/serilization not able to handle polymorhism correctly
     {
         private static readonly Dictionary<string, Type> TypeMap = new()
         {
@@ -56,7 +56,7 @@ namespace AirtableApiClient
         // the Config type.
 
         // We use this custom method to deserialize responseBody of GetBaseSchema() into the C# object to be used in constructing an AirtableApiResponse
-        public override FieldType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions jasonSerializerOptions)
+        public override FieldModel Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions jasonSerializerOptions)
         {
             using var jsonDoc = JsonDocument.ParseValue(ref reader);
             var root = jsonDoc.RootElement;
@@ -91,7 +91,7 @@ namespace AirtableApiClient
 
             // If it's a FieldOptions<T> type, eagerly deserialize the options. Otherwise TOptions won't be deserialized until it's accessed.
 
-            var fc = (FieldType)obj;
+            var fc = (FieldModel)obj;
 
             // fc is the concrete field (already deserialized to targetType)
             var t = fc.GetType();
@@ -128,26 +128,11 @@ namespace AirtableApiClient
         }
 
         // For a Json Converter, override Write is for Serialization
-        public override void Write(Utf8JsonWriter writer, FieldType value, JsonSerializerOptions jasonSerializerOptions)
+        public override void Write(Utf8JsonWriter writer, FieldModel value, JsonSerializerOptions jasonSerializerOptions)
         {
             JsonSerializer.Serialize(writer, (object)value, value.GetType(), jasonSerializerOptions);  // The Json output stream will go into the HTTP request body of CreateBase
         }
 
-    }
-
-    public static class TypeExtensions
-    {
-        public static bool IsSubclassOfGenericType(this Type type, Type genericType)
-        {
-            while (type != null && type != typeof(object))                      // Traverse the inheritance tree back to the root (type object)
-            {
-                var current = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
-                if (genericType == current) // the 'type' passed in is a derived class of genericType?
-                    return true;
-                type = type.BaseType!;
-            }
-            return false;
-        }
     }
 
     public sealed class PromptItemListConverter : JsonConverter<List<PromptItem>>
@@ -233,14 +218,29 @@ namespace AirtableApiClient
     }
 
     //------------------------------------------------------
-    public sealed class FieldConfigConverter : JsonConverter<FieldConfig>
+    public sealed class FieldConfigJsonConverter : JsonConverter<FieldConfig>
     {
         public override FieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
             => throw new NotSupportedException("Reading write models is not supported here.");
 
+        // Used by CreateBase
         public override void Write(Utf8JsonWriter writer, FieldConfig value, JsonSerializerOptions options)
         {
             // Serialize using the *runtime* type so derived-only props (Options/WriteOptions) are included
+            JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
+        }
+    }
+
+    //---------------------------------------------------------
+    public sealed class IFieldConfigJsonConverter : JsonConverter<IFieldConfig>
+    {
+        public override IFieldConfig? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => throw new NotSupportedException("Reading write models is not supported.");
+
+        public override void Write(Utf8JsonWriter writer, IFieldConfig value, JsonSerializerOptions options)
+        {
+            if (value is null) { writer.WriteNullValue(); return; }
+            // Use the non-generic overload to force the runtime type
             JsonSerializer.Serialize(writer, (object)value, value.GetType(), options);
         }
     }

@@ -185,7 +185,7 @@ namespace AirtableApiClient
                 return new AirtableGetBaseSchemaResponse(error);
             }
             var responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, ReadJsonOptions);
+            var tableModelList = JsonSerializer.Deserialize<TableModelList>(responseBody, FieldModelJsonOptions);
 
             return new AirtableGetBaseSchemaResponse(tableModelList!);
         }
@@ -214,13 +214,13 @@ namespace AirtableApiClient
             }
 
             var payload = new { name = nameOfBaseToCreate, workspaceId = workspaceIdofBase, tables = tablesToCreate };
-            string json = JsonSerializer.Serialize(payload, WriteJsonOptions); 
+            string json = JsonSerializer.Serialize(payload, FieldConfigJsonOptions);  // This will make use of FieldConfigConverter.Write at bottom of CusomJsonConverter.cs
 
 
             var (responseBody, error) = await SendRequest(HttpMethod.Post, UrlHeadBaseModel!, json, token).ConfigureAwait(false);
             if (error != null) return new AirtableCreateBaseResponse(error);
 
-            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, ReadJsonOptions);
+            var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, FieldModelJsonOptions);
             return new AirtableCreateBaseResponse(createdBase!);
 
         }
@@ -1139,18 +1139,23 @@ namespace AirtableApiClient
         // private helper functions
         //---------------------------------------------------------------------------------------------------------
 
-        private static readonly JsonSerializerOptions WriteJsonOptions = new()
+        private static readonly JsonSerializerOptions FieldConfigJsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new FieldConfigConverter() }
+            Converters =
+            {
+                new IFieldConfigJsonConverter(),   // <-- needed because Fields : IFieldConfig[]
+                new FieldConfigJsonConverter(),    // optional: for places still declared as FieldConfig
+                new FieldTypeEnumConverter()
+            }
         };
 
-        private static readonly JsonSerializerOptions ReadJsonOptions = new()
+        private static readonly JsonSerializerOptions FieldModelJsonOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new FieldConfigJsonConverter() }
+            Converters = { new FieldModelJsonConverter() }
         };
 
         //-------------------

@@ -33,7 +33,7 @@ namespace AirtableApiClient
 
         [JsonPropertyName("fields")]
         [JsonInclude]
-        public FieldType[]? Fields { get; set; }
+        public FieldModel[] Fields { get; set; } = Array.Empty<FieldModel>();
 
         [JsonPropertyName("views")]
         [JsonInclude]
