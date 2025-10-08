@@ -531,7 +531,7 @@ namespace AirtableApiClient
 
     //--------------------------------------------------------------------------------
 
-    public class MultipleCollaboratorField : FieldModelConfig<object> 
+    public class MultipleCollaboratorField : FieldModelConfig   // RW, NO options, spec is wrong
     {
         public MultipleCollaboratorField()
         {

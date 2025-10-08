@@ -12,7 +12,8 @@ namespace AirtableApiClient
         [JsonInclude]
         public string? Description { get; set; }
 
-        // Important NOTE: IFieldConfig, not FieldConfig, because the custom converter IFieldConfigJsonConverter is for type IField.
+        // Important NOTE: IFieldConfig[], not FieldConfig[], so that it can hold any write-capable field,
+        // whether it’s a pure write type (FieldConfig descendants) or a read-write type (FieldModelConfig)
         [JsonPropertyName("fields")]
         [JsonInclude]
         public IFieldConfig[] Fields { get; set; } = Array.Empty<IFieldConfig>();

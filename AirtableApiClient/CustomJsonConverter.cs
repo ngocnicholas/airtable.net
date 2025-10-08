@@ -22,7 +22,7 @@ namespace AirtableApiClient
             ["barcode"] = typeof(BarcodeField),                         // RW,  No
             ["button"] = typeof(ButtonFieldModel),                      // R,   No
             ["checkbox"] = typeof(CheckboxField),                       // RW, same options
-            ["singleCollaborator"] = typeof(CollaboratorField),         // RW, same options
+            ["singleCollaborator"] = typeof(CollaboratorField),         // RW,  NO options - spec is wrong
             ["count"] = typeof(CountFieldModel),                        // R,   options
             ["createdBy"] = typeof(CreatedByFieldModel),                // R,   No
             ["createdTime"] = typeof(CreatedTimeFieldModel),            // R,   options
@@ -37,7 +37,7 @@ namespace AirtableApiClient
             ["multipleRecordLinks"] = typeof(LinkToAnotherRecordFieldModel),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
             ["multilineText"] = typeof(LongTextField),                  // RW,  No
             ["multipleLookupValues"] = typeof(LookupFieldModel),        // R,   options
-            ["multipleCollaborators"] = typeof(MultipleCollaboratorField), // RW,  same options
+            ["multipleCollaborators"] = typeof(MultipleCollaboratorField), // RW,  NO options - spec is wrong
             ["multipleSelects"] = typeof(MultipleSelectField),          // RW,  same options, but Id is optional in Write
             ["number"] = typeof(NumberField),                           // RW,  same options
             ["percent"] = typeof(PercentField),                         // RW,  same options
