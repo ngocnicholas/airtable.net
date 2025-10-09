@@ -2424,45 +2424,45 @@ namespace AirtableApiClient.Tests
             string workSpaceId = "wspw42QpP4SY13Qxu";         // worspace ID of the workspace "Personal";
             IFieldConfig[] sngFields = new IFieldConfig[21];
 
-            sngFields[0] = new SingleLineTextField
+            sngFields[0] = new SingleLineTextFieldConfig
             {
                 Name = "Name",
             };
 
-            sngFields[1] = new LongTextField() { Name = "Notes" };
+            sngFields[1] = new LongTextFieldConfig() { Name = "Notes" };
             sngFields[2] = new AttachmentFieldConfig { Name = "Attachments" };
 
-            sngFields[3] = new CheckboxField
+            sngFields[3] = new CheckboxFieldConfig
             {
                 Name = "Checkbox",
-                Options = new CheckboxOptions
+                ConfigOptions = new CheckboxConfigOptions
                 {
                     Icon = "xCheckbox",
                     Color = "cyanBright"
                 }
             };
-            Console.WriteLine(((CheckboxField)sngFields[3]).Options); // Should NOT be null
+            Console.WriteLine(((CheckboxFieldConfig)sngFields[3]).ConfigOptions); // Should NOT be null
             string json = JsonSerializer.Serialize(sngFields[3], new JsonSerializerOptions { WriteIndented = true });
             Console.WriteLine(json);
 
-            sngFields[4] = new UrlField() { Name = "URL" };
+            sngFields[4] = new UrlFieldConfig() { Name = "URL" };
 
-            sngFields[5] = new PhoneField { Name = "Phone Number" };
+            sngFields[5] = new PhoneFieldConfig { Name = "Phone Number" };
 
-            sngFields[6] = new NumberField
+            sngFields[6] = new NumberFieldConfig
             {
                 Name = "Our House Worth",
-                Options = new PrecisionOptions { Precision = 3 }
+                ConfigOptions = new PrecisionConfigOptions { Precision = 3 }
             };
 
-            sngFields[7] = new NumberField { Name = "My savings", Options = new PrecisionOptions { Precision = 2 } };
+            sngFields[7] = new NumberFieldConfig { Name = "My savings", ConfigOptions = new PrecisionConfigOptions { Precision = 2 } };
 
-            sngFields[8] = new PercentField { Name = "Percent", Options = new PrecisionOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
+            sngFields[8] = new PercentFieldConfig { Name = "Percent", ConfigOptions = new PrecisionConfigOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
 
-            sngFields[9] = new RatingField
+            sngFields[9] = new RatingFieldConfig
             {
                 Name = "Rating",
-                Options = new RatingOptions
+                ConfigOptions = new RatingConfigOptions
                 {
                     Max = 5,
                     Color = "orangeBright",
@@ -2470,10 +2470,10 @@ namespace AirtableApiClient.Tests
                 }
             };
 
-            sngFields[10] = new MultipleSelectField
+            sngFields[10] = new MultipleSelectFieldConfig
             {
                 Name = "Inheritants",
-                Options = new ChoiceOptions
+                ConfigOptions = new ChoiceConfigOptions
                 {
                     Choices = new List<Choice>
                     {
@@ -2484,10 +2484,10 @@ namespace AirtableApiClient.Tests
                 }
             };
 
-            sngFields[11] = new SingleSelectField
+            sngFields[11] = new SingleSelectFieldConfig
             {
                 Name = "Pests",
-                Options = new ChoiceOptions
+                ConfigOptions = new ChoiceConfigOptions
                 {
                     Choices = new List<Choice>
                     {
@@ -2498,47 +2498,47 @@ namespace AirtableApiClient.Tests
                 }
             };
 
-            sngFields[12] = new RichTextField
+            sngFields[12] = new RichTextFieldConfig
             {
                 Name = "Family"
             };
 
-            sngFields[13] = new EmailField
+            sngFields[13] = new EmailFieldConfig
             {
                 Name = "Email"
             };
 
-            sngFields[14] = new DurationField
+            sngFields[14] = new DurationFieldConfig
             {
                 Name = "Duration",
-                Options = new DurationOptions
+                ConfigOptions = new DurationConfigOptions
                 {
                     DurationFormat = "h:mm:ss"
                 }
 
             };
 
-            sngFields[15] = new BarcodeField
+            sngFields[15] = new BarcodeFieldConfig
             {
                 Name = "Barcode"
             };
 
-            sngFields[16] = new CollaboratorField { Name = "Single Collaborator" };
+            sngFields[16] = new CollaboratorFieldConfig { Name = "Single Collaborator" };
 
-            sngFields[17] = new CurrencyField
+            sngFields[17] = new CurrencyFieldConfig
             {
                 Name = "Money",
-                Options = new CurrencyOptions
+                ConfigOptions = new CurrencyConfigOptions
                 {
                     Precision = 2,
                     Symbol = "$"
                 }
             };
 
-            sngFields[18] = new DateField
+            sngFields[18] = new DateFieldConfig
             {
                 Name = "Date",
-                Options = new DateFieldOptions
+                ConfigOptions = new DateConfigOptions
                 {
                     DateFormat = new AirtableApiClient.DateFormat
                     {
@@ -2549,10 +2549,10 @@ namespace AirtableApiClient.Tests
             };
 
 
-            sngFields[19] = new DateTimeField
+            sngFields[19] = new DateTimeFieldConfig
             {
                 Name = "Date & Time",
-                Options = new DateTimeFieldOptions
+                ConfigOptions = new DateTimeConfigOptions
                 {
                     TimeZone = "America/Adak",
                     DateFormat = new AirtableApiClient.DateFormat
@@ -2568,7 +2568,7 @@ namespace AirtableApiClient.Tests
                 }
             };
 
-            sngFields[20] = new MultipleCollaboratorField       // Can't have Options as an object (told Emmett)
+            sngFields[20] = new MultipleCollaboratorFieldConfig       // Can't have Options as an object (told Emmett)
             {
                 Name = "MultipleCollaborator",
             };

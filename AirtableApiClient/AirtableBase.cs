@@ -44,14 +44,14 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         //
         // AirtableBase.AirtableBase #1
-        //    constructor -- for creating an instance of AirtableBase using the default
-        //                   delegating handler.
+        //    constructor -- for creating an instance of AirtableBase using the HttpClient and
+        //                   the default delegating handler.
         //
         //----------------------------------------------------------------------------
         public AirtableBase(string apiKeyOrAccessToken, string? baseId=null) : this(apiKeyOrAccessToken, baseId, null)
         {
-            // No delegating handler is given; a normal HttpClient will be constructed
-            // to communicate with Airtable.
+            // No delegating handler is given;
+            // a default HttpClient will be constructed to communicate with Airtable.
         }
 
         //----------------------------------------------------------------------------
@@ -63,21 +63,9 @@ namespace AirtableApiClient
         public AirtableBase(
             string apiKeyOrAccessToken,
             string? baseId,
-            DelegatingHandler? delegatingHandler)
+            DelegatingHandler? delegatingHandler) : this (null, apiKeyOrAccessToken, baseId, delegatingHandler)
         {
-            if (String.IsNullOrEmpty(apiKeyOrAccessToken))
-            {
-                throw new ArgumentException("api Key or access token cannot be null", "apiKeyOrAccessToken");
-            }
-
-            UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
-            if (!String.IsNullOrEmpty(baseId))
-            {
-                SetBaseId(baseId!);
-            }
-
-
-            httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken);
+            // a default HttpClient will be constructed to communicate with Airtable.
         }
 
 
@@ -89,16 +77,11 @@ namespace AirtableApiClient
         //
         //----------------------------------------------------------------------------
         public AirtableBase(
-            HttpClient client,
+            HttpClient? client,
             string apiKeyOrAccessToken,
             string? baseId = null,
             DelegatingHandler? delegatingHandler = null)
         {
-            if (client == null)
-            {
-                throw new ArgumentException("HttpClient cannot be null.");
-            }
-
             UrlHeadBaseModel = "https://api.airtable.com/v0/meta/bases";
             if (!String.IsNullOrEmpty(baseId))
             {
@@ -1147,7 +1130,7 @@ namespace AirtableApiClient
             {
                 new IFieldConfigJsonConverter(),   // <-- needed because Fields : IFieldConfig[]
                 new FieldConfigJsonConverter(),    // optional: for places still declared as FieldConfig
-                new FieldTypeEnumConverter()
+                new FieldEnumConverter()
             }
         };
 

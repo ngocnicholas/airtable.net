@@ -19,36 +19,36 @@ namespace AirtableApiClient
             ["aiText"] = typeof(AiTextFieldModel),                      // R,   options
             ["multipleAttachments"] = typeof(AttachmentFieldModel),     // R,   No
             ["autoNumber"] = typeof(AutoNumberFieldModel),              // R,   No
-            ["barcode"] = typeof(BarcodeField),                         // RW,  No
+            ["barcode"] = typeof(BarcodeFieldModel),                         // RW,  No
             ["button"] = typeof(ButtonFieldModel),                      // R,   No
-            ["checkbox"] = typeof(CheckboxField),                       // RW, same options
-            ["singleCollaborator"] = typeof(CollaboratorField),         // RW,  NO options - spec is wrong
+            ["checkbox"] = typeof(CheckboxFieldModel),                       // RW, same options
+            ["singleCollaborator"] = typeof(CollaboratorFieldModel),         // RW,  NO options - spec is wrong
             ["count"] = typeof(CountFieldModel),                        // R,   options
             ["createdBy"] = typeof(CreatedByFieldModel),                // R,   No
             ["createdTime"] = typeof(CreatedTimeFieldModel),            // R,   options
-            ["currency"] = typeof(CurrencyField),                       // RW, same options
-            ["date"] = typeof(DateField),                               // RW,  same options, but Format is optional in Write
+            ["currency"] = typeof(CurrencyFieldModel),                       // RW, same options
+            ["date"] = typeof(DateFieldModel),                               // RW,  same options, but Format is optional in Write
             ["dateTime"] = typeof(DateTimeField),                       // RW,  same options, but Format is optional in Write
-            ["duration"] = typeof(DurationField),                       // RW, same options
-            ["email"] = typeof(EmailField),                             // RW,  No
+            ["duration"] = typeof(DurationFieldModel),                       // RW, same options
+            ["email"] = typeof(EmailFieldModel),                             // RW,  No
             ["formula"] = typeof(FormulaFieldModel),                    // R,   options
             ["lastModifiedBy"] = typeof(LastModifiedByFieldModel),      // R,   No
             ["lastModifiedTime"] = typeof(LastModifiedTimeFieldModel),  // R,   options
             ["multipleRecordLinks"] = typeof(LinkToAnotherRecordFieldModel),    // RW, Write's options are only a subset of Read's. Write is only for Create, not for update.
-            ["multilineText"] = typeof(LongTextField),                  // RW,  No
+            ["multilineText"] = typeof(LongTextFieldModel),                  // RW,  No
             ["multipleLookupValues"] = typeof(LookupFieldModel),        // R,   options
-            ["multipleCollaborators"] = typeof(MultipleCollaboratorField), // RW,  NO options - spec is wrong
-            ["multipleSelects"] = typeof(MultipleSelectField),          // RW,  same options, but Id is optional in Write
-            ["number"] = typeof(NumberField),                           // RW,  same options
-            ["percent"] = typeof(PercentField),                         // RW,  same options
-            ["phoneNumber"] = typeof(PhoneField),                       // RW,  No
-            ["rating"] = typeof(RatingField),                           // RW,  same options 
-            ["richText"] = typeof(RichTextField),                       // RW,  No
+            ["multipleCollaborators"] = typeof(MultipleCollaboratorFieldModel), // RW,  NO options - spec is wrong
+            ["multipleSelects"] = typeof(MultipleSelectFieldModel),          // RW,  same options, but Id is optional in Write
+            ["number"] = typeof(NumberFieldModel),                           // RW,  same options
+            ["percent"] = typeof(PercentFieldModel),                         // RW,  same options
+            ["phoneNumber"] = typeof(PhoneFieldModel),                       // RW,  No
+            ["rating"] = typeof(RatingFieldModel),                           // RW,  same options 
+            ["richText"] = typeof(RichTextFieldModel),                       // RW,  No
             ["rollup"] = typeof(RollupFieldModel),                      // R,   options
-            ["singleLineText"] = typeof(SingleLineTextField),           // RW,  No
-            ["singleSelect"] = typeof(SingleSelectField),               // RW,  Same options, but Id is optinal in Write
-            ["externalSyncSource"] = typeof(SyncSourceField),           // RW,  same options
-            ["url"] = typeof(UrlField),                                 // RW,  No
+            ["singleLineText"] = typeof(SingleLineTextFieldModel),           // RW,  No
+            ["singleSelect"] = typeof(SingleSelectFieldModel),               // RW,  Same options, but Id is optinal in Write
+            ["externalSyncSource"] = typeof(SyncSourceFieldModel),           // RW,  same options
+            ["url"] = typeof(UrlFieldModel)                                 // RW,  No
         };
 
 
@@ -79,7 +79,7 @@ namespace AirtableApiClient
                     Id = idProp.ValueKind == JsonValueKind.String ? idProp.GetString() : null,
                     Name = nameProp.ValueKind == JsonValueKind.String ? nameProp.GetString() : null,
                     UnknownType = typeString,
-                    FieldConfigRawJson = root.GetRawText(),
+                    FieldModelRawJson = root.GetRawText(),
                     OptionsRawJson = root.TryGetProperty("options", out var optEl) ? optEl.GetRawText() : null
                };
                 return unknownField;
@@ -89,38 +89,38 @@ namespace AirtableApiClient
             var obj = root.Deserialize(targetType, jasonSerializerOptions)    // or JsonSerializer.Deserialize(root.GetRawText(), targetType, options)
                       ?? throw new JsonException($"Failed to deserialize field of type '{typeString}'.");
 
-            // If it's a FieldOptions<T> type, eagerly deserialize the options. Otherwise TOptions won't be deserialized until it's accessed.
+            // If it's a ModelOptions<T> type, eagerly deserialize the options. Otherwise TModelOptions won't be deserialized until it's accessed.
 
             var fc = (FieldModel)obj;
 
             // fc is the concrete field (already deserialized to targetType)
             var t = fc.GetType();
 
-            // find which generic base it uses (if any)
-            static Type? FindGenericBase(Type cur, Type openGeneric)
+            // Walk up the inheritance chain to find FieldModel<TModelOption>
+            Type? readGeneric = null;
+            for (var cur = t; cur is not null && cur != typeof(object); cur = cur.BaseType)
             {
-                for (var x = cur; x != null; x = x.BaseType)
-                    if (x.IsGenericType && x.GetGenericTypeDefinition() == openGeneric)
-                        return x;
-                return null;
+                if (cur.IsGenericType && cur.GetGenericTypeDefinition() == typeof(FieldModel<>))
+                {
+                    readGeneric = cur;
+                    break;
+                }
             }
 
-            var readBase = FindGenericBase(t, typeof(FieldModel<>));
-            var rwBase = FindGenericBase(t, typeof(FieldModelConfig<>));
-
-            Type? genericBase = readBase ?? rwBase;
-            if (genericBase != null)
-            {
-                // property name depends on which base we matched
-                var propName = (readBase != null) ? "ReadOptions" : "Options";
-                var prop = t.GetProperty(propName);
-
-                // Only do the extra pass if the property is still a JsonElement
-                if (prop?.GetValue(fc) is JsonElement optionsElement)
+            if (readGeneric != null)
+            { 
+                // We only ever hydrate ModelOptions for FieldModel<TModelOptions>
+                var modelOptionsProp = t.GetProperty("ModelOptions");
+                if (modelOptionsProp?.GetValue(fc) is JsonElement optionsElement &&
+                    optionsElement.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
                 {
-                    var optionsType = genericBase.GetGenericArguments()[0];
-                    var typed = JsonSerializer.Deserialize(optionsElement.GetRawText(), optionsType, jasonSerializerOptions);
-                    prop.SetValue(fc, typed);
+                    var optionsType = readGeneric.GetGenericArguments()[0];
+                    var typed = JsonSerializer.Deserialize(
+                        optionsElement.GetRawText(),
+                        optionsType,
+                        jasonSerializerOptions);
+
+                    modelOptionsProp.SetValue(fc, typed);
                 }
             }
 

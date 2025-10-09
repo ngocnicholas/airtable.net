@@ -37,11 +37,11 @@ namespace AirtableApiClient
 
         [JsonPropertyName("views")]
         [JsonInclude]
-        public ViewConfig[]? Views { get; set; }
+        public ViewCModel[]? Views { get; set; }
     }
 
 
-    public class ViewConfig
+    public class ViewCModel
     {
         [JsonPropertyName("id")]
         [JsonInclude]
