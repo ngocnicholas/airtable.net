@@ -19,7 +19,9 @@
         - GetBaseSchema for Get base schema
         - CreateBase for Create base
 
-      Fixed a bug in an AirtableBase constructor causing the user provided HttpClient was not actually used.
+        Fixed a bug in an AirtableBase constructor causing the user provided HttpClient not actually used.
+        Modified ctors so that base ID is always optional for the need of constructing AirtableBase for using
+            the CreateBase endpoint and the ListBases endpoint.
     </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
