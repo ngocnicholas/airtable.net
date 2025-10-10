@@ -47,17 +47,17 @@ namespace AirtableApiClient
     public abstract class FieldModel<TModelOptions> : FieldModel
     {
         [JsonPropertyName("options")]
-        public TModelOptions? ReadOptions { get; set; }
+        public TModelOptions? ModelOptions { get; set; }
     }
 
     //-------------------------------------------------------------------------
 
-    public sealed class AiTextFieldModel : FieldModel<AiTextReadOptions>       // R only, with options
+    public sealed class AiTextFieldModel : FieldModel<AiTextModelOptions>       // R only, with options
     { 
         public AiTextFieldModel() { Type = FieldEnum.AiText; } 
     }
 
-    public class AiTextReadOptions
+    public class AiTextModelOptions
     {
         [JsonPropertyName("prompt")]
         [JsonConverter(typeof(PromptItemListConverter))]    // attribute for its custom converter
@@ -334,9 +334,9 @@ namespace AirtableApiClient
     /// Date and time field
     /// RW, with Options but Write's format is optional
     /// </summary>
-    public class DateTimeField : FieldModel<DateTimeModelOptions> 
+    public class DateTimeFieldModel : FieldModel<DateTimeModelOptions> 
     {
-        public DateTimeField()
+        public DateTimeFieldModel()
         {
             Type = FieldEnum.DateTime;
         }
@@ -606,18 +606,21 @@ namespace AirtableApiClient
             Type = FieldEnum.MultipleCollaborators;
         }
     }
-
+    //-------------------------------------------------------------
     /// <summary>
     /// Multi-select field
     /// </summary>
-    public class MultipleSelectFieldModel : FieldModel<ChoiceModelOptions>  // RW with options but the Write's option is more flexible
+    public class MultipleSelectFieldModel : FieldModel<MultipleSelectdModelOptions>  // RW with options but the Write's option is more flexible
     {
         public MultipleSelectFieldModel()
         {
             Type = FieldEnum.MultipleSelects;
         }
     }
-    public class MultipleSelectFieldConfig : FieldConfig<ChoiceConfigOptions>  // RW with options but the Write's option is more flexible
+
+    public class MultipleSelectdModelOptions: ChoiceModelOptions { }
+
+    public class MultipleSelectFieldConfig : FieldConfig<MultipleSelectConfigOptions>  // RW with options but the Write's option is more flexible
     {
         public MultipleSelectFieldConfig()
         {
@@ -625,36 +628,14 @@ namespace AirtableApiClient
         }
     }
 
-    public class ChoiceModelOptions
-    {
-        [JsonPropertyName("choices")]
-        public List<Choice>? Choices { get; set; }
-    }
-    public class ChoiceConfigOptions : ChoiceModelOptions { }
-
-    public class Choice
-    {
-        [JsonPropertyName("id")]                    // opional only during Write but is always required for SyncSource
-                                                    // This is not specified when creating new options,
-                                                    // useful when specifing existing options (for example: reordering options,
-                                                    // keeping old options and adding new ones, etc)
-        public string? Id { get; set; }
-
-        [JsonPropertyName("color")]
-        public string? Color { get; set; }          // optional during Read when the select field is configured to not use colors.           
-                                                    // optional duiring Write - This is not specified when creating new options,
-                                                    // useful when specifing existing options (for example: reordering options,
-                                                    // keeping old options and adding new ones, etc)
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
-    }
+    public class MultipleSelectConfigOptions : ChoiceConfigOptions {}
 
     //----------------------------------------------------------------------
 
     /// <summary>
     /// Number field
     /// </summary>
-    public class NumberFieldModel : FieldModel<PrecisionModelOptions> 
+    public class NumberFieldModel : FieldModel<NumberModelOptions> 
     {
         public NumberFieldModel()
         {
@@ -662,7 +643,9 @@ namespace AirtableApiClient
         }
     }
 
-    public class NumberFieldConfig : FieldConfig<PrecisionConfigOptions>
+    public class NumberModelOptions : PrecisionModelOptions { }
+
+    public class NumberFieldConfig : FieldConfig<NumberConfigOptions>
     {
         public NumberFieldConfig()
         {
@@ -670,23 +653,14 @@ namespace AirtableApiClient
         }
     }
 
-    public class PrecisionModelOptions 
-    {
-        private int _precision;
+    public class NumberConfigOptions : PrecisionConfigOptions { }
 
-        [JsonPropertyName("precision")]
-        public int Precision                // Indicates the number of digits shown to the right of the decimal point for this field. (0-8 inclusive)
-        {
-            get => _precision;
-            set => _precision = value < 0 ? 0 : value > 8 ? 8 : value;  // 0-8 inclusive per API
-        }
-    }
-    public class PrecisionConfigOptions : PrecisionModelOptions { }
+    //---------------------------------------------------------------------
 
     /// <summary>
     /// Percent field
     /// </summary>
-    public class PercentFieldModel : FieldModel<PrecisionModelOptions> 
+    public class PercentFieldModel : FieldModel<PercentModelOptions> 
     {
         public PercentFieldModel()
         {
@@ -694,13 +668,18 @@ namespace AirtableApiClient
         }
     }
 
-    public class PercentFieldConfig : FieldConfig<PrecisionConfigOptions>
+    public class PercentModelOptions : PrecisionModelOptions { }
+
+    public class PercentFieldConfig : FieldConfig<PercentConfigOptions>
     {
         public PercentFieldConfig()
         {
             Type = FieldEnum.Percent;
         }
     }
+
+    public class PercentConfigOptions : PrecisionConfigOptions { }
+
     //---------------------------------------------
 
     /// <summary>
@@ -726,7 +705,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Rating field
     /// </summary>
-    public class RatingFieldModel : FieldModel<RatingFieldReadOptions> 
+    public class RatingFieldModel : FieldModel<RatingFieldModelOptions> 
     {
         public RatingFieldModel()
         {
@@ -743,7 +722,7 @@ namespace AirtableApiClient
 
     }
 
-    public class RatingFieldReadOptions
+    public class RatingFieldModelOptions
     {
         [JsonPropertyName("color")]
         public string? Color { get; set; }
@@ -760,7 +739,7 @@ namespace AirtableApiClient
         }
     }
 
-    public class RatingConfigOptions : RatingFieldReadOptions { }
+    public class RatingConfigOptions : RatingFieldModelOptions { }
 
     //--------------------------------------------
 
@@ -840,7 +819,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Single select field
     /// </summary>
-    public class SingleSelectFieldModel : FieldModel<ChoiceModelOptions>
+    public class SingleSelectFieldModel : FieldModel<SingleSelectdModelOptions>
     { 
         public SingleSelectFieldModel()
         {
@@ -848,13 +827,18 @@ namespace AirtableApiClient
         }
     }
 
-    public class SingleSelectFieldConfig : FieldConfig<ChoiceConfigOptions>
+    public class SingleSelectdModelOptions : ChoiceModelOptions { }
+
+    public class SingleSelectFieldConfig : FieldConfig<SingleSelectConfigOptions>
     {
         public SingleSelectFieldConfig()
         {
             Type = FieldEnum.SingleSelect;
         }
     }
+
+    public class SingleSelectConfigOptions : ChoiceConfigOptions { }
+
     //---------------------------------------
 
     public class SyncSourceFieldModel : FieldModel<ChoiceModelOptions>       // Should be Read only according to feedback from Airtable
@@ -905,10 +889,55 @@ namespace AirtableApiClient
         public string? OptionsRawJson { get; set; }
     }
 
+    //---------------------------------------------------------
+
+    public class PrecisionModelOptions
+    {
+        private int _precision;
+
+        [JsonPropertyName("precision")]
+        public int Precision                // Indicates the number of digits shown to the right of the decimal point for this field. (0-8 inclusive)
+        {
+            get => _precision;
+            set => _precision = value < 0 ? 0 : value > 8 ? 8 : value;  // 0-8 inclusive per API
+        }
+    }
+    public class PrecisionConfigOptions : PrecisionModelOptions { }
+
+    //----------------------------------------------------------
+
+    public class ChoiceModelOptions
+    {
+        [JsonPropertyName("choices")]
+        public List<Choice>? Choices { get; set; }
+    }
+    public class ChoiceConfigOptions : ChoiceModelOptions { }
+
+    public class Choice
+    {
+        [JsonPropertyName("id")]                    // opional only during Write but is always required for SyncSource
+                                                    // This is not specified when creating new options,
+                                                    // useful when specifing existing options (for example: reordering options,
+                                                    // keeping old options and adding new ones, etc)
+        public string? Id { get; set; }
+
+        [JsonPropertyName("color")]
+        public string? Color { get; set; }          // optional during Read when the select field is configured to not use colors.           
+                                                    // optional duiring Write - This is not specified when creating new options,
+                                                    // useful when specifing existing options (for example: reordering options,
+                                                    // keeping old options and adding new ones, etc)
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+    }
+
+
+    //---------------------------------------------------------------------------------------
     // Pick one of the below.  We don't need both
-#if true    
+#if true
     ///
-    /// Extension methods (ergonomic, discoverable)
+    /// Static Helper Extension methods (ergonomic, discoverable)
+    ///     User can use the helper functions to acess Field Options
+    ///     
     /// Usage:
     /// var opts = tables[0].Fields[18].RequireOptions<LookupModelOptions>();
     /// or 
@@ -919,13 +948,13 @@ namespace AirtableApiClient
     {
         public static TOpts RequireOptions<TOpts>(this FieldModel f) where TOpts : class
         {
-            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) return o;
+            if (f is FieldModel<TOpts> m && m.ModelOptions is { } o) return o;
             throw new InvalidOperationException($"Not a {typeof(TOpts).Name} field or options missing.");
         }
 
         public static bool TryGetOptions<TOpts>(this FieldModel f, out TOpts? options) where TOpts : class
         {
-            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) { options = o; return true; }
+            if (f is FieldModel<TOpts> m && m.ModelOptions is { } o) { options = o; return true; }
             options = null; return false;
         }
     }
@@ -940,7 +969,7 @@ namespace AirtableApiClient
     {
         public static TOpts RequireOptions<TOpts>(FieldModel f) where TOpts : class
         {
-            if (f is FieldModel<TOpts> m && m.ReadOptions is { } o) return o;
+            if (f is FieldModel<TOpts> m && m.ModelOptions is { } o) return o;
             throw new InvalidOperationException($"Not a {typeof(TOpts).Name} field or options missing.");
         }
     }

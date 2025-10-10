@@ -28,7 +28,7 @@ namespace AirtableApiClient
             ["createdTime"] = typeof(CreatedTimeFieldModel),            // R,   options
             ["currency"] = typeof(CurrencyFieldModel),                       // RW, same options
             ["date"] = typeof(DateFieldModel),                               // RW,  same options, but Format is optional in Write
-            ["dateTime"] = typeof(DateTimeField),                       // RW,  same options, but Format is optional in Write
+            ["dateTime"] = typeof(DateTimeFieldModel),                       // RW,  same options, but Format is optional in Write
             ["duration"] = typeof(DurationFieldModel),                       // RW, same options
             ["email"] = typeof(EmailFieldModel),                             // RW,  No
             ["formula"] = typeof(FormulaFieldModel),                    // R,   options

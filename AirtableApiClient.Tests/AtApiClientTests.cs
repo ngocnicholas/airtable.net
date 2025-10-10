@@ -2452,12 +2452,12 @@ namespace AirtableApiClient.Tests
             sngFields[6] = new NumberFieldConfig
             {
                 Name = "Our House Worth",
-                ConfigOptions = new PrecisionConfigOptions { Precision = 3 }
+                ConfigOptions = new NumberConfigOptions { Precision = 3 }
             };
 
-            sngFields[7] = new NumberFieldConfig { Name = "My savings", ConfigOptions = new PrecisionConfigOptions { Precision = 2 } };
+            sngFields[7] = new NumberFieldConfig { Name = "My savings", ConfigOptions = new NumberConfigOptions { Precision = 2 } };
 
-            sngFields[8] = new PercentFieldConfig { Name = "Percent", ConfigOptions = new PrecisionConfigOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
+            sngFields[8] = new PercentFieldConfig { Name = "Percent", ConfigOptions = new PercentConfigOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
 
             sngFields[9] = new RatingFieldConfig
             {
@@ -2473,7 +2473,7 @@ namespace AirtableApiClient.Tests
             sngFields[10] = new MultipleSelectFieldConfig
             {
                 Name = "Inheritants",
-                ConfigOptions = new ChoiceConfigOptions
+                ConfigOptions = new MultipleSelectConfigOptions
                 {
                     Choices = new List<Choice>
                     {
@@ -2487,7 +2487,7 @@ namespace AirtableApiClient.Tests
             sngFields[11] = new SingleSelectFieldConfig
             {
                 Name = "Pests",
-                ConfigOptions = new ChoiceConfigOptions
+                ConfigOptions = new SingleSelectConfigOptions
                 {
                     Choices = new List<Choice>
                     {
