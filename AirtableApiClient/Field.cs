@@ -705,7 +705,7 @@ namespace AirtableApiClient
     /// <summary>
     /// Rating field
     /// </summary>
-    public class RatingFieldModel : FieldModel<RatingFieldModelOptions> 
+    public class RatingFieldModel : FieldModel<RatingModelOptions> 
     {
         public RatingFieldModel()
         {
@@ -722,7 +722,7 @@ namespace AirtableApiClient
 
     }
 
-    public class RatingFieldModelOptions
+    public class RatingModelOptions
     {
         [JsonPropertyName("color")]
         public string? Color { get; set; }
@@ -739,7 +739,7 @@ namespace AirtableApiClient
         }
     }
 
-    public class RatingConfigOptions : RatingFieldModelOptions { }
+    public class RatingConfigOptions : RatingModelOptions { }
 
     //--------------------------------------------
 

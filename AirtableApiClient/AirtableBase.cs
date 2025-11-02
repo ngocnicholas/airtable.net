@@ -21,7 +21,7 @@ namespace AirtableApiClient
 
         private string? UrlHead = null;
         private string? UrlHeadWebhooks = null;
-        private string? UrlHeadBaseSchema = null;
+        internal string? UrlHeadBaseSchema = null;
         internal readonly string? UrlHeadBaseModel = null;
 
         private readonly HttpClientWithRetries httpClientWithRetries;
