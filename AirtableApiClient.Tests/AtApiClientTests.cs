@@ -2391,7 +2391,7 @@ namespace AirtableApiClient.Tests
             scInclude[0] = BaseSchemaInclude.visibleFieldIds;
 
             // for using my own base
-            Task<AirtableGetBaseSchemaResponse> task = airtableBase.GetBaseSchema(scInclude);
+            Task<AirtableGetBaseSchemaResponse> task = airtableBase.GetBaseSchema(baseId: null, scInclude);
 
             var response = await task;
             Assert.IsTrue(response.Success);
@@ -2429,7 +2429,7 @@ namespace AirtableApiClient.Tests
             scInclude[0] = BaseSchemaInclude.visibleFieldIds;
 
             // appptCKqFJAp3l1mo (for testing the aiText field example)
-            Task<AirtableGetBaseSchemaResponse> task = airtableBase.GetBaseSchema(scInclude, BASE_ID);
+            Task<AirtableGetBaseSchemaResponse> task = airtableBase.GetBaseSchema("appptCKqFJAp3l1mo", scInclude);
 
             var response = await task;
             Assert.IsTrue(response.Success);
@@ -2454,7 +2454,6 @@ namespace AirtableApiClient.Tests
             }
         }
 
-#if true
         [TestMethod]
         public async Task TzXAtApiClientCreateBase()
         {
@@ -2488,9 +2487,6 @@ namespace AirtableApiClient.Tests
                     Color = "cyanBright"
                 }
             };
-            Console.WriteLine(((CheckboxFieldConfig)sngFields[3]).ConfigOptions); // Should NOT be null
-            string json = JsonSerializer.Serialize(sngFields[3], new JsonSerializerOptions { WriteIndented = true });
-            Console.WriteLine(json);
 
             sngFields[4] = new UrlFieldConfig() { Name = "URL" };
 
@@ -2504,7 +2500,7 @@ namespace AirtableApiClient.Tests
 
             sngFields[7] = new NumberFieldConfig { Name = "My savings", ConfigOptions = new NumberConfigOptions { Precision = 2 } };
 
-            sngFields[8] = new PercentFieldConfig { Name = "Percent", ConfigOptions = new PercentConfigOptions { Precision = 1 } }; // 6/7/25:changed Options to TypedOptions.
+            sngFields[8] = new PercentFieldConfig { Name = "Percent", ConfigOptions = new PercentConfigOptions { Precision = 1 } };
 
             sngFields[9] = new RatingFieldConfig
             {
@@ -2615,22 +2611,10 @@ namespace AirtableApiClient.Tests
                 }
             };
 
-            sngFields[20] = new MultipleCollaboratorFieldConfig       // Can't have Options as an object (told Emmett)
+            sngFields[20] = new MultipleCollaboratorFieldConfig 
             {
                 Name = "MultipleCollaborator",
             };
-
-#if false
-            sngFields[XX] = new LinkToAnotherRecordFieldModel        // Impossible to test this field but Airtable gives wrong error message.
-                                                                // NOTE: Testable in CreateTable only.
-            {
-                Name = "MultipleRecordLinksField",
-                ReadOptions = new LinkToAnotherRecordFieldReadOptions
-                {
-                    LinkedTableId = "tblgs2NtQNDQxevy7"
-                }
-            };
-#endif
 
             TableConfig[] tableConfigs = new TableConfig[1];
             tableConfigs[0] = new TableConfig();
@@ -2646,7 +2630,6 @@ namespace AirtableApiClient.Tests
             Assert.IsNotNull(tables);
             Assert.IsTrue(tables.Count() > 0);
             Console.WriteLine($"tables count is {tables.Count()}");
-#endif
         }
 
             //---------------------------------------------------------------------------------------------------------

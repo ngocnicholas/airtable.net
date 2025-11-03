@@ -44,7 +44,7 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         //
         // AirtableBase.AirtableBase #1
-        //    constructor -- for creating an instance of AirtableBase using the HttpClient and
+        //    constructor -- for creating an instance of AirtableBase using the default HttpClient and
         //                   the default delegating handler.
         //
         //----------------------------------------------------------------------------
@@ -96,6 +96,14 @@ namespace AirtableApiClient
             httpClientWithRetries = new HttpClientWithRetries(delegatingHandler, apiKeyOrAccessToken, client);
         }
 
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.SetBaseId
+        //    Since the base ID is optional in the AirtableBase ctors so that the users can call base related APIs after AirtableBase is constructed.
+        //    In this case, if the users want to call any of the APIs requiring a specific base ID, the users must call this method once
+        //    to set the base ID before proceeding.
+        //
+        //----------------------------------------------------------------------------
         public void SetBaseId(string baseId)
         {
             UrlHead = "https://api.airtable.com/v0/" + baseId + "/";
@@ -141,7 +149,7 @@ namespace AirtableApiClient
         // Called to get the schema for all tables in the base.
         //
         //----------------------------------------------------------------------------
-        public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(BaseSchemaInclude[]? baseSchemaInclude = null, string? baseId = null, CancellationToken token = default(CancellationToken))
+        public async Task<AirtableGetBaseSchemaResponse> GetBaseSchema(string? baseId = null, BaseSchemaInclude[]? baseSchemaInclude = null, CancellationToken token = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(UrlHead))
             {
