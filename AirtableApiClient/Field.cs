@@ -355,17 +355,17 @@ namespace AirtableApiClient
         public string? TimeZone { get; set; }        // See https://airtable.com/developers/web/api/model/timezone for details
 
         [JsonPropertyName("dateFormat")]
-        public DateFormat? DateFormat { get; set; }      // "h:mma" | "HH:mm"
+        public DateFormat? DateFormat { get; set; } 
 
         [JsonPropertyName("timeFormat")]
-        public TimeFormat? TimeFormat { get; set; }      // "h:mma" | "HH:mm"
+        public TimeFormat? TimeFormat { get; set; } 
     }
 
     public class DateTimeConfigOptions : DateTimeModelOptions { }
 
     public class TimeFormat
     {
-        [JsonPropertyName("format")]                        //format is always provided when reading. (l for local, LL for friendly, M/D/YYYY for us, D/M/YYYY for european, YYYY-MM-DD for iso)
+        [JsonPropertyName("format")]                        //format is always provided when reading.
         public string? Format { get; set; }                 // 	Optional for Write. "h:mma" | "HH:mm"
 
         [JsonPropertyName("name")]
@@ -532,7 +532,7 @@ namespace AirtableApiClient
     public class LinkToAnotherRecordConfigOptions
     {
         // Note: All properties are in the Write situations
-        // Note: Only the 2 properties below are in the CreateBase situation, not even in the UpdateBase situation)
+        // Note: Only the 2 properties below are in the CreateBase situation, not even in the UpdateBase situation
         [JsonPropertyName("linkedTableId")]
         public string? LinkedTableId { get; set; }   // The ID of the table this field links to
 
@@ -841,13 +841,15 @@ namespace AirtableApiClient
 
     //---------------------------------------
 
-    public class SyncSourceFieldModel : FieldModel<ChoiceModelOptions>       // Should be Read only according to feedback from Airtable
+    public class SyncSourceFieldModel : FieldModel<SyncSourceModelOptions>       // Should be Read only according to feedback from Airtable
     {
         public SyncSourceFieldModel()
         {
             Type = FieldEnum.ExternalSyncSource;
         }
     }
+
+    public class SyncSourceModelOptions : ChoiceModelOptions { }
 
     //------------------------------------
 
@@ -915,17 +917,15 @@ namespace AirtableApiClient
 
     public class Choice
     {
-        [JsonPropertyName("id")]                    // opional only during Write but is always required for SyncSource
+        [JsonPropertyName("id")]                    // optional only during Write but is always required for SyncSource
                                                     // This is not specified when creating new options,
-                                                    // useful when specifing existing options (for example: reordering options,
+                                                    // useful when specifying existing options (for example: reordering options,
                                                     // keeping old options and adding new ones, etc)
         public string? Id { get; set; }
 
         [JsonPropertyName("color")]
         public string? Color { get; set; }          // optional during Read when the select field is configured to not use colors.           
-                                                    // optional duiring Write - This is not specified when creating new options,
-                                                    // useful when specifing existing options (for example: reordering options,
-                                                    // keeping old options and adding new ones, etc)
+                                                    // optional during Write. 
         [JsonPropertyName("name")]
         public string? Name { get; set; }
     }
@@ -936,7 +936,7 @@ namespace AirtableApiClient
 #if true
     ///
     /// Static Helper Extension methods (ergonomic, discoverable)
-    ///     User can use the helper functions to acess Field Options
+    ///     User can use the helper functions to access Field Options
     ///     
     /// Usage:
     /// var opts = tables[0].Fields[18].RequireOptions<LookupModelOptions>();
@@ -954,8 +954,14 @@ namespace AirtableApiClient
 
         public static bool TryGetOptions<TOpts>(this FieldModel f, out TOpts? options) where TOpts : class
         {
-            if (f is FieldModel<TOpts> m && m.ModelOptions is { } o) { options = o; return true; }
-            options = null; return false;
+            if (f is FieldModel<TOpts> m && m.ModelOptions is { } o) 
+            { 
+                options = o; 
+                return true; 
+            }
+
+            options = null;
+            return false;
         }
     }
 #else   

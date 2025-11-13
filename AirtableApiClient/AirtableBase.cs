@@ -48,7 +48,7 @@ namespace AirtableApiClient
         //                   the default delegating handler.
         //
         //----------------------------------------------------------------------------
-        public AirtableBase(string apiKeyOrAccessToken, string? baseId=null) : this(apiKeyOrAccessToken, baseId, null)
+        public AirtableBase(string apiKeyOrAccessToken, string? baseId=null) : this(null, apiKeyOrAccessToken, baseId, null)
         {
             // No delegating handler is given;
             // a default HttpClient will be constructed to communicate with Airtable.
@@ -121,11 +121,6 @@ namespace AirtableApiClient
         //----------------------------------------------------------------------------
         public async Task<AirtableGetUserIdAndScopesResponse> GetUserIdAndScopes(CancellationToken token = default(CancellationToken))
         {
-            if (string.IsNullOrEmpty(UrlHead))
-            {
-                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
-            }
-
             string uriStr = "https://api.airtable.com/v0/meta/whoami";
             var request = new HttpRequestMessage(HttpMethod.Get, uriStr);
 
@@ -213,7 +208,6 @@ namespace AirtableApiClient
 
             var createdBase = JsonSerializer.Deserialize<CreatedBase>(responseBody, FieldModelJsonOptions);
             return new AirtableCreateBaseResponse(createdBase!);
-
         }
 
 

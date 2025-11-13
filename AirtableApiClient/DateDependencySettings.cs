@@ -38,9 +38,9 @@ namespace AirtableApiClient
         public bool ShouldSkipWeekendsAndHolidays { get; set; }
 
 
-        [JsonPropertyName("StartDateFieldId")]
+        [JsonPropertyName("startDateFieldId")]
         [JsonInclude]
-        public string? startDateFieldId { get; set; }
+        public string? StartDateFieldId { get; set; }
 
 
         [JsonPropertyName("holidays")]
