@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
+using System.Security.Cryptography.X509Certificates;
 
 namespace AirtableApiClient
 {
@@ -34,6 +35,8 @@ namespace AirtableApiClient
 
         private readonly HttpClient client;
 
+        private string ApiKeyOrAccessToken;
+
 
         //----------------------------------------------------------------------------
         // 
@@ -42,10 +45,11 @@ namespace AirtableApiClient
         // 
         //----------------------------------------------------------------------------
 
-        public HttpClientWithRetries(DelegatingHandler? delegatingHandler, string apiKey, HttpClient? providedClient = null)
+        public HttpClientWithRetries(DelegatingHandler? delegatingHandler, string apiKeyOrAccessToken, HttpClient? providedClient = null)
         {
             // Allow retries by default.
             ShouldNotRetryIfRateLimited = false;
+            ApiKeyOrAccessToken = apiKeyOrAccessToken;
 
             // Start with the minimum delay then increase exponentially with a base of 2.
             RetryDelayMillisecondsIfRateLimited = MIN_RETRY_DELAY_MILLISECONDS_IF_RATE_LIMITED;
@@ -59,15 +63,13 @@ namespace AirtableApiClient
                 else
                 {
                     client = new HttpClient(delegatingHandler);     // for communicating with the specified handler
-                }
+               }
             }
             else
             {
                 client = providedClient;
                 DisposeClient = false;                              // client is provided by user and owned by user
             }
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
 
@@ -109,6 +111,7 @@ namespace AirtableApiClient
             int dueTimeDelay = RetryDelayMillisecondsIfRateLimited;
             int retries = 0;
 
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ApiKeyOrAccessToken);
             HttpResponseMessage response = await client.SendAsync(request, token).ConfigureAwait(false);
 
             while (response.StatusCode == (HttpStatusCode)429 &&
@@ -141,6 +144,7 @@ namespace AirtableApiClient
             {
                 request.Content = new StringContent(content, Encoding.UTF8, "application/json");
             }
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ApiKeyOrAccessToken);
             return request;
         }
 

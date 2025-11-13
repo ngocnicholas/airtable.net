@@ -5,7 +5,7 @@
 
     <!-- nuget metadata -->
     <PackageId>Airtable</PackageId>
-    <Version>1.7.1</Version>
+    <Version>1.8.0</Version>
     <Title>Airtable Api Client</Title>
     <Authors>Ngoc Nicholas</Authors>
     <owners>Ngoc Nicholas</owners>
@@ -14,8 +14,14 @@
     <PackageIcon>airtable_64x64.png</PackageIcon>
     <PackageTags>Airtable database spreadsheet organize Kanban API</PackageTags>
     <PackageReleaseNotes>
-        Multi-target net8.0 and netstandard2.0
-        No longer pins exact version numbers for reference packages in netstandard2.0 target.
+        Added 3 more endpoint APIs:
+        - ListBases for List bases
+        - GetBaseSchema for Get base schema
+        - CreateBase for Create base
+
+        Fixed a bug in an AirtableBase constructor causing the user provided HttpClient not actually used.
+        Modified ctors so that base ID is always optional for the need of constructing AirtableBase for using
+            the CreateBase endpoint and the ListBases endpoint.
     </PackageReleaseNotes>
     <RepositoryUrl>https://github.com/ngocnicholas/airtable.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
