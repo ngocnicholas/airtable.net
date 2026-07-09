@@ -473,6 +473,32 @@ namespace AirtableApiClient
 
         //----------------------------------------------------------------------------
         //
+        // AirtableBase.UpdateRecordGeneric<T>
+        //
+        // Called to update a record with the specified ID and of type T in the specified table.
+        // Only the fields present on the record are updated; null properties are left untouched.
+        // To clear a cell, list its field name (as it appears in the serialized JSON) in fieldsToClear.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceRecordGenericResponse<T>> UpdateRecordGeneric<T>(
+            string tableIdOrName,
+            T record,
+            string recordId,
+            bool typecast = false,
+            string[]? fieldsToClear = null,
+            CancellationToken token = default(CancellationToken))
+        {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, new HttpMethod("PATCH"), recordId, typecast, fieldsToClear, token).ConfigureAwait(false));
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
         // AirtableBase.ReplaceRecord
         //
         // Called to replace a record with the specified ID in the specified table using jsoncnotent .
@@ -513,7 +539,7 @@ namespace AirtableApiClient
                 throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
             }
 
-            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast, token)).ConfigureAwait(false);
+            return await (CreateReplaceRecordGeneric<T>(tableIdOrName, record, HttpMethod.Put, recordId, typecast, token: token)).ConfigureAwait(false);
         }
 
 
@@ -691,6 +717,34 @@ namespace AirtableApiClient
             IdFields[] idFields = ConvertAirtableRecordsToIdFields(records, performUpsert != null);
             var json = ReplaceUpdateMultipleRecordsInternal(idFields, typecast, returnFieldsByFieldId, performUpsert);
             return await (CreateUpdateReplaceMultipleRecords(tableIdOrName, new HttpMethod("PATCH"), json, token)).ConfigureAwait(false);
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.UpdateMultipleRecordsGeneric<T>
+        //
+        // Called to update multiple records of type T with the specified IDs in the specified table.
+        // Only the fields present on each record are updated; null properties are left untouched.
+        // To clear a cell, list its field name (as it appears in the serialized JSON) in fieldsToClear;
+        // the same fieldsToClear set is applied to every record in the batch.
+        //
+        //----------------------------------------------------------------------------
+        public async Task<AirtableCreateReplaceMultipleRecordsGenericResponse<T>> UpdateMultipleRecordsGeneric<T>(
+            string tableIdOrName,
+            T[] records,
+            string[] ids,
+            bool typecast = false,
+            bool returnFieldsByFieldId = false,
+            string[]? fieldsToClear = null,
+            CancellationToken token = default(CancellationToken))
+        {
+            if (string.IsNullOrEmpty(UrlHead))
+            {
+                throw new InvalidOperationException("Must call SetBaseId() to set Base ID before calling this API");
+            }
+
+            return await (CreateReplaceMultipleRecordsGeneric<T>(tableIdOrName, records, new HttpMethod("PATCH"), ids, typecast, returnFieldsByFieldId, token, fieldsToClear).ConfigureAwait(false));
         }
 
 
@@ -1342,14 +1396,16 @@ namespace AirtableApiClient
             string tableIdOrName,
             T record,
             HttpMethod httpMethod,
-            string? recordId = null, // only used by Replace
+            string? recordId = null, // only used by Replace and Update
             bool typecast = false,
+            string[]? fieldsToClear = null,
             CancellationToken token = default(CancellationToken))
         {
             TableIdOrNameCheck(tableIdOrName);
 
             string json = JsonSerializer.Serialize(record, JsonOptionIgnoreNullValues);
             var fields = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+            AddFieldsToClear(fields!, fieldsToClear);
             json = JsonSerializer.Serialize(new { fields = fields, typecast = typecast }, JsonOptionIgnoreNullValues);
 
             string uriStr = UrlHead + Uri.EscapeDataString(tableIdOrName) + "/";
@@ -1384,15 +1440,20 @@ namespace AirtableApiClient
             string[]? ids,
             bool typecast,
             bool returnFieldsByFieldId,
-            CancellationToken token)
+            CancellationToken token,
+            string[]? fieldsToClear = null)
         {
             ArgsCheck(tableIdOrName, records, method, ids);
 
             // Convert records into a list of Dicionaries
             string json = JsonSerializer.Serialize(records, JsonOptionIgnoreNullValues);
             var fields = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(json);
+            foreach (var record in fields!)
+            {
+                AddFieldsToClear(record, fieldsToClear);
+            }
 
-            if (method == HttpMethod.Put)   // Replacing multiple records? Airtable requires an IdFields[]
+            if (method != HttpMethod.Post)   // Replacing (PUT) or Updating (PATCH) multiple records? Airtable requires an IdFields[]
             {
                 // Combine the 2 arrays ids and fields into one IdFields[].
                 IdFields[] idFields = ids!.Zip(fields!, (id, fields) => new IdFields
@@ -1463,12 +1524,40 @@ namespace AirtableApiClient
                 throw new ArgumentException(String.Format("Number of records must be >0 && <= {0}", MAX_RECORD_OPERATION_SIZE));
             }
 
-            if (method == HttpMethod.Put)   // For Replace operations
+            if (method != HttpMethod.Post)   // For Replace (PUT) and Update (PATCH) operations
             {
                 if (ids == null || records.Length != ids.Length)
                 {
-                    throw new ArgumentException(String.Format("Number of records to be replaced must be >0 && <= {0} and equal to the number of IDs", MAX_RECORD_OPERATION_SIZE));
+                    throw new ArgumentException(String.Format("Number of records to be replaced/updated must be >0 && <= {0} and equal to the number of IDs", MAX_RECORD_OPERATION_SIZE));
                 }
+            }
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AirtableBase.AddFieldsToClear
+        //
+        // Insert an explicit null value for each field name in fieldsToClear so that the
+        // field gets cleared in Airtable. Serializing a typed record drops null properties
+        // (DefaultIgnoreCondition.WhenWritingNull), but null *dictionary* values are kept,
+        // so injecting them here lets callers clear specific cells on the typed/generic path.
+        //
+        //----------------------------------------------------------------------------
+        private static void AddFieldsToClear(Dictionary<string, object> fields, string[]? fieldsToClear)
+        {
+            if (fieldsToClear == null)
+            {
+                return;
+            }
+
+            foreach (var fieldName in fieldsToClear)
+            {
+                if (string.IsNullOrEmpty(fieldName))
+                {
+                    throw new ArgumentException("Field names in fieldsToClear cannot be null or empty", "fieldsToClear");
+                }
+                fields[fieldName] = null!;
             }
         }
 

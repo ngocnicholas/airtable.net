@@ -2346,6 +2346,120 @@ namespace AirtableApiClient.Tests
 
         }
 
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzU1AtApiClientUpdateRecordGeneric
+        // Update a single record of type T using the typed/generic API.
+        // Null properties are dropped (field left untouched), so this verifies the
+        // normal PATCH path leaves unset fields alone.
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzU1AtApiClientUpdateRecordGeneric()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"id\":\"recmzcnJeyGDsX00T\",\"createdTime\":\"2025-08-03T05:07:08.000Z\",\"fields\":{\"Name\":\"Jony Updated\",\"On Display?\":true}}");
+
+            string jonyRecordId = "recmzcnJeyGDsX00T";
+
+            // Bio is null on the record, so it must NOT appear in the request body.
+            string bodyText = "{\"fields\":{\"Name\":\"Jony Updated\",\"On Display?\":true},\"typecast\":false}";
+
+            fakeResponseHandler.AddFakeResponse(
+                        BASE_URL + "/" + jonyRecordId + "/",
+                        new HttpMethod("PATCH"),
+                        fakeResponse,
+                        bodyText);
+
+            Artist jony = new Artist();
+            jony.Name = "Jony Updated";
+            jony.OnDisplay = true;
+
+            Task<AirtableCreateReplaceRecordGenericResponse<Artist>> task = airtableBase.UpdateRecordGeneric<Artist>(TABLE_NAME, jony, jonyRecordId);
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+            Assert.IsTrue(response.Record!.Fields!.Name == "Jony Updated");
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzU2AtApiClientUpdateRecordGenericClearField
+        // Update a single record of type T and clear a cell via fieldsToClear.
+        // Verifies the explicit null is serialized so Airtable clears the field.
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzU2AtApiClientUpdateRecordGenericClearField()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"id\":\"recmzcnJeyGDsX00T\",\"createdTime\":\"2025-08-03T05:07:08.000Z\",\"fields\":{\"Name\":\"Jony Updated\",\"On Display?\":true}}");
+
+            string jonyRecordId = "recmzcnJeyGDsX00T";
+
+            // "Bio" is requested to be cleared, so it must be sent as an explicit null.
+            string bodyText = "{\"fields\":{\"Name\":\"Jony Updated\",\"On Display?\":true,\"Bio\":null},\"typecast\":false}";
+
+            fakeResponseHandler.AddFakeResponse(
+                        BASE_URL + "/" + jonyRecordId + "/",
+                        new HttpMethod("PATCH"),
+                        fakeResponse,
+                        bodyText);
+
+            Artist jony = new Artist();
+            jony.Name = "Jony Updated";
+            jony.OnDisplay = true;
+            jony.Bio = null;        // null property would normally be dropped; fieldsToClear forces it through
+
+            Task<AirtableCreateReplaceRecordGenericResponse<Artist>> task =
+                airtableBase.UpdateRecordGeneric<Artist>(TABLE_NAME, jony, jonyRecordId, fieldsToClear: new[] { "Bio" });
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+            Assert.IsTrue(response.Record!.Fields!.Name == "Jony Updated");
+        }
+
+
+        //----------------------------------------------------------------------------
+        //
+        // AtApiClientTests.TzU3AtApiClientUpdateMultipleRecordsGenericClearField
+        // Update multiple records of type T and clear a cell on every record.
+        //
+        //----------------------------------------------------------------------------
+        [TestMethod]
+        public async Task TzU3AtApiClientUpdateMultipleRecordsGenericClearField()
+        {
+            fakeResponse.Content = new StringContent
+                ("{\"records\":[{\"id\":\"rec8vJPDc7Seqekbi\",\"createdTime\":\"2025-08-03T23:50:36.000Z\",\"fields\":{\"Name\":\"Jony2 Again\"} },{\"id\":\"recPDSfwdOECYtod5\",\"createdTime\":\"2025-08-03T23:50:36.000Z\",\"fields\":{\"Name\":\"Jony3 Again\"} }]}");
+
+            // "Bio" must be sent as an explicit null for every record in the batch.
+            string bodyText = "{\"records\":[{\"id\":\"rec8vJPDc7Seqekbi\",\"fields\":{\"Name\":\"Jony2 Again\",\"On Display?\":false,\"Bio\":null}},{\"id\":\"recPDSfwdOECYtod5\",\"fields\":{\"Name\":\"Jony3 Again\",\"On Display?\":false,\"Bio\":null}}],\"typecast\":false,\"returnFieldsByFieldId\":false}";
+
+            fakeResponseHandler.AddFakeResponse(
+                BASE_URL + "/",
+                new HttpMethod("PATCH"),
+                fakeResponse,
+                bodyText);
+
+            string[] ids = new string[] { "rec8vJPDc7Seqekbi", "recPDSfwdOECYtod5" };
+
+            Artist[] artists = new Artist[2];
+            artists[0] = new Artist { Name = "Jony2 Again" };
+            artists[1] = new Artist { Name = "Jony3 Again" };
+
+            Task<AirtableCreateReplaceMultipleRecordsGenericResponse<Artist>> task =
+                airtableBase.UpdateMultipleRecordsGeneric<Artist>(TABLE_NAME, artists, ids, fieldsToClear: new[] { "Bio" });
+            var response = await task;
+
+            Assert.IsTrue(response.Success);
+            AirtableRecord<Artist>[]? records = response.Records;
+            Assert.IsNotNull(records);
+            Assert.IsTrue(records!.Length == 2);
+        }
+
+
         [TestMethod]
         public async Task TzVAtApiClientListBases()
         {
